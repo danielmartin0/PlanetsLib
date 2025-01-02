@@ -1,5 +1,17 @@
 local Public = {}
 
+function Public.get_planets_with_orbits(planets)
+    local planets_with_orbits = {}
+    
+    for _, planet in pairs(planets) do
+        if planet.orbit then
+            table.insert(planets_with_orbits, planet)
+        end
+    end
+    
+    return planets_with_orbits
+end
+
 function Public.get_absolute_polar_position_from_orbit(orbit)
 	local parent = orbit.parent
 

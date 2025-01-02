@@ -57,10 +57,12 @@ function Public.update_starmap_from_sprite(sprite, x, y)
 	table.insert(starmap_layers, sprite_copy)
 end
 
-for _, planet in pairs(data.raw["planet"]) do
+local planets = orbits.get_planets_with_orbits(data.raw["planet"])
+for _, planet in pairs(planets) do
 	Public.update_starmap_layers(planet)
 end
-for _, space_location in pairs(data.raw["space-location"]) do
+local spaceLocs = orbits.get_planets_with_orbits(data.raw["space-location"])
+for _, space_location in pairs(spaceLocs) do
 	Public.update_starmap_layers(space_location)
 end
 
