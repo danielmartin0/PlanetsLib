@@ -1,7 +1,17 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.22
 Date: ????
-  Changes:
+  Features:
+    - PlanetsLib.exact_value(property,value):  Returns a surface condition locking the acceptable range of values to one.
+    - PlanetsLib.restrict_to_surface(planet):  Returns a surface condition restricting a prototype to the provided planet.
+    - Added hidden surface conditions "planet-str" and "parent-body". Each planet-str is by default based on the planet's internal name, and is expected to be unique. Moons have their parent body value set to their parent body's planet-str.
+    - Added functions to set and get planet-str values.
+  Documentation:
+    - Added documentation for enabling optional surface conditions, in addition to everything else in this update.
+  Locale:
+    - Added set of description templates to standardize how the relationships between planets are moons are described.
+    - Replaced instances of word "Planet" with "Body" in "following-text-planet" locale key and a few other keys.
+
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.21
 Date: 2025-01-13
