@@ -11,6 +11,17 @@ for _, planet in pairs(planets) do
 	end
 end
 
+--If any modded asteroid belts exist, the Shattered planet's subcategory will change to "asteroid-belt."
+local has_asteroid_belts = false 
+for _, location in pairs(data.raw["space-location"]) do
+	if location.subgroup == "asteroid-belts" then
+		has_asteroid_belts = true
+	end
+end
+if has_asteroid_belts then
+	data.raw["space-location"]["shattered-planet"].subgroup = "asteroid-belts"
+end
+
 for _, type in pairs({ "space-location", "planet" }) do
 	for _, location in pairs(data.raw[type]) do
 		if

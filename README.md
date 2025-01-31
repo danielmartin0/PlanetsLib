@@ -58,6 +58,12 @@ The library provides automatic functionality to restrict cargo drops on your pla
 * `PlanetsLib.technology_icons_moon` — Icon to be used in moon discovery technologies.
 * `subgroup=satellites` — A new Factoriopedia row for satellites (below the planets row).
 
+### Other subgroups
+
+* `subgroup=gas-giants` — A Factoriopedia row for gas giants.
+* `subgroup=asteroid-belts` — A Factoriopedia row for asteroid belts. If any asteroid belts are defined, the Shattered planet's subgroup will be changed to this.
+* `subgroup=dwarf-planets` — A Factoriopedia row for dwarf planets.
+
 ### Description templates
 
 Documentation pending.
