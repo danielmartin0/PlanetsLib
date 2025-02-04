@@ -24,35 +24,41 @@ local function science_sorted_by_order_or_name(table)
 	return table
 end
 
--- fix ordering of science packs in the vanilla lab to match the pack's order string.
-local lab = data.raw["lab"]["lab"]
-local base_inputs = science_sorted_by_order_or_name(lab.inputs)
-lab.inputs = base_inputs
+if data.raw["lab"]["lab"] then
+	local vanilla_lab = data.raw["lab"]["lab"]
 
--- the biolab should have all of these by default
-data.raw["lab"]["biolab"].include_all_lab_science = true
+	--== Ordering science packs in labs ==--
 
-for _, new_lab in pairs(data.raw["lab"]) do
-	if new_lab["include_all_lab_science"] == true then
-		for _, input in pairs(base_inputs) do
-			if not lib.contains(new_lab.inputs, input) then
-				table.insert(new_lab.inputs, input)
-			end
-		end
-		new_lab.inputs = science_sorted_by_order_or_name(new_lab.inputs)
-	elseif new_lab["sort_sciences"] == true then
-		local local_inputs = new_lab.inputs
-		new_lab.inputs = science_sorted_by_order_or_name(local_inputs)
+	local vanilla_lab_inputs = science_sorted_by_order_or_name(vanilla_lab.inputs)
+	vanilla_lab.inputs = vanilla_lab_inputs
+
+	if data.raw["lab"]["biolab"] then
+		data.raw["lab"]["biolab"].include_all_lab_science = true
 	end
-end
 
--- fix up selected sciences that are coming after promethium science.
--- We DO NOT check if the technology is actually coming after promethium science, because there may be some nesting!
-local all_tech = data.raw["technology"]
+	for _, new_lab in pairs(data.raw["lab"]) do
+		if new_lab["include_all_lab_science"] == true then
+			for _, input in pairs(vanilla_lab_inputs) do
+				if not lib.contains(new_lab.inputs, input) then
+					table.insert(new_lab.inputs, input)
+				end
+			end
+			new_lab.inputs = science_sorted_by_order_or_name(new_lab.inputs)
+		elseif new_lab["sort_sciences"] == true then
+			local local_inputs = new_lab.inputs
+			new_lab.inputs = science_sorted_by_order_or_name(local_inputs)
+		end
+	end
 
+	--== Setting science packs in endgame technologies
 
-for key, value in pairs(all_tech) do
-	if value["as_endgame_technology"] == true then
-		tech.set_science_packs_from_lab(value,lab)
+	if data.raw["technology"]["promethium-science-pack"] then
+		data.raw["technology"]["promethium-science-pack"]["give_all_packs_in_vanilla_lab"] = true
+	end
+
+	for _, value in pairs(data.raw["technology"]) do
+		if value["give_all_packs_in_vanilla_lab"] == true then
+			tech.set_science_packs_from_lab(value, vanilla_lab)
+		end
 	end
 end

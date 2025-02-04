@@ -87,17 +87,19 @@ PlanetsLib includes a variety of surface conditions, all of which are either hid
 
 * `PlanetsLib.restrict_to_planet(entity_or_recipe, planet)`: Restricts the entity or recipe prototype to a given planet by adding a special surface condition unique to that planet. This surface condition is almost invisible in the UI, with the exception of messages like "X can't be crafted on this surface. The  is too low". The planet can be passed as a name or object.
 
-### Labs
+### Science adjustments
+
+#### Labs
 
 Unlike in Factoriopedia, science packs in labs aren't ordered by the `order` field. PlanetsLib orders the science packs in the vanilla labs in `data-final-fixes` for tidiness. Modded labs can set `sort_sciences` to `true` on their prototype to have PlanetsLib sort them too.
 
 You can also have PlanetsLib add all sciences from the vanilla lab to your own modded lab in `data-final-fixes` by setting the field `include_all_base_lab_science` to `true` on your lab's prototype.
 
-### Technology
+#### Technologies
 
-Setting `as_endgame_technology` on any technology to true will update the `ingredients` inside the `unit` block to contain all science packs from the base lab. Will also retain the sorting from the labs.
+Setting `give_all_packs_in_vanilla_lab` on any technology to true will ensure the technology contains all science packs present in the base lab. This is useful for defining new endgame technologies.
 
-This is set on the promethium science research by default, you can turn it off in `data-updates`.
+By default, PlanetsLib sets this field to `true` on the promethium science pack technology.
 
 ### Other helper functions
 

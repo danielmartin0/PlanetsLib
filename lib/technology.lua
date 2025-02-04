@@ -87,13 +87,25 @@ end
 
 -- This function makes the technology use all sciences in the base lab.
 -- Compatibility for technologies after prometheum science.
-function Public.set_science_packs_from_lab(technology,lab) 
-	local inputs = lab.inputs
-	local ingredients = {}
-	for key, value in pairs(inputs) do
-		table.insert(ingredients,{value,1})
+function Public.set_science_packs_from_lab(technology, lab)
+	if not (technology and technology.unit and lab and lab.inputs) then
+		return
 	end
-	technology.unit.ingredients = ingredients
+
+	technology.unit.ingredients = technology.unit.ingredients or {}
+
+	local inputs = lab.inputs
+	local existing_packs = {}
+
+	for _, pack in pairs(technology.unit.ingredients) do
+		existing_packs[pack[1]] = true
+	end
+
+	for _, value in pairs(inputs) do
+		if not existing_packs[value] then
+			table.insert(technology.unit.ingredients, { value, 1 })
+		end
+	end
 end
 
 return Public
