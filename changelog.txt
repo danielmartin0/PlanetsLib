@@ -2,6 +2,7 @@
 Version: 1.2.5
 Date: ????
   Changes:
+    - Fixed the API technology_icon_constant_planet becoming broken earlier today.
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.4
 Date: 2025-02-05
