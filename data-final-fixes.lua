@@ -1,4 +1,5 @@
 require("prototypes.override-final.science")
+require("prototypes.override-final.update-positions")
 local ps = require("lib.planet-str")
 
 local planets = data.raw.planet
@@ -8,28 +9,6 @@ for _, planet in pairs(planets) do
 	if planet["surface_properties"] and planet["surface_properties"]["planet-str"] == nil then --Other mods can override planet strings, this is a last-resort planet string generator.
 		local truncated_name = string.sub(planet.name, 1, 8) --Planet strings can only be 8 characters or less.
 		ps.set_planet_str(planet, truncated_name)
-	end
-end
-
-for _, type in pairs({ "space-location", "planet" }) do
-	for _, location in pairs(data.raw[type]) do
-		if
-			not (
-				location.orbit
-				and location.orbit.parent
-				and location.orbit.distance
-				and (location.orbit.orientation or location.orbit.distance == 0)
-			)
-		then
-			location.orbit = {
-				parent = {
-					type = "space-location",
-					name = "star",
-				},
-				distance = location.distance,
-				orientation = location.orientation,
-			}
-		end
 	end
 end
 

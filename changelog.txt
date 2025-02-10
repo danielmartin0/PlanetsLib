@@ -1,7 +1,68 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.1.38
+Version: 1.2.7
 Date: ????
   Changes:
+---------------------------------------------------------------------------------------------------
+Version: 1.2.6
+Date: 2025-02-07
+  Changes:
+    - No longer write 'Space Locations' in the remote view planet GUI. Space locations isn't technically correct here.
+---------------------------------------------------------------------------------------------------
+Version: 1.2.5
+Date: 2025-02-05
+  Changes:
+    - Fixed the API technology_icon_constant_planet.
+---------------------------------------------------------------------------------------------------
+Version: 1.2.4
+Date: 2025-02-05
+  Changes:
+    - New thumbnail.
+    - Image size compression.
+---------------------------------------------------------------------------------------------------
+Version: 1.2.3
+Date: 2025-02-04
+  Changes:
+    - Fixed bug in which promethium science tech required promethium to research it.
+---------------------------------------------------------------------------------------------------
+Version: 1.2.2
+Date: 2025-02-03
+  Changes:
+    - New API: technology_icon_planet
+---------------------------------------------------------------------------------------------------
+Version: 1.2.1
+Date: 2025-02-03
+  Changes:
+    - Readme update.
+---------------------------------------------------------------------------------------------------
+Version: 1.2.0
+Date: 2025-02-02
+  Changes:
+    - Mods are now able to move child locations simply by updating the position of the parent location. In data-final-fixes PlanetsLib now detects whether a location prototype's orbit object no longer matches the prototype's position and orientation fields, and if so, it applies the same positional shift to all that location's orbit children.
+---------------------------------------------------------------------------------------------------
+Version: 1.1.42
+Date: 2025-02-02
+  Changes:
+    - Moved the nonfunctional orbit-setting code from data-final-fixes to data-updates.
+---------------------------------------------------------------------------------------------------
+Version: 1.1.41
+Date: 2025-01-31
+  Changes:
+    - Rename give_all_packs_in_vanilla_lab to ensure_all_packs_from_vanilla_lab.
+---------------------------------------------------------------------------------------------------
+Version: 1.1.40
+Date: 2025-01-31
+  Changes:
+    - New API: give_all_packs_in_vanilla_lab.
+---------------------------------------------------------------------------------------------------
+Version: 1.1.39
+Date: 2025-01-31
+  Changes:
+    - Improve error message for specifying an orbit with a parent that doesn't exist.
+---------------------------------------------------------------------------------------------------
+Version: 1.1.38
+Date: 2025-01-31
+  Changes:
+    - New helper: PlanetsLib.technology_icon_constant_planet.
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.37
 Date: 2025-01-30
@@ -30,8 +91,8 @@ Date: 2025-01-24
   Locale:
     - Japanese added.
 ---------------------------------------------------------------------------------------------------
-Version: 1.2.0
-Date: ????
+Version: 1.1.32
+Date: 2025-01-23
   Changes:
     - New APIs: restrict_surface_conditions, relax_surface_conditions and restrict_to_planet.
 ---------------------------------------------------------------------------------------------------

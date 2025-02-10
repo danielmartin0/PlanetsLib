@@ -134,7 +134,7 @@ function Public.borrow_music(source_planet, target_planet)
 		"PlanetsLib.borrow_music() - Invalid parameter 'target_planet'. Field is required to be either `space-location` or `planet` prototype."
 	)
 
-	for _, music in pairs(table.deepcopy(data.raw["ambient-sound"])) do
+	for _, music in pairs(util.table.deepcopy(data.raw["ambient-sound"])) do
 		if music.planet == source_planet.name then
 			music.name = music.name .. "-" .. target_planet.name
 			music.planet = target_planet.name
@@ -143,6 +143,9 @@ function Public.borrow_music(source_planet, target_planet)
 	end
 end
 
+--- This function sets `default_import_location` based on an item name and planet.
+--- `default_import_location` is used by the space platform GUI to
+--- define the default planet where an item will be imported from.
 function Public.set_default_import_location(item_name, planet)
 	for item_prototype in pairs(defines.prototypes.item) do
 		local item = (data.raw[item_prototype] or {})[item_name]
@@ -153,23 +156,6 @@ function Public.set_default_import_location(item_name, planet)
 	end
 
 	error("PlanetsLib.set_default_import_location() - Item not found: " .. item_name, 2)
-end
-
-function Public.technology_icon_constant_planet(technology_icon, size)
-	local icons =
-	{
-	  {
-		icon = technology_icon,
-		icon_size = size,
-	  },
-	  {
-		icon = "__core__/graphics/icons/technology/constants/constant-planet.png",
-		icon_size = 128,
-		scale = 0.5,
-		shift = {50, 50}
-	  }
-	}
-	return icons
 end
 
 return Public

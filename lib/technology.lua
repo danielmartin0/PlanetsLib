@@ -26,8 +26,8 @@ function Public.technology_icons_planet_cargo_drops(planet_icon, icon_size)
 	return {
 		{
 			icon = "__PlanetsLib__/graphics/icons/cargo-drop-tech-pod.png",
-			icon_size = 520,
-			scale = 0.4923,
+			icon_size = 256,
+			scale = 1,
 			shift = { 0, 0 },
 			draw_background = true,
 		},
@@ -40,16 +40,16 @@ function Public.technology_icons_planet_cargo_drops(planet_icon, icon_size)
 		},
 		{
 			icon = "__PlanetsLib__/graphics/icons/cargo-drop-tech-shadow.png",
-			icon_size = 520,
-			scale = 0.4923,
+			icon_size = 256,
+			scale = 1,
 			shift = { 0, 0 },
 			tint = { r = 0, g = 0, b = 0, a = 0.5 },
 			draw_background = true,
 		},
 		{
 			icon = "__PlanetsLib__/graphics/icons/cargo-drop-tech-pod.png",
-			icon_size = 520,
-			scale = 0.4923,
+			icon_size = 256,
+			scale = 1,
 			shift = { 0, 0 },
 			draw_background = true,
 		},
@@ -65,7 +65,7 @@ function Public.technology_effect_cargo_drops(planet_name)
 	}
 end
 
-function Public.technology_icons_moon(moon_icon, icon_size)
+function Public.technology_icon_moon(moon_icon, icon_size)
 	icon_size = icon_size or 256
 
 	local icons = {
@@ -75,6 +75,25 @@ function Public.technology_icons_moon(moon_icon, icon_size)
 		},
 		{
 			icon = "__PlanetsLib__/graphics/icons/moon-technology-symbol.png",
+			icon_size = 128,
+			scale = 0.5,
+			shift = { 50, 50 },
+		},
+	}
+	return icons
+end
+
+-- The same as util.technology_icon_constant_planet from the vanilla library, but allows any icon size.
+function Public.technology_icon_planet(planet_icon, icon_size)
+	icon_size = icon_size or 256
+
+	local icons = {
+		{
+			icon = planet_icon,
+			icon_size = icon_size,
+		},
+		{
+			icon = "__core__/graphics/icons/technology/constants/constant-planet.png",
 			icon_size = 128,
 			scale = 0.5,
 			shift = { 50, 50 },
@@ -101,9 +120,22 @@ function Public.set_science_packs_from_lab(technology, lab)
 		existing_packs[pack[1]] = true
 	end
 
-	for _, value in pairs(inputs) do
-		if not existing_packs[value] then
-			table.insert(technology.unit.ingredients, { value, 1 })
+	for _, value in pairs(inputs) do --For input in lab inputs
+		local to_insert = true
+		for _, effect in pairs(technology.effects) do --Check if this technology unlocks a science pack. If yes, don't make this technology require that pack.
+			if effect.type == "unlock-recipe" and effect.recipe == value then
+				to_insert = false
+				break
+			end
+		end
+		for key, pack in pairs(existing_packs) do
+			if key == value then
+				to_insert = false
+				break
+			end
+		end
+		if to_insert then
+			table.insert(technology.unit.ingredients, { value, 1 }) --Inserts science pack.
 		end
 	end
 end
