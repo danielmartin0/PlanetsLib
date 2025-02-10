@@ -105,8 +105,8 @@ Documentation pending.
 
 * `PlanetsLib.set_default_import_location(item_name, planet)` — Sets the default import location for an item on a planet.
 * `PlanetsLib.borrow_music(source_planet, target_planet)` — Clones music tracks from `source_planet` to `target_planet`. Does not overwrite existing music for `target_planet`.
-* `PlanetsLib.technology_icon_moon` — Creates a moon discovery technology icon.
-* `PlanetsLib.technology_icon_planet` — Creates a planet discovery technology icon.
+* `PlanetsLib.technology_icons_moon` — Creates a moon discovery technology icon.
+* `PlanetsLib.technology_icons_planet` — Creates a planet discovery technology icon.
 
 #### Python helper scripts
 
