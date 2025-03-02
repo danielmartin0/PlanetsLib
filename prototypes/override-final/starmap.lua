@@ -61,14 +61,14 @@ function Public.draw_orbit_of_planet(planet)
 
 	if orbit.sprite.layers then
 		for _, layer in pairs(orbit.sprite.layers) do
-			Public.add_sprite_to_starmap(layer, { x = parent_x, y = parent_y })
+			Public.add_sprite_to_starmap(layer, { x = parent_x, y = parent_y }, true)
 		end
 	else
-		Public.add_sprite_to_starmap(orbit.sprite, { x = parent_x, y = parent_y })
+		Public.add_sprite_to_starmap(orbit.sprite, { x = parent_x, y = parent_y }, true)
 	end
 end
 
-function Public.add_sprite_to_starmap(sprite, extra_displacement)
+function Public.add_sprite_to_starmap(sprite, extra_displacement, at_back)
 	local sprite_copy = util.table.deepcopy(sprite)
 
 	local shift_x = 0
@@ -99,7 +99,11 @@ function Public.add_sprite_to_starmap(sprite, extra_displacement)
 		shift_y,
 	}
 
-	table.insert(starmap_layers, sprite_copy)
+	if at_back then
+		table.insert(starmap_layers, 1, sprite_copy)
+	else
+		table.insert(starmap_layers, sprite_copy)
+	end
 end
 
 -- Now begins the algorithm:
