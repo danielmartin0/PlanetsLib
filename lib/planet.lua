@@ -3,9 +3,12 @@ local orbits = require("lib.orbits")
 local Public = {}
 
 function Public.extend(config)
+	Public.default_extend_fields(config)
 	Public.verify_extend_fields(config)
 
 	local planet = {}
+
+	
 
 	local distance, orientation = orbits.get_absolute_polar_position_from_orbit(config.orbit)
 
@@ -15,6 +18,8 @@ function Public.extend(config)
 	for k, v in pairs(config) do -- This will not include distance, orientation due to validity checks.
 		planet[k] = v
 	end
+
+	
 
 	if planet.orbit.parent then --Adds encoded parent body to surface properties.
 		if planet.orbit.parent.type == "planet" then
@@ -36,37 +41,62 @@ function Public.is_space_location(planet)
 	return planet.type == "planet" or planet.type == "space-location"
 end
 
+function Public.default_extend_fields(config) --Adds default values when values are empty. This step does not seek to assert anything.
+--Allows planet objects with orbits formatted according to vanilla structure to be passed to PlanetsLib without any modifications.
+--Will not prevent planets with distance/orientation both defined in root and orbit from crashing.
+	if (config.orbit == nil) then
+		config.orbit = {}
+	end
+	if config.orbit then
+		if config.orbit.distance == nil and config.distance then
+			config.orbit.distance = config.distance
+			config.distance = nil
+		end
+		if config.orbit.orientation == nil and config.orientation then
+			config.orbit.orientation = config.orientation
+			config.orientation = nil
+		end
+		if config.orbit.parent == nil then --Default planet orbit parent mirroring vanilla planets. Before this was added, the library would crash when parent was nil.
+			config.orbit.parent = {
+				type = "space-location",
+				name ="star",
+			}
+		end
+	end
+	
+end
+
 -- TODO: Add checks to ensure the structure of orbit is correct.
 function Public.verify_extend_fields(config)
 	if not Public.is_space_location(config) then
 		error(
-			"PlanetsLib:extend() - extend only takes a planet or space-location prototype. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
+			"Error with space-location \""..config.name.."\": PlanetsLib:extend() - extend only takes a planet or space-location prototype. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
 		)
 	end
 	if not config.orbit then
 		error(
-			"PlanetsLib:extend() - 'orbit' field is required. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
+			"Error with space-location \""..config.name.."\": PlanetsLib:extend() - 'orbit' field is required. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
 		)
 	end
 	if not Public.is_space_location(config.orbit.parent) then
 		error(
-			"PlanetsLib:extend() - 'orbit.parent' must be a space location. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
+			"Error with space-location \""..config.name.."\": PlanetsLib:extend() - 'orbit.parent' must be a space location. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
 		)
 	end
 
-	if config.distance then
+	if config.distance or not config.orbit.distance then
 		error(
-			"PlanetsLib:extend() - 'distance' should be specified in the 'orbit' field. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
+			"Error with space-location \""..config.name.."\": PlanetsLib:extend() - 'distance' should be specified in the 'orbit' field. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
 		)
 	end
-	if config.orientation then
+	if config.orientation or not config.orbit.distance then
 		error(
-			"PlanetsLib:extend() - 'orientation' should be specified in the 'orbit' field. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
+			"Error with space-location \""..config.name.."\": PlanetsLib:extend() - 'orientation' should be specified in the 'orbit' field. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
 		)
 	end
 	if not config.orbit.parent then
 		error(
-			"PlanetsLib:extend() - 'orbit.parent' field is required with an object containing 'type' and 'name' fields. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
+			"Error with space-location \""..config.name.."\": PlanetsLib:extend() - 'orbit.parent' field is required with an object containing 'type' and 'name' fields. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
 		)
 	end
 end
