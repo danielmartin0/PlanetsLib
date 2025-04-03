@@ -2,6 +2,7 @@
 Version: 1.2.18
 Date: ????
   Changes:
+    - Planets with vanilla-style orbit fields can now be passed to PlanetsLib:extend without crashing. 
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.17
 Date: 2025-04-03
