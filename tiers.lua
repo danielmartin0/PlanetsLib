@@ -59,6 +59,8 @@ Public.modded_tiers = {
 	["space-location"] = {
 		["slp-solar-system-sun"] = 0.2,
 		["slp-solar-system-sun2"] = 0.2,
+		["oratl-approach"] = 5.4
+		oratl = 5.5
 		secretas = 5.65,
 	},
 }
