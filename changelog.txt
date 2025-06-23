@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.6.3
+Version: 1.7.0
 Date: ????
   Changes:
+    - Added unified interface allowing planets to define rocket silo recipes on a per-surface basis.
 ---------------------------------------------------------------------------------------------------
 Version: 1.6.2
 Date: 2025-06-16

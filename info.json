@@ -7,8 +7,8 @@
     "description": "Code, graphics and conventions to help modders creating planets, moons and other systems. This is a community project.",
     "homepage": "https://github.com/danielmartin0/PlanetsLib",
     "dependencies": [
-        "base >= 2.0.0",
-        "? space-age >= 2.0.0",
+        "base >= 2.0.58",
+        "? space-age >= 2.0.58",
         "(?) Cosmic-Social-Distancing >= 1.0.2",
         "! MT-lib"
     ]

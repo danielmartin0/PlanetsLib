@@ -58,6 +58,14 @@ You can use the library to restrict cargo drops on your planet until a certain t
     * A locale entry for this technology is automatically generated, but you are free to override it.
 * Note that players can use [this mod](https://mods.factorio.com/mod/disable-cargo-drops-techs) to disable the effect of this restriction.
 
+## Rocket part recipes
+
+You can use the library to assign unique rocket part recipes to rocket silos placed on a specified planet to increase or decrease the difficulty of launching rockets on the planet. Rocket silos with their recipe fixed to the vanilla `rocket-part` recipe are targeted by PlanetsLib. To implement:
+
+* Use the helper function `PlanetsLib.assign_rocket_part_recipe(planet,recipe)` to assign a recipe to a planet.
+    * PlanetsLib stores rocket part recipe assignments in a mod-data prototype named `Planetslib-planet-rocket-part-recipe`. Planets with their own system for assigning rocket part recipes are exempted with the assigned recipe name `_other`. Muluna and Maraxsis are currently exempted in this manner to maintain backwards compatibility with those mods.
+    * Planets without an assigned recipe default to the vanilla `rocket-part` recipe.
+
 ## Surface conditions
 
 #### New surface conditions
