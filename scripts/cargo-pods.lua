@@ -22,6 +22,10 @@ script.on_configuration_changed(function()
 	init_storage()
 end)
 
+local cargo_drops_techs = {}
+for _,planet in pairs(prototypes.space_location) do
+	cargo_drops_techs[planet.name] = "planetslib-" .. planet.name .. "-cargo-drops"
+end
 script.on_nth_tick(20, function()
 	for _, force in pairs(game.forces) do
 		for _, platform in pairs(force.platforms) do
@@ -32,7 +36,7 @@ script.on_nth_tick(20, function()
 				end
 
 				if planet_name then
-					local cargo_drops_tech = force.technologies["planetslib-" .. planet_name .. "-cargo-drops"]
+					local cargo_drops_tech = force.technologies[cargo_drops_techs[planet_name]] --force.technologies["planetslib-" .. planet_name .. "-cargo-drops"]
 
 					if cargo_drops_tech and not cargo_drops_tech.researched then
 						local has_nothing_effect = false

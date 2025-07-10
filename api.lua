@@ -5,6 +5,7 @@ local planet = require("lib.planet")
 local planet_str = require("lib.planet-str")
 local surface_conditions = require("lib.surface_conditions")
 local tiers = require("tiers")
+local mod_data = require("lib.mod-data")
 
 --== APIs ==--
 -- API documentation lives in README.md (or on the mod portal.)
@@ -19,6 +20,8 @@ PlanetsLib.excise_effect_from_tech_tree = technology.excise_effect_from_tech_tre
 PlanetsLib.technology_icon_moon = technology.technology_icon_moon
 PlanetsLib.technology_icon_planet = technology.technology_icon_planet
 PlanetsLib.cargo_drops_technology_base = technology.cargo_drops_technology_base
+
+PlanetsLib.assign_rocket_part_recipe = mod_data.assign_rocket_part_recipe
 
 PlanetsLib.get_planet_tier = tiers.get_planet_tier
 PlanetsLib.get_space_location_tier = tiers.get_space_location_tier
