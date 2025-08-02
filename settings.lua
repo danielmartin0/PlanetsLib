@@ -9,10 +9,18 @@ data:extend({
 	{
 		type = "bool-setting",
 		setting_type = "startup",
-		name = "PlanetsLib-unlink-hidden-prerequisites",
-		default_value = false,
+		name = "PlanetsLib-update-vanilla-recipe-productivity-techs",
+		default_value = true,
 		order = "b",
 	},
+	{
+		type = "bool-setting",
+		setting_type = "startup",
+		name = "PlanetsLib-unlink-hidden-prerequisites",
+		default_value = false,
+		order = "c",
+	},
+	
 })
 
 data:extend({
