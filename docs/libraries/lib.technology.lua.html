@@ -1,0 +1,204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>PlanetsLib documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>PlanetsLib (Work in progress)</h1>
+
+<ul>
+  <li><a href="https://github.com/danielmartin0/PlanetsLib">GitHub</a></li>
+  <li><a href="https://mods.factorio.com/mod/PlanetsLib">Mod Portal Download</a></li>
+  <li><a href="../index.html">Documentation</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Libraries</h2>
+<ul class="nowrap">
+  <li><a href="../libraries/PlanetsLib.objects.html">PlanetsLib.objects</a></li>
+  <li><a href="../libraries/lib.remove-replace-object.html">lib.remove-replace-object</a></li>
+  <li><strong>lib.technology.lua</strong></li>
+  <li><a href="../libraries/scripts.rocket-parts.lua.html">scripts.rocket-parts.lua</a></li>
+</ul>
+<h2>Manual</h2>
+<ul class="nowrap">
+  <li><a href="../manual/README.md.html">README</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>lib.technology.lua</code></h1>
+<p>Technology-related functions.</p>
+<p> Dependencies: util, lib.lib, lib.remove-replace-object</p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Public.get_child_technologies">Public.get_child_technologies (tech_name)</a></td>
+	<td class="summary">Technology name goes in.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Public.technology_icon_moon">Public.technology_icon_moon (tech_icon, icon_size)</a></td>
+	<td class="summary">Create a moon discovery technology icon by adding a little moon icon on your technology icon, like in vanilla, but for moon type planets.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Public.technology_icon_planet">Public.technology_icon_planet (tech_icon, icon_size)</a></td>
+	<td class="summary">Create a planet discovery technology icon by adding a little planet icon on your technology icon, like in vanilla.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Public.process_technology_recipe_productivity_effects">Public.process_technology_recipe_productivity_effects (tech)</a></td>
+	<td class="summary">
+
+</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "Public.get_child_technologies"></a>
+    <strong>Public.get_child_technologies (tech_name)</strong>
+    </dt>
+    <dd>
+    Technology name goes in.  Out comes an array of technology names that currently list that tech as a prerequisite. Throws an error if an invalid prototype name is passed.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tech_name</span>
+         string
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        string[] children
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Public.technology_icon_moon"></a>
+    <strong>Public.technology_icon_moon (tech_icon, icon_size)</strong>
+    </dt>
+    <dd>
+    Create a moon discovery technology icon by adding a little moon icon on your technology icon, like in vanilla, but for moon type planets.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tech_icon</span>
+         string The technology icon to add the moon icon
+        </li>
+        <li><span class="parameter">icon_size</span>
+         integer Your icon size
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        data.IconData[]
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Public.technology_icon_planet"></a>
+    <strong>Public.technology_icon_planet (tech_icon, icon_size)</strong>
+    </dt>
+    <dd>
+    Create a planet discovery technology icon by adding a little planet icon on your technology icon, like in vanilla.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tech_icon</span>
+         string The technology icon to add the planet icon
+        </li>
+        <li><span class="parameter">icon_size</span>
+         integer Your icon size
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        data.IconData[]
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Public.process_technology_recipe_productivity_effects"></a>
+    <strong>Public.process_technology_recipe_productivity_effects (tech)</strong>
+    </dt>
+    <dd>
+
+
+
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tech</span>
+         table (TechnologyPrototype)
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.5.0</a></i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

@@ -1,4 +1,14 @@
+--- rocket-parts.lua
+-- @module scripts.rocket-parts.lua
+-- @pragma nostrip
+-- @author Nicholas Gower(MeteorSwarm)
+
 local Public = {}
+
+--- On building a rocket silo, if the silo is vanilla-like, its recipe is replaced if it was placed on a surface
+--- that according to "Planetslib-planet-rocket-part-recipe"(mod-data), should be replaced.
+--- Forked from NotNotMelon's [rocket silo code](https://github.com/notnotmelon/maraxsis/blob/main/scripts/project-seadragon.lua) for Maraxsis.
+-- @param event table
 function Public.on_built_rocket_silo(event)
     
     local entity = event.entity

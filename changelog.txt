@@ -1,7 +1,11 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.9.1
-Date: ????
+Version: 1.10.0
+Date: 2025-08-02
+  Features:
+    - Added TechnologyPrototype field "PlanetsLib_recipe_productivity_effects" field, must be added before data-final-fixes. Simplifies the maintenance of recipe productivity technologies by automatically adding every recipe that produces a particular item/fluid.
   Changes:
+    - Added user-facing option to set PlanetsLib_recipe_productivity_effects field for relevant vanilla technologies. Enabled by default, but can be disabled when incompatibility issues are noted.
+    - Added initial support for LDoc to prepare PlanetsLib for more proper documentation.
 ---------------------------------------------------------------------------------------------------
 Version: 1.9.0
 Date: 2025-08-02

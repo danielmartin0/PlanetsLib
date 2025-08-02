@@ -6,6 +6,7 @@ local planet_str = require("lib.planet-str")
 local surface_conditions = require("lib.surface_conditions")
 local mod_data = require("lib.mod-data")
 
+
 --== APIs ==--
 -- API documentation lives in README.md (or on the mod portal.)
 
@@ -19,6 +20,7 @@ PlanetsLib.excise_effect_from_tech_tree = technology.excise_effect_from_tech_tre
 PlanetsLib.technology_icon_moon = technology.technology_icon_moon
 PlanetsLib.technology_icon_planet = technology.technology_icon_planet
 PlanetsLib.cargo_drops_technology_base = technology.cargo_drops_technology_base
+
 
 PlanetsLib.assign_rocket_part_recipe = mod_data.assign_rocket_part_recipe
 
@@ -47,6 +49,7 @@ end
 --== Undocumented APIs ==--
 -- Though these APIs are undocumented we should still support them, as mods may be using them.
 
+PlanetsLib.process_technology_recipe_productivity_effects = technology.process_technology_recipe_productivity_effects
 PlanetsLib.technology_icons_moon = technology.technology_icon_moon
 PlanetsLib.technology_icon_constant_planet = technology.technology_icon_planet
 PlanetsLib.technology_icons_planet_cargo_drops = technology.technology_icons_planet_cargo_drops
@@ -54,6 +57,11 @@ PlanetsLib.technology_effect_cargo_drops = technology.technology_effect_cargo_dr
 PlanetsLib.surface_conditions = surface_conditions
 PlanetsLib.restrict_to_planet = surface_conditions.restrict_to_planet
 PlanetsLib.planet_str = planet_str
+
+
+PlanetsLib.objects = require("lib.objects") --Table manipulation library 
+PlanetsLib.rro = PlanetsLib.objects --Alias for PlanetsLib.objects
+
 
 -- For backwards compatibility (mod-data was not always a thing). NOTE: These functions return numbers, other mods may change the tier prototypes after you call this.
 PlanetsLib.get_planet_tier = function(planet_name)

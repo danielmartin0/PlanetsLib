@@ -1,7 +1,7 @@
 PlanetsLib = {}
 
 require("api")
-
+require("prototypes.vanilla-override.recipe-productivity-technology")
 if mods["space-age"] then
 	require("prototypes.surface-property")
 	require("prototypes.categories")

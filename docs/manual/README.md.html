@@ -1,0 +1,298 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>PlanetsLib documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>PlanetsLib (Work in progress)</h1>
+
+<ul>
+  <li><a href="https://github.com/danielmartin0/PlanetsLib">GitHub</a></li>
+  <li><a href="https://mods.factorio.com/mod/PlanetsLib">Mod Portal Download</a></li>
+  <li><a href="../index.html">Documentation</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Contributors">Contributors </a></li>
+<li><a href="#Defining_planets">Defining planets </a></li>
+<li><a href="#Planet_tiers">Planet tiers </a></li>
+<li><a href="#Planet_Cargo_Drops_technology">Planet Cargo Drops technology </a></li>
+<li><a href="#Rocket_part_recipes">Rocket part recipes </a></li>
+<li><a href="#Surface_conditions">Surface conditions </a></li>
+<li><a href="#Science___Technologies">Science & Technologies </a></li>
+<li><a href="#Subgroups">Subgroups </a></li>
+<li><a href="#Assorted_helpers">Assorted helpers </a></li>
+</ul>
+
+
+<h2>Manual</h2>
+<ul class="nowrap">
+  <li><strong>README</strong></li>
+</ul>
+<h2>Libraries</h2>
+<ul class="nowrap">
+  <li><a href="../libraries/PlanetsLib.objects.html">PlanetsLib.objects</a></li>
+  <li><a href="../libraries/lib.remove-replace-object.html">lib.remove-replace-object</a></li>
+  <li><a href="../libraries/lib.technology.lua.html">lib.technology.lua</a></li>
+  <li><a href="../libraries/scripts.rocket-parts.lua.html">scripts.rocket-parts.lua</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+    <a href="https://discord.gg/VuVhYUBbWE"><img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&amp;logo=discord&amp;logoColor=white" alt="Discord"/></a><a href="https://github.com/danielmartin0/PlanetsLib"><img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&amp;logo=github&amp;logoColor=white" alt="GitHub"/></a></p>
+
+<h1>PlanetsLib</h1>
+
+<p>Code, graphics and conventions to help modders creating planets, moons and other systems. This library is a community project and will grow over time. Anyone is welcome to open a <a href="https://github.com/danielmartin0/PlanetsLib/pulls">pull request</a> on Github. For feature requests, please open an <a href="https://github.com/danielmartin0/PlanetsLib/issues">issue</a>. For general discussion, use <a href="https://discord.gg/VuVhYUBbWE">Discord</a>.</p>
+
+<p><a name="Contributors"></a></p>
+<h2>Contributors</h2>
+
+<ul>
+    <li><a href="https://mods.factorio.com/user/Midnighttigger">Midnighttigger</a></li>
+    <li><a href="https://mods.factorio.com/user/thesixthroc">thesixthroc</a></li>
+    <li><a href="https://mods.factorio.com/user/Tserup">Tserup</a></li>
+    <li><a href="https://mods.factorio.com/user/notnotmelon">notnotmelon</a></li>
+    <li><a href="https://mods.factorio.com/user/MeteorSwarm">MeteorSwarm</a></li>
+    <li><a href="https://mods.factorio.com/user/Frontrider">Frontrider</a></li>
+</ul>
+
+<h4>Notes for contributors</h4>
+
+<ul>
+    <li>In your pull requests, please list your changes in changelog.txt to be included in the next release. Please also update <a href="../manual/README.md.html#">README.md</a> to add sections for your new functionality (even with only 'Documentation pending') and add yourself to the contributors list.</li>
+    <li>Contributions MUST be tested before a PR is made, ideally with multiple planets installed.</li>
+    <li>We aim to never make any breaking changes. Sometimes APIs are removed from the documentation, that does not mean they are no longer supported.</li>
+    <li>Feel free to use the file <code>todo.md</code>.</li>
+</ul>
+
+<h1>Documentation</h1>
+
+<p><a name="Defining_planets"></a></p>
+<h2>Defining planets</h2>
+
+<p>PlanetsLib provides an API to define planets and space locations. It is a simple wrapper for data:extend.</p>
+
+<p>The reasons one may choose to use it over a plain <code>data:extend</code> are some additional features: you can specify positions with respect to a parent body; if the parent body is moved by another mod your planet will move with it; a sprite depicting the orbit can be supplied; and various other mods are sensitive to the orbit tree.</p>
+
+<ul>
+    <li><code>PlanetsLib:extend(configs)</code> — A wrapper/replacement for <code>data:extend</code>. Throws an error if passed <code>distance</code> or <code>orientation</code>. Each config instead takes the fields listed below.
+
+<pre>
+* <span class="backtick"><a href="https://www.lua.org/manual/5.1/manual.html#pdf-type">type</a></span> — <span class="backtick"><code>&quot;planet&quot;</code></span> <span class="keyword">or</span> <span class="backtick"><code>&quot;space-location&quot;</code></span>
+* <span class="backtick"><code>orbit</code></span> — Object containing orbital parameters:
+    * <span class="backtick"><code>parent</code></span> — Object containing <span class="backtick"><code>name</code></span> <span class="keyword">and</span> <span class="backtick"><a href="https://www.lua.org/manual/5.1/manual.html#pdf-type">type</a></span> fields, corresponding to a parent at <span class="backtick"><code>data.raw[type][name]</code></span>. Planets <span class="keyword">in</span> the original solar system should have an orbit with <span class="backtick"><code>type = &quot;space-location&quot;</code></span> <span class="keyword">and</span> <span class="backtick"><code>name = &quot;star&quot;</code></span>.
+    * <span class="backtick"><code>distance</code></span> — Number — orbital distance from parent
+    * <span class="backtick"><code>orientation</code></span> — Number — orbital angle from <span class="function-name">parent</span> (<span class="number">0</span>-<span class="number">1</span>). Note that orientation is absolute, <span class="keyword">not</span> relative to the <span class="function-name">parent</span><span class="string">'s orientation.
+    * <code>sprite</code> — Object (optional) — Sprite for the planet’s orbit. This will be centered on the parent'</span>s location.
+* <span class="backtick"><code>sprite_only</code></span> — <span class="function-name">Boolean</span> (optional) — If <span class="keyword">true</span>, this prototype will be removed <span class="keyword">in</span> <span class="backtick"><code>data-final-fixes</code></span> <span class="keyword">and</span> replaced by its sprites on the <span class="function-name">starmap</span> (unless it has no sprites, <span class="keyword">in</span> which case nothing will show).
+    * This is useful <span class="keyword">for</span> constructing stars <span class="keyword">and</span> other locations that should <span class="keyword">not</span> have a space <span class="function-name">platform</span> <span class="string">'docking ring'</span>.
+* Any other valid <span class="backtick"><code>planet</code></span> <span class="keyword">or</span> <span class="backtick"><code>space-location</code></span> prototype fields.
+* The <span class="backtick"><code>distance</code></span> <span class="keyword">and</span> <span class="backtick"><code>orientation</code></span> fields on the prototype will be generated automatically.
+* See [here](https://github.com/danielmartin0/Cerys-Moon-of-Fulgora/blob/main/prototypes/planet/planet.lua) <span class="keyword">or</span> [here](https://github.com/danielmartin0/PlanetsLib/issues/<span class="number">12</span>#issuecomment-<span class="number">2585484116</span>) <span class="keyword">for</span> usage examples.
+</pre>
+</li>
+    <li><code>PlanetsLib:update(config)</code> — Updates the position of a pre-existing space location, as identified by the passed <a href="https://www.lua.org/manual/5.1/manual.html#pdf-type">type</a> and <code>name</code> fields. Any other fields passed will be updated on the prototype, and if the <code>orbit</code> field is passed the <code>distance</code> and <code>orientation</code> fields on the prototype will also be updated, along with the <code>distance</code> and <code>orientation</code> of its children and grandchildren. Any fields not passed will be left unchanged.</li>
+</ul>
+
+<p>PlanetsLib has some extra compatibility code in <code>data-final-fixes</code> in which if a planet has noticed to have a <code>position</code> and <code>orientation</code> different from that implied by its orbit fields, those values will be treated as authoritative, its <code>orbit</code> field will be updated, and a simulated <code>PlanetsLib:update</code> call will be made to update the <code>position</code> and <code>orientation</code> of its children. However, using <code>PlanetsLib:update</code> over this method is recommended for compatibility.</p>
+
+<p>Neither <code>PlanetsLib:extend</code> nor <code>PlanetsLib:update</code> should be called in <code>data-final-fixes</code>.</p>
+
+<p><a name="Planet_tiers"></a></p>
+<h2>Planet tiers</h2>
+
+<p>The companion mod <a href="https://mods.factorio.com/mod/PlanetsLibTiers">PlanetsLib: Tiers</a> defines 'tier values' for planets and space locations. Tiers have no functionality by themselves, but are a rough indicator where the planet fits in a vanilla-style game of Space Age for the purposes of other mods that wish to use this information.</p>
+
+<p>With PlanetsLib: Tiers installed, tiers can be accessed with <code>local tier = data.raw[&quot;mod-data&quot;][&quot;PlanetsLib-tierlist&quot;].data[type][name] or data.raw[&quot;mod-data&quot;][&quot;PlanetsLib-tierlist&quot;].data.default</code></p>
+
+<p>The tier listing is <a href="https://github.com/danielmartin0/factorio-PlanetsLib-Tiers/blob/main/data.lua">here on GitHub.</a>. Players are encouraged to submit edits to keep it up-to-date.</p>
+
+<p><a name="Planet_Cargo_Drops_technology"></a></p>
+<h2>Planet Cargo Drops technology</h2>
+
+<p>You can use the library to restrict cargo drops on your planet until a certain technology is researched. To implement:</p>
+
+<ul>
+    <li>Use the helper function <code>PlanetsLib.cargo_drops_technology_base(planet, planet_technology_icon, planet_technology_icon_size)</code> to create a base technology prototype.
+
+<pre>
+* This will create a technology with name pattern: <span class="backtick"><code>planetslib-[planet-name]-cargo-drops</code></span>
+* PlanetsLib detects this technology by name. Players will be unable to drop <span class="function-name">cargo</span> (excluding players <span class="keyword">and</span> construction robots) to planets with that name before researching the technology.
+* Only the fields <span class="backtick"><a href="https://www.lua.org/manual/5.1/manual.html#pdf-type">type</a></span>, <span class="backtick"><code>name</code></span>, <span class="backtick"><code>localised_name</code></span>, <span class="backtick"><code>localised_description</code></span>, <span class="backtick"><code>effects</code></span>, <span class="backtick"><code>icons</code></span> will be defined, so you will need to add <span class="backtick"><code>unit</code></span> (<span class="keyword">or</span> <span class="backtick"><code>research_trigger</code></span>) <span class="keyword">and</span> prerequisites.
+* A locale entry <span class="keyword">for</span> this technology is automatically generated, but you are free to override it.
+</pre>
+</li>
+    <li>Note that players can use <a href="https://mods.factorio.com/mod/disable-cargo-drops-techs">this mod</a> to disable the effect of this restriction.</li>
+</ul>
+
+<p><a name="Rocket_part_recipes"></a></p>
+<h2>Rocket part recipes</h2>
+
+<p>You can use the library to assign unique rocket part recipes to rocket silos placed on a specified planet to increase or decrease the difficulty of launching rockets on the planet. Rocket silos with their recipe fixed to the vanilla <code>rocket-part</code> recipe are targeted by PlanetsLib. To implement:</p>
+
+<ul>
+    <li>Use the helper function <code>PlanetsLib.assign_rocket_part_recipe(planet,recipe)</code> to assign a recipe to a planet.
+
+<pre>
+* PlanetsLib stores rocket part recipe assignments <span class="keyword">in</span> a mod-data prototype named <span class="backtick"><code>Planetslib-planet-rocket-part-recipe</code></span>. Planets with their own system <span class="keyword">for</span> assigning rocket part recipes are exempted with the assigned recipe name <span class="backtick"><code>_other</code></span>. Muluna <span class="keyword">and</span> Maraxsis are currently exempted <span class="keyword">in</span> this manner to maintain backwards compatibility with those mods.
+* Planets without an assigned recipe default to the vanilla <span class="backtick"><code>rocket-part</code></span> recipe.
+</pre>
+
+<a name="Surface_conditions"></a>
+<h2>Surface conditions</h2></li>
+</ul>
+
+<h4>New surface conditions</h4>
+
+<p>PlanetsLib includes a variety of surface conditions, all of which are either hidden or disabled by default. To enable a surface condition, modders must add the following line to settings-updates.lua (using 'oxygen' as an example):</p>
+
+<p><code>data.raw[&quot;bool-setting&quot;][&quot;PlanetsLib-enable-oxygen&quot;].forced_value = true</code></p>
+
+<h4>Restricting and relaxing conditions</h4>
+
+<p>Typically, when planet mods want to modify a surface condition, what they are trying to do is restrict or relax the range of values for which that recipe or entity is allowed.</p>
+
+<p>For example, Space Age recyclers have a maximum magnetic field of 99. If mod A wants to allow recyclers to be built up to 120, whilst mod B wants to allow them up to 150, compatibility issues can arise if mod A acts last and overrides mod B's change (which it ought to have been perfectly happy with). Instead mod A should modify existing surface conditions only if necessary.</p>
+
+<p>Hence <code>relax_surface_conditions</code> and <code>restrict_surface_conditions</code> are provided, used like so:</p>
+
+<ul>
+    <li><code>PlanetsLib.relax_surface_conditions(data.raw.recipe[&quot;recycler&quot;], {property = &quot;magnetic-field&quot;, max = 120})</code></li>
+    <li><code>PlanetsLib.restrict_surface_conditions(data.raw.recipe[&quot;boiler&quot;], {property = &quot;pressure&quot;, min = 10})</code></li>
+</ul>
+
+<p>NOTE: Calling <code>relax_surface_conditions</code> without a <code>min</code> field will not remove any existing <code>min</code> conditions for that property (and similarly for <code>max</code>).</p>
+
+<h4>Removing surface conditions</h4>
+
+<ul>
+    <li><code>PlanetsLib.remove_surface_condition(recipe_or_entity, &quot;magnetic-field&quot;)</code> — Removes all <code>magnetic-field</code> surface conditions.</li>
+    <li><code>PlanetsLib.remove_surface_condition(recipe_or_entity, {property = &quot;magnetic-field&quot;, max = 120})</code> — Removes all surface conditions that exactly match the provided condition.</li>
+</ul>
+
+<p><a name="Science___Technologies"></a></p>
+<h2>Science &amp; Technologies</h2>
+
+<ul>
+    <li><code>PlanetsLib.get_child_technologies(tech_name)</code> — Returns a list of the names of all technologies that have <code>tech_name</code> as a prerequisite.</li>
+    <li><code>PlanetsLib.sort_science_pack_names(science_pack_names_table)</code> — Sorts the given list of science pack names (strings expected) by the <code>order</code> fields of the corresponding prototypes, or by their names if an <code>order</code> field does not exist.
+
+<pre>
+* This is useful <span class="keyword">for</span> defining the inputs of labs <span class="function-name">because</span> (unlike <span class="keyword">in</span> Factoriopedia) science packs displayed <span class="keyword">in</span> labs <span class="function-name">aren</span>'t ordered by the <span class="backtick"><code>order</code></span> field.
+</pre>
+
+<h3>Recipe productivity technology helper field</h3></li>
+</ul>
+
+<p>PlanetsLib adds a new field named <code>PlanetsLib_recipe_productivity_effects</code> to technologies, used by recipe productivity technologies. During <code>data-final-fixes,</code> technologies with this field will have their effects list appended or replaced with recipes matching either an output name or recipe category.</p>
+
+<h4><a href="https://lua-api.factorio.com/latest/prototypes/TechnologyPrototype.html"><code>TechnologyPrototype</code></a> field: <code>PlanetsLib_recipe_productivity_effects</code> Properties:</h4>
+<p>*   <code>effects</code>: <code>array[ChangeResultProductivityModifier]</code>
+*   <code>category_blacklist</code> - <code>array[</code><a href="https://lua-api.factorio.com/latest/types/RecipeCategoryID.html"><code>RecipeCategoryID</code></a><code>]</code>
+*   <code>purge_other_effects</code>- boolean. Default: false. Before adding effects added by <code>PlanetsLib_recipe_productivity_effects</code>, remove all effects not flagged with <code>PlanetsLib_force_include</code>.</p>
+
+<h4><code>ChangeResultProductivityModifier</code> Properties:</h4>
+<p>*   <code>allow_multiple_results</code>: boolean. Default: false. When false, only recipes with one result are added to the technology's effect list.
+*   <code>category</code> (optional) - <a href="https://lua-api.factorio.com/latest/types/RecipeCategoryID.html"><code>RecipeCategoryID</code></a>  Either <code>(name and type) or category</code> required. Forbidden when <code>category_blacklist ~= nil</code>.
+*   <a href="https://www.lua.org/manual/5.1/manual.html#pdf-type">type</a> (optional) - <a href="https://lua-api.factorio.com/latest/types/ProductPrototype.html"><code>ProductPrototype</code></a>
+*   <code>name</code> (optional) - <a href="https://lua-api.factorio.com/latest/types/ItemID.html"><code>ItemID</code></a></p>
+<h5>Inherited from <a href="https://lua-api.factorio.com/latest/types/ChangeRecipeProductivityModifier.html"><code>ChangeRecipeProductivityModifier</code></a></h5>
+<p>*   <code>change</code>
+*   <code>icons</code> (optional)
+*   <code>icon</code> (optional)
+*   <code>icon_size</code> (optional)
+*   <code>hidden</code> (optional)
+*   <code>use_icon_overlay_constant</code> (optional)</p>
+
+<h4>New <a href="https://lua-api.factorio.com/latest/types/BaseModifier.html"><code>BaseModifier</code></a> field: <code>PlanetsLib_force_include</code></h4>
+<p>*  Makes this modifier immune to <code>purge_other_effects</code>.</p>
+
+<h4>New <a href="https://lua-api.factorio.com/latest/prototypes/RecipePrototype.html">'RecipePrototype'</a> field: <code>PlanetsLib_blacklist_technology_updates</code></h4>
+<p>*  Stops PlanetsLib from targeting this recipe in technology updates.</p>
+
+<h4>Tech tree adjustments</h4>
+
+<ul>
+    <li><code>PlanetsLib.excise_tech_from_tech_tree(tech_name)</code> — Seamlessly removes a technology from the tech tree by making all its dependencies depend instead on the technology's prerequisites. In addition, <code>hidden = true</code> is set on the technology.</li>
+    <li><code>PlanetsLib.excise_recipe_from_tech_tree(recipe_name)</code> — Removes this recipe from all technologies, and if this would cause any technology to have zero effects, the technology is excised using <code>PlanetsLib.excise_tech_from_tech_tree</code>.</li>
+    <li><code>PlanetsLib.excise_effect_from_tech_tree(effect)</code> — Similar to <code>excise_recipe_from_tech_tree</code>, but any effect can be passed.
+
+<pre>
+* Example: <span class="backtick"><code>PlanetsLib.excise_effect_from_tech_tree({ type = &quot;unlock-quality&quot;, quality = &quot;uncommon&quot; })</code></span>
+</pre>
+</li>
+    <li><code>PlanetsLib.add_science_packs_from_vanilla_lab_to_technology(technology)</code> — Adds all science packs that the vanilla lab have slots for to the unit of the given technology. Can be useful when defining endgame technologies.</li>
+</ul>
+
+<h4>Biolab</h4>
+
+<p>Because modders often forget about the Biolab, PlanetsLib mirrors all science packs from the vanilla lab to the Biolab in <code>data-final-fixes</code>.</p>
+
+<p><a name="Subgroups"></a></p>
+<h2>Subgroups</h2>
+
+<p>Subgroups are rows in Factoriopedia.</p>
+
+<ul>
+    <li><p><code>satellites</code> — A new Factoriopedia row for satellites (below the planets row).</p>
+
+<pre>
+* Note that being <span class="keyword">in</span> this subgroup affects [Redrawn Space Connections](https://mods.factorio.com/mod/Redrawn-Space-Connections) <span class="keyword">and</span> [Cosmic Social Distancing](https://mods.factorio.com/mod/Cosmic-Social-Distancing).
+</pre>
+
+<p><a name="Assorted_helpers"></a></p>
+<h2>Assorted helpers</h2></li>
+    <li><p><code>PlanetsLib.technology_icon_moon(tech_icon: string, icon_size: integer)</code> — Creates a moon discovery technology icon by adding a little moon icon on your technology icon, like in vanilla, but for moon type planets.</p></li>
+    <li><p><code>PlanetsLib.technology_icon_planet(tech_icon: string, icon_size: integer)</code> — Creates a planet discovery technology icon by adding a little planet icon on your technology icon, like in vanilla.</p></li>
+    <li><p><code>PlanetsLib.set_default_import_location(item_name, planet_name)</code> — Sets the default import location for an item on a planet.</p></li>
+    <li><p><code>PlanetsLib.borrow_music(source_planet, target_planet)</code> — Clones music tracks from <code>source_planet</code> prototype to <code>target_planet</code> prototype. Does not overwrite existing music for <code>target_planet</code>. To clone music from or to space platforms, set the respective parameter to "space-platform." Otherwise, use the relevant planet object.</p></li>
+</ul>
+
+<h4>Assorted graphics</h4>
+
+<ul>
+    <li><code>__PlanetsLib__/graphics/icons/research-progress-product.png</code> — an iconographic science pack icon intended for items used exclusively as ResearchProgressProducts, since mods using a common icon might help players understand the mechanic.</li>
+</ul>
+
+<h4>Python helper scripts</h4>
+
+<ul>
+    <li><code>lib/orbit_graphic_generator.py</code> — contains a Python script that generates orbit sprites. <code>generate_orbit(distance, output_file, mod_name)</code>, <code>distance</code> being the same as your orbital distance. After generating your sprite, the script will print a block of lua code that imports your sprite with proper scaling. Orbit sprites should be scaled at 0.25 to ensure that no pixels are visible on 4K monitors.</li>
+</ul>
+
+<hr/>
+
+<p><a href="https://discord.gg/VuVhYUBbWE"><img src="https://img.shields.io/discord/1309620686347702372?style=for-the-badge&amp;logo=discord&amp;logoColor=bf6434&amp;label=The%20Foundry&amp;labelColor=222222&amp;color=bf6434" alt="Discord"/></a>
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.5.0</a></i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>
