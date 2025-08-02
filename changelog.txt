@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.10.1
+Date: 2025-08-02
+  Bugfixes:
+    - Eliminated requirement to have an "effects" field when using "PlanetsLib_recipe_productivity_effects" in a technology.
+---------------------------------------------------------------------------------------------------
 Version: 1.10.0
 Date: 2025-08-02
   Features:

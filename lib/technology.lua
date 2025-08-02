@@ -368,7 +368,7 @@ end
 ---@author MeteorSwarm
 function Public.process_technology_recipe_productivity_effects(tech) 
     if tech.PlanetsLib_recipe_productivity_effects then
-        
+        if not tech.effects then tech.effects = {} end
         local new_effects = {}
         if tech.PlanetsLib_recipe_productivity_effects.purge_other_effects then
             for _,effect in pairs(tech.effects) do
@@ -379,7 +379,7 @@ function Public.process_technology_recipe_productivity_effects(tech)
         else
             new_effects = table.deepcopy(tech.effects)
         end
-        if not tech.effects then tech.effects = {} end
+        if not new_effects then new_effects = {} end
         
 
         for _,effect in pairs(tech.PlanetsLib_recipe_productivity_effects.effects) do
