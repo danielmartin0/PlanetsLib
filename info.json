@@ -11,6 +11,7 @@
         "? space-age >= 2.0.60",
         "? PlanetsLibTiers",
         "(?) Cosmic-Social-Distancing >= 1.0.2",
-        "! MT-lib"
+        "! MT-lib",
+        "! space_age_galore"
     ]
 }
