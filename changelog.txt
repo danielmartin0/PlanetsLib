@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.10.2
+Date: 2025-08-02
+  Bugfixes:
+    - Fixed crash when another mod deletes effects from a vanilla recipe productivity technology before PlanetsLib loads its data stage.
+---------------------------------------------------------------------------------------------------
 Version: 1.10.1
 Date: 2025-08-02
   Bugfixes:

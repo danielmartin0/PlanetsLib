@@ -21,12 +21,17 @@ if settings.startup["PlanetsLib-update-vanilla-recipe-productivity-techs"].value
                     {
                         type = "item",
                         name = item_name,
-                        change = tech.effects[1].change or 0.1,
+                        --change = (tech.effects and tech.effects[1].change) or 0.1,
                         category_blacklist = {"recycling"}, --Excluded recipe categories
                         
                     }
                 }
             }
+            if tech.effects and #tech.effects >= 1 and tech.effects[1].change then
+                tech.PlanetsLib_recipe_productivity_effects.effects[1].change = tech.effects[1].change 
+            else
+                tech.PlanetsLib_recipe_productivity_effects.effects[1].change = 0.1
+            end
         end
     end
 end

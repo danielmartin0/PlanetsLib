@@ -1,15 +1,20 @@
 local util = require("util")
-
+local rro = require("lib.objects")
 local Public = {}
 
 -- Restricts the surface conditions of an existing recipe or entity. If the new condition is more restrictive in any way than the existing conditions, those restrictions will be applied.
 function Public.restrict_surface_conditions(recipe_or_entity, condition)
 	condition = util.table.deepcopy(condition)
-
+	
 	local surface_conditions = recipe_or_entity.surface_conditions
 			and util.table.deepcopy(recipe_or_entity.surface_conditions)
 		or {}
-
+	
+	-- If surface condition doesn't already exist, simply insert the condition into the recipe/entity and complete execution
+	-- if not (rro.contains(surface_conditions,{property = condition.property, min = "_any", max = "_any"})) then
+	-- 	rro.soft_insert(surface_conditions,condition)
+	-- 	goto continue
+	-- end
 	for i = 1, #surface_conditions do
 		local existing = surface_conditions[i]
 		if existing.property == condition.property then

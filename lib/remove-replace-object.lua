@@ -35,6 +35,7 @@ end
 
 function Public.replace(list, objectToRemove, replacementObject) --Replaces object in list with another object
     if list then
+        if list == objectToRemove then list = replacementObject return end
         for i = #list, 1, -1 do -- Iterate backward to avoid index shifting
             if Public.deep_equals(list[i] , objectToRemove) then
                 if replacementObject ~= nil and not Public.contains(list,replacementObject) then
