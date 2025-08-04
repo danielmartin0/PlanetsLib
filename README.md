@@ -167,16 +167,15 @@ Subgroups are rows in Factoriopedia.
 
 * `lib/orbit_graphic_generator.py` — contains a Python script that generates orbit sprites. `generate_orbit(distance, output_file, mod_name)`, `distance` being the same as your orbital distance. After generating your sprite, the script will print a block of lua code that imports your sprite with proper scaling. Orbit sprites should be scaled at 0.25 to ensure that no pixels are visible on 4K monitors.
 
-If the generated image would be higher than what factorio can support (4096) then quality will be sacrificed for it by increasing the scale. 
-Orbits above 100 start to break, the tool can no longer generate with the default line thickness. 
-Above 200 it becomes a 1 pixel line, with nowhere to scale down anymore, so orbits will appear thicker than they should be.
+If the generated image were to have a higher resolution than what Factorio can support (4096x4096), then image quality will be sacrificed for it by increasing the scale. 
+Orbits above 100 start to break as the tool can no longer generate with the default line thickness. 
+Above 200, the orbit becomes a 1 pixel thick line, so orbits will appear thicker than they should be.
 
-The repo also includes a bash script that can be used to run the python script. It will also install all dependencies into a python virtual environment, so you don't need to deal with those anymore.
+PlanetsLib also includes a Bash script(`generate-orbit.sh`) that can be used to run the python script. It will also install all dependencies into a python virtual environment, so you don't need to deal with those anymore.
 The arguments are: distance, the name of the planet then the name of the mod. This is also included in the program itself, you will be told what you did wrong.
-Eg: 
-generate-orbit.sh 10 vulcanus Planetslib
+Eg: `sh generate-orbit.sh 10 vulcanus Planetslib`
 
-On windows this script can run with git bash.
----
+On Windows, this script can run with Git Bash. An untested equivalent Powershell script is also included.
+
 
 [![Discord](https://img.shields.io/discord/1309620686347702372?style=for-the-badge&logo=discord&logoColor=bf6434&label=The%20Foundry&labelColor=222222&color=bf6434)](https://discord.gg/VuVhYUBbWE)
