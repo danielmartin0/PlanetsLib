@@ -8,6 +8,7 @@ use_markdown_titles = true
 readme = "README.md" 
 style = 'docs_templates'
 template = "docs_templates"
+topics = 'docs_topics'
 format = 'markdown'
 sort_modules=true
 ignore=true
