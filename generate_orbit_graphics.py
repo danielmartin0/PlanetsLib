@@ -1,7 +1,19 @@
 from lib.orbit_graphic_generator import generate_orbit
+import os
 
-#To generate orbit sprites, use the generate_orbit function in the following format:
-#generate_orbit(distance, output_file, mod_name)
-generate_orbit(10, "orbit-vulcanus.png","PlanetsLib")
-generate_orbit(1.6, "orbit-muluna.png","planet-muluna")
+import argparse
+# Instantiate the parser
+parser = argparse.ArgumentParser(prog=os.getenv('PROGRAM_NAME'))
+
+parser.add_argument('distance', type=int,
+                    help='distance from the parent')
+
+parser.add_argument('planet_name', type=ascii,
+                    help='name of the planet the orbit belongs to')
+
+parser.add_argument('mod_name', type=ascii,
+                    help='name of the mod the planet belongs to')
+args = parser.parse_args()
+
+generate_orbit(args.distance, "orbit-"+args.planet_name.removeprefix("'").removesuffix("'")+".png",args.mod_name.removeprefix("'").removesuffix("'"))
 

@@ -2,3 +2,4 @@
 *.zip
 prepublish.js
 *.pyc
+.venv

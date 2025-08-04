@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.10.3
+Date: ???
+  Changes:
+    - Orbit generator script now can run as a standalone program that handles its own dependencies.
+---------------------------------------------------------------------------------------------------
 Version: 1.10.2
 Date: 2025-08-02
   Bugfixes:
