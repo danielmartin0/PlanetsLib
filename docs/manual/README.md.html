@@ -284,7 +284,16 @@
     <li><code>lib/orbit_graphic_generator.py</code> — contains a Python script that generates orbit sprites. <code>generate_orbit(distance, output_file, mod_name)</code>, <code>distance</code> being the same as your orbital distance. After generating your sprite, the script will print a block of lua code that imports your sprite with proper scaling. Orbit sprites should be scaled at 0.25 to ensure that no pixels are visible on 4K monitors.</li>
 </ul>
 
-<hr/>
+<p>If the generated image were to have a higher resolution than what Factorio can support (4096x4096), then image quality will be sacrificed for it by increasing the scale.
+Orbits above 100 start to break as the tool can no longer generate with the default line thickness.
+Above 200, the orbit becomes a 1 pixel thick line, so orbits will appear thicker than they should be.</p>
+
+<p>PlanetsLib also includes a Bash script(<code>generate-orbit.sh</code>) that can be used to run the python script. It will also install all dependencies into a python virtual environment, so you don't need to deal with those anymore.
+The arguments are: distance, the name of the planet then the name of the mod. This is also included in the program itself, you will be told what you did wrong.
+Eg: <code>sh generate-orbit.sh 10 vulcanus Planetslib</code></p>
+
+<p>On Windows, this script can run with Git Bash. An untested equivalent Powershell script is also included.</p>
+
 
 <p><a href="https://discord.gg/VuVhYUBbWE"><img src="https://img.shields.io/discord/1309620686347702372?style=for-the-badge&amp;logo=discord&amp;logoColor=bf6434&amp;label=The%20Foundry&amp;labelColor=222222&amp;color=bf6434" alt="Discord"/></a>
 
