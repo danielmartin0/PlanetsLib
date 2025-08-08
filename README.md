@@ -178,4 +178,4 @@ Eg: `sh generate-orbit.sh 10 vulcanus Planetslib`
 On Windows, this script can run with Git Bash. An untested equivalent Powershell script is also included.
 
 
-[![Discord](https://img.shields.io/discord/1309620686347702372?style=for-the-badge&logo=discord&logoColor=bf6434&label=The%20Foundry&labelColor=222222&color=bf6434)](https://discord.gg/VuVhYUBbWE)
+[![Discord](https://img.shields.io/discord/1309620686347702372?style=for-the-badge&logo=discord&logoColor=bf6434&label=The%20Foundry&labelColor=222222&color=bf6434)](https://foundrygg.com)
