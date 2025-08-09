@@ -5,13 +5,6 @@ local function init_storage()
 
 	storage.planets_lib.cargo_pods_seen_on_platforms = storage.planets_lib.cargo_pods_seen_on_platforms or {}
 	storage.planets_lib.cargo_pod_canceled_whisper_ticks = storage.planets_lib.cargo_pod_canceled_whisper_ticks or {}
-
-	-- Deprecated, remove when mods have migrated away:
-	storage.planets_lib.whitelisted_names_all_planets = storage.planets_lib.whitelisted_names_all_planets or {}
-	storage.planets_lib.whitelisted_types_all_planets = storage.planets_lib.whitelisted_types_all_planets or {}
-
-	storage.planets_lib.whitelisted_names = storage.planets_lib.whitelisted_names or {}
-	storage.planets_lib.whitelisted_types = storage.planets_lib.whitelisted_types or {}
 end
 
 script.on_init(function()
@@ -30,10 +23,10 @@ end
 local function pod_contents_is_allowed(pod_contents, planet_name)
 	local whitelists = prototypes.mod_data.Planetslib.data.planet_cargo_drop_whitelists
 
-	local old_whitelisted_names_all_planets = storage.planets_lib.whitelisted_names_all_planets
-	local old_whitelisted_names = storage.planets_lib.whitelisted_names
-	local old_whitelisted_types_all_planets = storage.planets_lib.whitelisted_types_all_planets
-	local old_whitelisted_types = storage.planets_lib.whitelisted_types
+	local old_whitelisted_names_all_planets = storage.planets_lib.whitelisted_names_all_planets or {}
+	local old_whitelisted_names = storage.planets_lib.whitelisted_names or {}
+	local old_whitelisted_types_all_planets = storage.planets_lib.whitelisted_types_all_planets or {}
+	local old_whitelisted_types = storage.planets_lib.whitelisted_types or {}
 
 	for _, item in pairs(pod_contents) do
 		local entity = prototypes.entity[item.name]
