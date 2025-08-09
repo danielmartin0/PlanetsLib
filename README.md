@@ -63,6 +63,11 @@ You can use the library to restrict cargo drops on your planet until a certain t
     * PlanetsLib detects this technology by name. Players will be unable to drop cargo (excluding players and construction robots) to planets with that name before researching the technology.
     * Only the fields `type`, `name`, `localised_name`, `localised_description`, `effects`, `icons` will be defined, so you will need to add `unit` (or `research_trigger`) and prerequisites.
     * A locale entry for this technology is automatically generated, but you are free to override it.
+    * It's possible to add items to cargo drop whitelists using the following APIs ('entity type' refers to the type of the entity with the same name as the item):
+        * `PlanetsLib.add_item_name_to_planet_cargo_drops_whitelist(planet_name, item_name)`
+        * `PlanetsLib.add_entity_type_to_planet_cargo_drops_whitelist(planet_name, entity_type)`
+        * `PlanetsLib.add_item_name_to_global_cargo_drops_whitelist(item_name)`
+        * `PlanetsLib.add_entity_type_to_global_cargo_drops_whitelist(entity_type)`
 * Note that players can use [this mod](https://mods.factorio.com/mod/disable-cargo-drops-techs) to disable the effect of this restriction.
 
 ## Rocket part recipes

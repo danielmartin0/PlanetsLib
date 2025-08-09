@@ -1,5 +1,3 @@
-local Public = {}
-
 local warn_color = { r = 255, g = 90, b = 54 }
 
 local function init_storage()
@@ -8,6 +6,7 @@ local function init_storage()
 	storage.planets_lib.cargo_pods_seen_on_platforms = storage.planets_lib.cargo_pods_seen_on_platforms or {}
 	storage.planets_lib.cargo_pod_canceled_whisper_ticks = storage.planets_lib.cargo_pod_canceled_whisper_ticks or {}
 
+	-- Deprecated, remove when mods have migrated away:
 	storage.planets_lib.whitelisted_names_all_planets = storage.planets_lib.whitelisted_names_all_planets or {}
 	storage.planets_lib.whitelisted_types_all_planets = storage.planets_lib.whitelisted_types_all_planets or {}
 
@@ -18,101 +17,56 @@ end
 script.on_init(function()
 	init_storage()
 end)
+
 script.on_configuration_changed(function()
 	init_storage()
 end)
 
-local cargo_drops_techs = {}
-for _,planet in pairs(prototypes.space_location) do
-	cargo_drops_techs[planet.name] = "planetslib-" .. planet.name .. "-cargo-drops"
-end
-script.on_nth_tick(20, function()
-	for _, force in pairs(game.forces) do
-		for _, platform in pairs(force.platforms) do
-			if platform and platform.valid and platform.surface and platform.surface.valid then
-				local planet_name = nil
-				if platform.space_location and platform.space_location.valid and platform.space_location.name then
-					planet_name = platform.space_location.name
-				end
-
-				if planet_name then
-					local cargo_drops_tech = force.technologies[cargo_drops_techs[planet_name]] --force.technologies["planetslib-" .. planet_name .. "-cargo-drops"]
-
-					if cargo_drops_tech and not cargo_drops_tech.researched then
-						local has_nothing_effect = false
-						for _, effect in pairs(cargo_drops_tech.prototype.effects) do
-							if effect.type == "nothing" then
-								has_nothing_effect = true
-								break
-							end
-						end
-
-						if has_nothing_effect then
-							local cargo_pods = platform.surface.find_entities_filtered({ type = "cargo-pod" })
-
-							Public.examine_cargo_pods(platform, cargo_pods, planet_name)
-						end
-					end
-				end
-			end
-		end
-	end
-end)
-
-function Public.examine_cargo_pods(platform, cargo_pods, planet_name)
-	local whitelisted_names_all_planets = storage.planets_lib.whitelisted_names_all_planets
-	local whitelisted_names = storage.planets_lib.whitelisted_names
-	local whitelisted_types_all_planets = storage.planets_lib.whitelisted_types_all_planets
-	local whitelisted_types = storage.planets_lib.whitelisted_types
-
-	for _, pod in pairs(cargo_pods) do
-		if pod and pod.valid and not storage.planets_lib.cargo_pods_seen_on_platforms[pod.unit_number] then
-			local pod_contents = pod.get_inventory(defines.inventory.cargo_unit).get_contents()
-
-			local has_only_allowed_cargo = true
-
-			for _, item in pairs(pod_contents) do
-				if
-					not whitelisted_names_all_planets[item.name]
-					and not (whitelisted_names[planet_name] and whitelisted_names[planet_name][item.name])
-					and not (
-						prototypes.entity[item.name]
-						and (
-							whitelisted_types_all_planets[prototypes.entity[item.name].type]
-							or (
-								whitelisted_types[planet_name]
-								and whitelisted_types[planet_name][prototypes.entity[item.name].type]
-							)
-						)
-					)
-				then
-					has_only_allowed_cargo = false
-					break
-				end
-			end
-
-			local nearby_hubs = platform.surface.find_entities_filtered({
-				name = { "space-platform-hub", "cargo-bay" },
-				position = pod.position,
-				radius = 4,
-			})
-
-			local launched_from_platform = #nearby_hubs > 0
-
-			storage.planets_lib.cargo_pods_seen_on_platforms[pod.unit_number] = {
-				launched_from_platform = launched_from_platform,
-				entity = pod,
-				platform_index = platform.index,
-			}
-
-			if launched_from_platform and not has_only_allowed_cargo then
-				Public.destroy_pod_on_platform(pod, platform, planet_name)
-			end
-		end
-	end
+local cargo_drops_technology_names = {}
+for _, planet in pairs(prototypes.space_location) do
+	cargo_drops_technology_names[planet.name] = "planetslib-" .. planet.name .. "-cargo-drops"
 end
 
-function Public.destroy_pod_on_platform(pod, platform, planet_name)
+local function pod_contents_is_allowed(pod_contents, planet_name)
+	local whitelists = prototypes.mod_data.Planetslib.data.planet_cargo_drop_whitelists
+
+	local old_whitelisted_names_all_planets = storage.planets_lib.whitelisted_names_all_planets
+	local old_whitelisted_names = storage.planets_lib.whitelisted_names
+	local old_whitelisted_types_all_planets = storage.planets_lib.whitelisted_types_all_planets
+	local old_whitelisted_types = storage.planets_lib.whitelisted_types
+
+	for _, item in pairs(pod_contents) do
+		local entity = prototypes.entity[item.name]
+
+		local whitelisted_by_item_name = whitelists.all.item_names[item.name]
+			or (whitelists[planet_name] and whitelists[planet_name].item_names[item.name])
+
+		local whitelisted_by_entity_type = entity
+			and (
+				whitelists.all.entity_types[entity.type]
+				or (whitelists[planet_name] and whitelists[planet_name].entity_types[entity.type])
+			)
+
+		-- Check the legacy whitelist:
+		local old_whitelist_condition = old_whitelisted_names_all_planets[item.name]
+			and not (old_whitelisted_names[planet_name] and old_whitelisted_names[planet_name][item.name])
+			and not (
+				entity
+				and (
+					old_whitelisted_types_all_planets[entity.type]
+					or (old_whitelisted_types[planet_name] and old_whitelisted_types[planet_name][entity.type])
+				)
+			)
+
+		if not whitelisted_by_item_name and not whitelisted_by_entity_type and not old_whitelist_condition then
+			return false
+		end
+	end
+
+	return true
+end
+
+local function destroy_pod_on_platform(pod, platform, planet_name)
 	local hub = platform.hub
 	if hub and hub.valid then
 		local pod_inventory = pod.get_inventory(defines.inventory.cargo_unit)
@@ -155,6 +109,72 @@ function Public.destroy_pod_on_platform(pod, platform, planet_name)
 	storage.planets_lib.cargo_pods_seen_on_platforms[pod_unit_number] = nil
 end
 
+local function examine_cargo_pods(platform, planet_name)
+	local cargo_pods = platform.surface.find_entities_filtered({ type = "cargo-pod" })
+
+	if #cargo_pods == 0 then
+		return
+	end
+
+	for _, pod in pairs(cargo_pods) do
+		if pod and pod.valid and not storage.planets_lib.cargo_pods_seen_on_platforms[pod.unit_number] then
+			local pod_contents = pod.get_inventory(defines.inventory.cargo_unit).get_contents()
+
+			local has_only_allowed_cargo = pod_contents_is_allowed(pod_contents, planet_name)
+
+			local nearby_hubs = platform.surface.find_entities_filtered({
+				name = { "space-platform-hub", "cargo-bay" },
+				position = pod.position,
+				radius = 4,
+			})
+
+			local launched_from_platform = #nearby_hubs > 0
+
+			storage.planets_lib.cargo_pods_seen_on_platforms[pod.unit_number] = {
+				launched_from_platform = launched_from_platform,
+				entity = pod,
+				platform_index = platform.index,
+			}
+
+			if launched_from_platform and not has_only_allowed_cargo then
+				destroy_pod_on_platform(pod, platform, planet_name)
+			end
+		end
+	end
+end
+
+script.on_nth_tick(20, function()
+	for _, force in pairs(game.forces) do
+		for _, platform in pairs(force.platforms) do
+			if platform and platform.valid and platform.surface and platform.surface.valid then
+				local planet_name = nil
+				if platform.space_location and platform.space_location.valid and platform.space_location.name then
+					planet_name = platform.space_location.name
+				end
+
+				if planet_name then
+					local cargo_drops_tech = force.technologies[cargo_drops_technology_names[planet_name]]
+
+					if cargo_drops_tech and not cargo_drops_tech.researched then
+						local has_nothing_effect = false
+						for _, effect in pairs(cargo_drops_tech.prototype.effects) do
+							if effect.type == "nothing" then
+								has_nothing_effect = true
+								break
+							end
+						end
+
+						if has_nothing_effect then
+							examine_cargo_pods(platform, planet_name)
+						end
+					end
+				end
+			end
+		end
+	end
+end)
+
+-- Deprecated whitelist API, not sure if we'll ever remove it?
 remote.add_interface("planetslib", {
 	add_to_cargo_drop_item_name_whitelist = function(name, planet_name)
 		if type(name) ~= "string" then
@@ -239,5 +259,3 @@ remote.add_interface("planetslib", {
 		end
 	end,
 })
-
-return Public

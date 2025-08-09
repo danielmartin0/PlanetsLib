@@ -9,10 +9,18 @@ if mods["space-age"] then
 	require("prototypes.mod-data")
 end
 
-data:extend({ {
-	type = "mod-data",
-	name = "Planetslib",
-	data = {
-		unlinked_prerequisites = {},
+data:extend({
+	{
+		type = "mod-data",
+		name = "Planetslib",
+		data = {
+			unlinked_prerequisites = {},
+			planet_cargo_drop_whitelists = {
+				all = {
+					entity_types = {},
+					item_names = {},
+				},
+			},
+		},
 	},
-} })
+})

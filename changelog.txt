@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.10.4
+Date: ???
+  Changes:
+    - Added a new API to control the cargo drops whitelist using mod-data prototypes. The old remote interface API is still supported to avoid breaking changes.
+---------------------------------------------------------------------------------------------------
 Version: 1.10.3
 Date: ???
   Changes:
