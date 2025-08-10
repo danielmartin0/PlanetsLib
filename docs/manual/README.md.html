@@ -144,6 +144,11 @@
 * PlanetsLib detects this technology by name. Players will be unable to drop <span class="function-name">cargo</span> (excluding players <span class="keyword">and</span> construction robots) to planets with that name before researching the technology.
 * Only the fields <span class="backtick"><a href="https://www.lua.org/manual/5.1/manual.html#pdf-type">type</a></span>, <span class="backtick"><code>name</code></span>, <span class="backtick"><code>localised_name</code></span>, <span class="backtick"><code>localised_description</code></span>, <span class="backtick"><code>effects</code></span>, <span class="backtick"><code>icons</code></span> will be defined, so you will need to add <span class="backtick"><code>unit</code></span> (<span class="keyword">or</span> <span class="backtick"><code>research_trigger</code></span>) <span class="keyword">and</span> prerequisites.
 * A locale entry <span class="keyword">for</span> this technology is automatically generated, but you are free to override it.
+* <span class="function-name">It</span><span class="string">'s possible to add items to cargo drop whitelists using the following APIs ('</span>entity <span class="global">type</span>' refers to the <span class="global">type</span> of the entity with the same name as the item):
+    * <span class="backtick"><code>PlanetsLib.add_item_name_to_planet_cargo_drops_whitelist(planet_name, item_name)</code></span>
+    * <span class="backtick"><code>PlanetsLib.add_entity_type_to_planet_cargo_drops_whitelist(planet_name, entity_type)</code></span>
+    * <span class="backtick"><code>PlanetsLib.add_item_name_to_global_cargo_drops_whitelist(item_name)</code></span>
+    * <span class="backtick"><code>PlanetsLib.add_entity_type_to_global_cargo_drops_whitelist(entity_type)</code></span>
 </pre>
 </li>
     <li>Note that players can use <a href="https://mods.factorio.com/mod/disable-cargo-drops-techs">this mod</a> to disable the effect of this restriction.</li>
@@ -295,7 +300,7 @@ Eg: <code>sh generate-orbit.sh 10 vulcanus Planetslib</code></p>
 <p>On Windows, this script can run with Git Bash. An untested equivalent Powershell script is also included.</p>
 
 
-<p><a href="https://discord.gg/VuVhYUBbWE"><img src="https://img.shields.io/discord/1309620686347702372?style=for-the-badge&amp;logo=discord&amp;logoColor=bf6434&amp;label=The%20Foundry&amp;labelColor=222222&amp;color=bf6434" alt="Discord"/></a>
+<p><a href="https://foundrygg.com"><img src="https://img.shields.io/discord/1309620686347702372?style=for-the-badge&amp;logoColor=bf6434&amp;label=The%20Foundry&amp;labelColor=222222&amp;color=bf6434" alt="Discord"/></a>
 
 </div> <!-- id="content" -->
 </div> <!-- id="main" -->
