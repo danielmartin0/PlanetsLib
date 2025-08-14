@@ -31,6 +31,15 @@ PlanetsLib.relax_surface_conditions = surface_conditions.relax_surface_condition
 PlanetsLib.remove_surface_condition = surface_conditions.remove_surface_condition
 
 PlanetsLib.set_default_import_location = planet.set_default_import_location
+
+--- Clones music tracks from source_planet to target_planet.
+--- Does not overwrite existing music for target_planet.
+--- Options specified in `options`:
+--- track_types(table): Allows the selection of only tracks matching one or more track types.
+--- modifier_function(function): Function applied to each borrowed track: Expected form: modifier_function = function(track) {Apply changes to track table here} end
+-- @param source_planet 
+-- @param target_planet
+-- @param options table Table of options (track_types)
 PlanetsLib.borrow_music = planet.borrow_music
 
 function PlanetsLib:extend(configOrConfigs)

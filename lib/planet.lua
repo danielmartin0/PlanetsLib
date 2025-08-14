@@ -178,7 +178,13 @@ end
 
 --- Clones music tracks from source_planet to target_planet.
 --- Does not overwrite existing music for target_planet.
-function Public.borrow_music(source_planet, target_planet)
+--- Options specified in `options`:
+--- track_types(table): Allows the selection of only tracks matching one or more track types.
+--- modifier_function(function): Function applied to each borrowed track: Expected form: modifier_function = function(track) {Apply changes to track table here} end
+-- @param source_planet 
+-- @param target_planet
+-- @param options table Table of options (track_types)
+function Public.borrow_music(source_planet, target_planet, options)
 	assert(
 		Public.is_space_location_or_space_platform(source_planet),
 		"PlanetsLib.borrow_music() - Invalid parameter 'source_planet'. Field is required to be either `space-platform` or a `space-location` or `planet` prototype."
@@ -187,7 +193,13 @@ function Public.borrow_music(source_planet, target_planet)
 		Public.is_space_location_or_space_platform(target_planet),
 		"PlanetsLib.borrow_music() - Invalid parameter 'target_planet'. Field is required to be either `space-platform` or a `space-location` or `planet` prototype."
 	)
+	
+	if not options then options = {} end
 
+	if options.modifier_function then
+		assert(debug.getinfo(options.modifier_function,"u").nparams == 1, "options.modifier_function can only have one parameter.")
+	end
+	
 	local source_name = source_planet.name or source_planet
 
 	local target_name = target_planet.name
@@ -200,9 +212,10 @@ function Public.borrow_music(source_planet, target_planet)
 	end
 
 	for _, music in pairs(util.table.deepcopy(data.raw["ambient-sound"])) do
-		if music.planet == source_name then
+		if music.planet == source_name and (options.track_types == nil or PlanetsLib.rro.contains(options.track_types, music.track_type)) then
 			music.name = music.name .. "-" .. target_name
 			music.planet = target_name
+			if options.modifier_function then options.modifier_function(music) end -- options.modifier gives the opportunity to apply changes to the track's parameters through a function.
 			data:extend({ music })
 		end
 	end

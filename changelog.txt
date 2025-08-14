@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.10.6
-Date: ????
+Date: 2025-08-14
   Changes:
+    - Added new optional parameters to PlanetsLib.borrow_music: track_types(table) and modifier_function(function), both optional. New syntax: PlanetsLib.borrow_music(source_planet, target_planet, (optional) options{track_types,modifier_function})
 ---------------------------------------------------------------------------------------------------
 Version: 1.10.5
 Date: 2025-08-09
