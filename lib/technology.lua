@@ -202,41 +202,42 @@ function Public.technology_effect_cargo_drops(planet_name, icons)
 	}
 end
 
+
+
+
 ---Create a moon discovery technology icon by adding a little moon icon on your technology icon, like in vanilla, but for moon type planets.
 ---@param tech_icon string The technology icon to add the moon icon
 ---@param icon_size integer Your icon size
+---@param shadow_scale double Scale of planet relative to shadow icon. If nil, no shadow is drawn.
 ---@return data.IconData[]
-function Public.technology_icon_moon(tech_icon, icon_size)
-	icon_size = icon_size or 256
-	local icons = util.technology_icon_constant_planet(tech_icon)
-	icons[1].icon_size = icon_size
-	icons[2].icon = "__PlanetsLib__/graphics/icons/moon-technology-symbol.png"
-	-- End result is an icons object ressembling the following, as of 2.0.37. Future API changes might change this code,
-	-- which is why this function is written to reference the base function instead of copying it by hand.
-	-- local icons = {
-	-- 	{
-	-- 		icon = moon_icon,
-	-- 		icon_size = icon_size,
-	-- 	},
-	-- 	{
-	-- 		icon = "__PlanetsLib__/graphics/icons/moon-technology-symbol.png",
-	-- 		icon_size = 128,
-	-- 		scale = 0.5,
-	-- 		shift = { 50, 50 },
-	-- 		floating = true
-	-- 	},
-	-- }
+function Public.technology_icon_moon(tech_icon, icon_size,shadow_scale)
+	
+	local icons = Public.technology_icon_planet(tech_icon, icon_size,shadow_scale)
+	icons[#icons].icon = "__PlanetsLib__/graphics/icons/moon-technology-symbol.png"
 	return icons
 end
 
 ---Create a planet discovery technology icon by adding a little planet icon on your technology icon, like in vanilla.
 ---@param tech_icon string The technology icon to add the planet icon
 ---@param icon_size integer Your icon size
+---@param shadow_scale number Scale of planet relative to shadow icon. If nil, no shadow is drawn.
 ---@return data.IconData[]
-function Public.technology_icon_planet(tech_icon, icon_size)
+function Public.technology_icon_planet(tech_icon, icon_size,shadow_scale)
 	icon_size = icon_size or 256
 	local icons = util.technology_icon_constant_planet(tech_icon)
 	icons[1].icon_size = icon_size
+	if shadow_scale then
+		icons[3]=icons[2]
+    	icons[2]=icons[1]
+		icons[1] = {
+			icon = "__PlanetsLib__/graphics/icons/planet-technology.png",
+			icon_size = 256,
+			shift = {0,10}
+		}
+		icons[2].scale = shadow_scale*128/icon_size
+		icons[2].shift = {0,10}
+    
+	end
 	-- End result is an icons object ressembling the following, as of 2.0.37. Future API changes might change this code,
 	-- which is why this function is written to reference the base function instead of copying it by hand.
 	-- local icons = {

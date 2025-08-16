@@ -159,8 +159,8 @@ Subgroups are rows in Factoriopedia.
 
 ## Assorted helpers
 
-* `PlanetsLib.technology_icon_moon(tech_icon: string, icon_size: integer)` — Creates a moon discovery technology icon by adding a little moon icon on your technology icon, like in vanilla, but for moon type planets.
-* `PlanetsLib.technology_icon_planet(tech_icon: string, icon_size: integer)` — Creates a planet discovery technology icon by adding a little planet icon on your technology icon, like in vanilla.
+* `PlanetsLib.technology_icon_moon(tech_icon: string, icon_size: integer, (optional) shadow_scale: number)` — Creates a moon discovery technology icon by adding a little moon icon on your technology icon, like in vanilla, but for moon type planets. If `shadow_scale` is defined, a shadow layer will be added to the icon, making it unnecessary to manually add one in an image editor.
+* `PlanetsLib.technology_icon_planet(tech_icon: string, icon_size: integer, (optional) shadow_scale: number)` — Creates a planet discovery technology icon by adding a little planet icon on your technology icon, like in vanilla. If `shadow_scale` is defined, a shadow layer will be added to the icon, making it unnecessary to manually add one in an image editor.
 * `PlanetsLib.set_default_import_location(item_name, planet_name)` — Sets the default import location for an item on a planet.
 * `PlanetsLib.borrow_music(source_planet, target_planet, (optional) options{track_types,modifier_function})` — Clones music tracks from `source_planet` prototype to `target_planet` prototype. Does not overwrite existing music for `target_planet`. To clone music from or to space platforms, set the respective parameter to "space-platform." Otherwise, use the relevant planet object.
 

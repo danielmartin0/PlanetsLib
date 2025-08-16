@@ -1,8 +1,8 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.10.6
+Version: 1.10.7
 Date: ???
   Changes:
-    - 
+    - Added new optional shadow_scale(number) parameter to technology_icon_moon and technology_icon_planet that adds a shadow layer to the returned icon when defined.
 ---------------------------------------------------------------------------------------------------
 Version: 1.10.6
 Date: 2025-08-14
