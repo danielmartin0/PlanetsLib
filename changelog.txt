@@ -2,6 +2,7 @@
 Version: 1.10.8
 Date: ????
   Changes:
+    - Added new library graphics: asteroid-crushing.png and generic-crushing.png
 ---------------------------------------------------------------------------------------------------
 Version: 1.10.7
 Date: 2025-08-16
