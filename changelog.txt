@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.10.7
-Date: ???
+Date: 2025-08-16
   Changes:
     - Added new optional shadow_scale(number) parameter to technology_icon_moon and technology_icon_planet that adds a shadow layer to the returned icon when defined.
     - Added new library graphic: reprocessing-arrow.png
