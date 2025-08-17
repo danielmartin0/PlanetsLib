@@ -163,7 +163,9 @@ Subgroups are rows in Factoriopedia.
 * `PlanetsLib.technology_icon_planet(tech_icon: string, icon_size: integer, (optional) shadow_scale: number)` — Creates a planet discovery technology icon by adding a little planet icon on your technology icon, like in vanilla. If `shadow_scale` is defined, a shadow layer will be added to the icon, making it unnecessary to manually add one in an image editor.
 * `PlanetsLib.set_default_import_location(item_name, planet_name)` — Sets the default import location for an item on a planet.
 * `PlanetsLib.borrow_music(source_planet, target_planet, (optional) options{track_types,modifier_function})` — Clones music tracks from `source_planet` prototype to `target_planet` prototype. Does not overwrite existing music for `target_planet`. To clone music from or to space platforms, set the respective parameter to "space-platform." Otherwise, use the relevant planet object.
-
+* `PlanetsLib.crushing_recipe_icons(icon_dir,icon_size)` — Returns an asteroid crushing icon resembling a basic asteroid crushing icon from vanilla Space Age, using a copper-colored crushing icon. Used by "Muluna, Moon of Nauvis" and "Crushing Industry." 
+* `PlanetsLib.asteroid_crushing_recipe_icons(icon_dir,icon_size)` — Returns an asteroid crushing icon resembling a basic asteroid crushing icon from vanilla Space Age. Uses a yellow crushing icon. 
+* `PlanetsLib.advanced_crushing_recipe_icons(asteroid_icon,product_1,product_2,variant)` — Returns an asteroid crushing icon resembling an advanced asteroid crushing icon from vanilla Space Age.
 #### Assorted graphics
 
 * `__PlanetsLib__/graphics/icons/research-progress-product.png` — an iconographic science pack icon intended for items used exclusively as ResearchProgressProducts, since mods using a common icon might help players understand the mechanic.

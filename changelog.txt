@@ -1,6 +1,10 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.10.8
+Version: 1.11.0
 Date: ????
+  Features:
+    - Added new helper function: PlanetsLib.crushing_recipe_icons.
+    - Added new helper function: PlanetsLib.asteroid_crushing_recipe_icons.
+    - Added new helper function: PlanetsLib.advanced_crushing_recipe_icon.
   Changes:
     - Added new library graphics: asteroid-crushing.png and generic-crushing.png
 ---------------------------------------------------------------------------------------------------
