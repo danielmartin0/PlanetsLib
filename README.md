@@ -6,12 +6,13 @@ Code, graphics and conventions to help modders creating planets, moons and other
 
 ## Contributors
 
-* [Midnighttigger](https://mods.factorio.com/user/Midnighttigger)
 * [thesixthroc](https://mods.factorio.com/user/thesixthroc)
+* [MeteorSwarm](https://mods.factorio.com/user/MeteorSwarm)
+* [Midnighttigger](https://mods.factorio.com/user/Midnighttigger)
 * [Tserup](https://mods.factorio.com/user/Tserup)
 * [notnotmelon](https://mods.factorio.com/user/notnotmelon)
-* [MeteorSwarm](https://mods.factorio.com/user/MeteorSwarm)
 * [Frontrider](https://mods.factorio.com/user/Frontrider)
+* Zwvei
 
 #### Notes for contributors
 
