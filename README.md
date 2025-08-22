@@ -184,6 +184,12 @@ The arguments are: distance, the name of the planet then the name of the mod. Th
 Eg: `sh generate-orbit.sh 10 vulcanus Planetslib`
 
 On Windows, this script can run with Git Bash. An untested equivalent Powershell script is also included.
+On Linux, this may help:
+  Get python3 on "Software Manager" or equivelent
+  sudo apt install python3-pip
+  sudo apt install python3-numpy
+  sudo apt install python3-matplotlib
+  python3 generate_orbit_graphics.py 10 vulcanus Planetslib
 
 
 [![Discord](https://img.shields.io/discord/1309620686347702372?style=for-the-badge&logoColor=bf6434&label=The%20Foundry&labelColor=222222&color=bf6434)](https://foundrygg.com)
