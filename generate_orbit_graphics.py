@@ -5,7 +5,7 @@ import argparse
 # Instantiate the parser
 parser = argparse.ArgumentParser(prog=os.getenv('PROGRAM_NAME'))
 
-parser.add_argument('distance', type=int,
+parser.add_argument('distance', type=float,
                     help='distance from the parent')
 
 parser.add_argument('planet_name', type=ascii,

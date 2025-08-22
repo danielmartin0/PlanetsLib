@@ -28,13 +28,13 @@ def generate_orbit(distance, output_file, mod_name):
     factorio_texture_size_limit=4096
 
     width=1
-    resolution=512*distance
+    thickness = 3
 
-    radius=distance*64
+    resolution=512*distance+thickness*2
+
+    radius=distance*64+thickness
 
     scale_modifier = 1 
-    
-    thickness = 3
 
     if resolution > factorio_texture_size_limit:
         scale_modifier = factorio_texture_size_limit / resolution 
@@ -80,6 +80,13 @@ def generate_orbit(distance, output_file, mod_name):
     plt.savefig(output_file, bbox_inches="tight",pad_inches=0, dpi=resolution,transparent=True)
     plt.close()
 
+    with open(output_file + ".txt", "w") as orbitcode:
+        orbitcode.write("""sprite = {{
+            type = "sprite",
+            filename = "__{}__/graphics/orbits/{}",
+            size = {},
+            scale = {},
+        }}""".format(mod_name,output_file,math.floor(resolution_old*(1+width)/2), 0.25/scale_modifier))
 
     print(f"Orbit sprite saved to {os.path.abspath(output_file)}\n")
     print(f"Add this to the 'orbit' field of your planet definition:\n")
