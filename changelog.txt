@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.11.1
-Date: ????
+Date: 2025-08-23
   Changes:
+    - PlanetsLib_recipe_productivity_effects technology field will no longer add recipes with allow_productivity disabled unless PlanetsLib_recipe_productivity_effects.allow_recipes_without_productivity == true.
 ---------------------------------------------------------------------------------------------------
 Version: 1.11.0
 Date: 2025-08-18

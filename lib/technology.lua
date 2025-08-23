@@ -336,7 +336,7 @@ end
 --Properties:
 --  effects: array[ChangeResultProductivityModifier]
 --  purge_other_effects: boolean. Default: false. Before adding effects added by PlanetsLib_recipe_productivity_effects, remove all effects not flagged with PlanetsLib_force_include.
-
+--  allow_recipes_without_productivity: boolean. Default: false. Captures recipes that have "allow_producitivity" set to false.
 --ChangeResultProductivityModifier
 --Properties:
 --  allow_multiple_results: boolean. Default: false. When false, only recipes with one result are added to the technology's effect list.
@@ -382,8 +382,8 @@ function Public.process_technology_recipe_productivity_effects(tech)
         end
         if not new_effects then new_effects = {} end
         
-
-        for _,effect in pairs(tech.PlanetsLib_recipe_productivity_effects.effects) do
+		local settings = tech.PlanetsLib_recipe_productivity_effects
+        for _,effect in pairs(settings.effects) do
             local type = effect.type
             local name = effect.name
             local change = effect.change
@@ -396,8 +396,9 @@ function Public.process_technology_recipe_productivity_effects(tech)
             local category_blacklist = tech.PlanetsLib_recipe_productivity_effects.category_blacklist or {"recycling"} --Excluded recipe categories
 
             for _,recipe in pairs(data.raw["recipe"]) do
+				--recipe.allow_productivity = false
                 if not (recipe.Planetslib_blacklist_technology_updates or rro.contains(category_blacklist,recipe.category) )
-                and recipe.results and (#recipe.results == 1 or effect.allow_multiple_results) then
+                and recipe.results and (#recipe.results == 1 or effect.allow_multiple_results) and (settings.allow_recipes_without_productivity or recipe.allow_productivity) then
                     for _,result in pairs(recipe.results) do
                         if result.type == type and ((not name and recipe.category == category) or result.name == name) then
                             local new_effect = {

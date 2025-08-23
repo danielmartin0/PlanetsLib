@@ -118,7 +118,9 @@ PlanetsLib adds a new field named `PlanetsLib_recipe_productivity_effects` to te
 #### [`TechnologyPrototype`](https://lua-api.factorio.com/latest/prototypes/TechnologyPrototype.html) field: `PlanetsLib_recipe_productivity_effects` Properties:
 *   `effects`: `array[ChangeResultProductivityModifier]`
 *   `category_blacklist` - `array[`[`RecipeCategoryID`](https://lua-api.factorio.com/latest/types/RecipeCategoryID.html)`]`
-*   `purge_other_effects`- boolean. Default: false. Before adding effects added by `PlanetsLib_recipe_productivity_effects`, remove all effects not flagged with `PlanetsLib_force_include`.
+*   `purge_other_effects`- `boolean`. Default: false. Before adding effects added by `PlanetsLib_recipe_productivity_effects`, remove all 
+effects not flagged with `PlanetsLib_force_include`.
+*   `allow_recipes_without_productivity` - `boolean`. Default: false. Captures recipes that have `allow_producitivity` set to false.
 
 #### `ChangeResultProductivityModifier` Properties:
 *   `allow_multiple_results`: boolean. Default: false. When false, only recipes with one result are added to the technology's effect list.
