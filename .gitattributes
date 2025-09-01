@@ -14,12 +14,14 @@ graphics/mipgenerator export-ignore
 *.gif export-ignore
 graphics/research-center export-ignore
 graphics/greenhouse/preview export-ignore
-*.sh export-ignore
+archive.sh export-ignore
+update_documentation.sh export-ignore
 docs export-ignore
 docs_templates export-ignore
 config.ld export-ignore
 *.html export-ignore
 *.ltp export-ignore
 *.css export-ignore
+.venv export-ignore
 
 
