@@ -37,7 +37,7 @@ def generate_orbit(distance, output_file, mod_name):
     scale_modifier = 1 
 
     if resolution > factorio_texture_size_limit:
-        scale_modifier = factorio_texture_size_limit / resolution 
+        scale_modifier = factorio_texture_size_limit / resolution * 2
         
         resolution = factorio_texture_size_limit
         resolution_old=resolution
