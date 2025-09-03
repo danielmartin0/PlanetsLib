@@ -19,8 +19,6 @@ def generate_orbit(distance, output_file, mod_name):
 
     Example: generate_orbit(1.6, "orbit-muluna.png","planet-muluna")
 
-    
-
     """
 
     
@@ -30,14 +28,16 @@ def generate_orbit(distance, output_file, mod_name):
     width=1
     thickness = 3
 
+    
     resolution=512*distance+thickness*2
 
     radius=distance*64+thickness
 
     scale_modifier = 1 
 
+    # IF we need orbits above 100 to be fully supported then this check needs to include a branch where it slices up the texture.
     if resolution > factorio_texture_size_limit:
-        scale_modifier = factorio_texture_size_limit / resolution 
+        scale_modifier = factorio_texture_size_limit / resolution * 2
         
         resolution = factorio_texture_size_limit
         resolution_old=resolution
