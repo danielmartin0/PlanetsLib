@@ -14,3 +14,4 @@ To avoid duplication of effort, please post in [Discord](https://discord.gg/nFVq
 ## Minor
 
 - Add screenshot of moon orbits to the mod portal.
+- Rewrite generate-visit-planet-achievement script in python
