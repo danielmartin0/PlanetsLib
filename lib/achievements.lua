@@ -14,7 +14,7 @@ function Public.visit_planet_achievement(planet, icon, icon_size)
 		)
 	end
 	local localised_name = planet.localised_name or {"space-location-name."..planet.name}
-	data:extend{
+	return 
 		{
 			type = "change-surface-achievement",
 			name = "visit-"..planet.name,
@@ -24,8 +24,8 @@ function Public.visit_planet_achievement(planet, icon, icon_size)
 			surface = planet.name,
 			icon = icon,
 			icon_size = icon_size or 128,
-		},
-	}
+		}
+	
 end
 
 return Public
