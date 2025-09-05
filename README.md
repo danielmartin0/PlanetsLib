@@ -164,7 +164,7 @@ Subgroups are rows in Factoriopedia.
 
 Planetslib includes functions to generate certain kinds of achievements.
 
-* `PlanetsLib.visit_planet_achievement(planet: SpaceLocationPrototype, icon: string, (optional) icon_size: integer)` — Generates an achievement for visiting the provided planet. The icon can be generated with `helper_scripts/generate-visit-planet-achievement.bat` helper script.
+* `PlanetsLib.visit_planet_achievement(planet: SpaceLocationPrototype, icon: string, (optional) icon_size: integer)` — Returns an achievement for visiting the provided planet. The icon can be generated with `helper_scripts/generate-visit-planet-achievement.bat`(or `.sh`) helper script.
 
 ## Assorted helpers
 
