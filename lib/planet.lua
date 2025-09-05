@@ -31,14 +31,14 @@ function Public.extend(config)
 end
 
 function Public.is_space_location(planet)
-	if type(planet) ~= "table" then
+	if not planet then
 		return false
 	end
 	return planet.type == "planet" or planet.type == "space-location"
 end
 
 function Public.is_space_location_or_space_platform(planet)
-	if type(planet) ~= "table" then
+	if not planet then
 		return false
 	end
 	return planet == "space-platform" or planet.type == "planet" or planet.type == "space-location"
