@@ -6,6 +6,7 @@ local planet_str = require("lib.planet-str")
 local surface_conditions = require("lib.surface_conditions")
 local mod_data = require("lib.mod-data")
 local recipe = require("lib.recipe")
+local achievements = require("lib.achievements")
 
 --== APIs ==--
 -- API documentation lives in README.md (or on the mod portal.)
@@ -37,6 +38,8 @@ PlanetsLib.remove_surface_condition = surface_conditions.remove_surface_conditio
 
 PlanetsLib.set_default_import_location = planet.set_default_import_location
 
+PlanetsLib.visit_planet_achievement = achievements.visit_planet_achievement
+
 --- Clones music tracks from source_planet to target_planet.
 --- Does not overwrite existing music for target_planet.
 --- Options specified in `options`:
@@ -61,6 +64,8 @@ function PlanetsLib:update(config)
 		planet.update(config)
 	end
 end
+
+
 
 --== Undocumented APIs ==--
 -- Though these APIs are undocumented we should still support them, as mods may be using them.

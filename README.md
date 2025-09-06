@@ -160,6 +160,12 @@ Subgroups are rows in Factoriopedia.
 * `satellites` — A new Factoriopedia row for satellites (below the planets row).
     * Note that being in this subgroup affects [Redrawn Space Connections](https://mods.factorio.com/mod/Redrawn-Space-Connections) and [Cosmic Social Distancing](https://mods.factorio.com/mod/Cosmic-Social-Distancing).
 
+## Achievements
+
+Planetslib includes functions to generate certain kinds of achievements.
+
+* `PlanetsLib.visit_planet_achievement(planet: SpaceLocationPrototype, icon: string, (optional) icon_size: integer)` — Returns an achievement for visiting the provided planet. The icon can be generated with `helper_scripts/generate-visit-planet-achievement.bat`(or `.sh`) helper script.
+
 ## Assorted helpers
 
 * `PlanetsLib.technology_icon_moon(tech_icon: string, icon_size: integer, (optional) shadow_scale: number)` — Creates a moon discovery technology icon by adding a little moon icon on your technology icon, like in vanilla, but for moon type planets. If `shadow_scale` is defined, a shadow layer will be added to the icon, making it unnecessary to manually add one in an image editor.
