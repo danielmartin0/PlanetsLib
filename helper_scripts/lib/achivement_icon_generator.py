@@ -6,7 +6,8 @@ size = 128, 128
 
 background = Image.open("visit-planet-background.png")
 foreground = Image.open("visit-planet-overlay.png")
-alpha = Image.open("visit-planet-achievement-frame-mask.png").convert('RGBA')
+alpha = Image.open("visit-planet-achievement-frame-alpha.png")
+mask = Image.open("visit-planet-achievement-frame-mask.png")
 
 def generate_achivement_icon(source):
     path = os.path.abspath(source)
@@ -18,7 +19,8 @@ def generate_achivement_icon(source):
             im = Image.open(path).resize(size)
             im = ImageChops.offset(im, 25, 33)#.paste(alpha, mask=alpha)
 
-            back = Image.composite(background,im, alpha)
+            im = Image.composite(mask,im, alpha)
+            back = Image.alpha_composite(background,im)
             Image.alpha_composite(back,foreground).save(outfile, "PNG")
         except IOError:
             print("cannot create achivement icon for for '%s'" % path)
