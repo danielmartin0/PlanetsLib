@@ -6,5 +6,5 @@ source $env_path/bin/activate
 
 pip install --upgrade pip
 pip install -r requirements.txt
-export PROGRAM_NAME="generate-orbit.sh"
-python ./generate_orbit_graphics.py $1 $2 $3
+export PROGRAM_NAME="generate-planet-achivement.sh"
+python ./generate_visit_planet_achivement.py $1
