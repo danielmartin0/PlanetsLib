@@ -10,12 +10,14 @@ function Public.warn_unreachable_techs()
 	local hidden_prereq_successors = {}
 
 	for _, tech in pairs(prototypes.technology) do
-		for _, prereq in pairs(tech.prerequisites) do
-			if prereq.hidden then
-				if not hidden_prereq_successors[prereq.name] then
-					hidden_prereq_successors[prereq.name] = {}
+		if not tech.hidden then
+			for _, prereq in pairs(tech.prerequisites) do
+				if prereq.hidden then
+					if not hidden_prereq_successors[prereq.name] then
+						hidden_prereq_successors[prereq.name] = {}
+					end
+					table.insert(hidden_prereq_successors[prereq.name], tech.name)
 				end
-				table.insert(hidden_prereq_successors[prereq.name], tech.name)
 			end
 		end
 	end
