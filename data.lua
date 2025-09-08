@@ -1,6 +1,7 @@
 PlanetsLib = {}
 
 require("api")
+PlanetsLib.check_global_variables()
 require("prototypes.vanilla-override.recipe-productivity-technology")
 if mods["space-age"] then
 	require("prototypes.surface-property")

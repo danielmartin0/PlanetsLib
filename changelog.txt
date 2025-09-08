@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.12.1
+Date: 2025-09-08
+  Changes:
+    - Added PlanetsLib.check_global_variables, a function run at the beginning of every data cycle that checks if key global variables are not fully deleted by other mods.
+---------------------------------------------------------------------------------------------------
 Version: 1.12.0
 Date: 2025-08-23
   Features:

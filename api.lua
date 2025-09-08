@@ -1,3 +1,4 @@
+local global_variable_checks = require("lib.global-variable-checks")
 local util = require("util")
 local lib = require("lib.lib")
 local technology = require("lib.technology")
@@ -69,7 +70,7 @@ end
 
 --== Undocumented APIs ==--
 -- Though these APIs are undocumented we should still support them, as mods may be using them.
-
+PlanetsLib.check_global_variables = global_variable_checks.check_global_variables
 PlanetsLib.process_technology_recipe_productivity_effects = technology.process_technology_recipe_productivity_effects
 PlanetsLib.technology_icons_moon = technology.technology_icon_moon
 PlanetsLib.technology_icon_constant_planet = technology.technology_icon_planet

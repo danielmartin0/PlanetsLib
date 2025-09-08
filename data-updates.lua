@@ -1,3 +1,4 @@
+PlanetsLib.check_global_variables()
 local orbits = require("lib.orbits")
 
 if mods["space-age"] then

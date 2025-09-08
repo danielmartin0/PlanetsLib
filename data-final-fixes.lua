@@ -1,3 +1,4 @@
+PlanetsLib.check_global_variables()
 require("prototypes.override-final.science")
 require("prototypes.override-final.technology-updates")
 if mods["space-age"] then
