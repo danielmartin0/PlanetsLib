@@ -14,7 +14,7 @@ py -m pip install --upgrade pip
 py -m pip install -r requirements.txt
 
 # Set environment variable
-$env:PROGRAM_NAME = "generate-orbit.ps1"
+$env:PROGRAM_NAME = "planet-achivement.ps1"
 
 # Run the Python script with up to three arguments
-py ./generate_orbit_graphics.py $args[0] $args[1] $args[2]
+py ./generate_visit_planet_achivement.py $args[0]
