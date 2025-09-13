@@ -80,7 +80,7 @@ PlanetsLib.surface_conditions = surface_conditions
 PlanetsLib.restrict_to_planet = surface_conditions.restrict_to_planet
 PlanetsLib.planet_str = planet_str
 
-PlanetsLib.objects = require("lib.objects") --Table manipulation library
+PlanetsLib.objects = require("lib.remove-replace-object") --Table manipulation library
 PlanetsLib.rro = PlanetsLib.objects --Alias for PlanetsLib.objects
 
 -- For backwards compatibility (mod-data was not always a thing). NOTE: These functions return numbers, other mods may change the tier prototypes after you call this.

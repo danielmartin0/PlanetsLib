@@ -1,6 +1,7 @@
 PlanetsLib.check_global_variables()
 require("prototypes.override-final.science")
 require("prototypes.override-final.technology-updates")
+require("prototypes.override-final.enhanced-tooltips")
 if mods["space-age"] then
 	require("prototypes.override-final.check-unexpected-positions")
 	require("prototypes.override-final.update-connections")

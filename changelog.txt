@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.13.0
+Date: 2025-09-13
+  Features:
+    - Added user-facing setting(enabled by default) that adds new tooltips to the game that expose previously-hidden information relevant to the user.
+    - New tooltip: Heat dissipation
+    - New tooltip: Resets freshness on beginning craft
+    - New tooltip: Resets freshness on completing craft
+  Locale:
+    - Updated Korean locale(By PolarZero)
+---------------------------------------------------------------------------------------------------
 Version: 1.12.1
 Date: 2025-09-08
   Changes:

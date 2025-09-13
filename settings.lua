@@ -4,21 +4,28 @@ data:extend({
 		setting_type = "startup",
 		name = "PlanetsLib-warn-on-hidden-prerequisites",
 		default_value = true,
-		order = "a",
+		order = "aa",
 	},
 	{
 		type = "bool-setting",
 		setting_type = "startup",
 		name = "PlanetsLib-update-vanilla-recipe-productivity-techs",
 		default_value = true,
-		order = "b",
+		order = "ab",
 	},
 	{
 		type = "bool-setting",
 		setting_type = "startup",
 		name = "PlanetsLib-unlink-hidden-prerequisites",
 		default_value = false,
-		order = "c",
+		order = "ac",
+	},
+	{
+		type = "bool-setting",
+		setting_type = "startup",
+		name = "PlanetsLib-enhanced-tooltips",
+		default_value = true,
+		order = "ad",
 	},
 	
 })
