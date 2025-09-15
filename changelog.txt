@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.13.1
+Date: 2025-09-14
+  Features:
+    - Added a mod-data prototype("Planetslib-planet-lock-rocket-silos") that defines if vanilla-style rocket silos have their recipes locked on being placed. Intended to allow mods with alternative rocket part recipes to selectively unlock rocket silos when placed on all or on particular surfaces.
+---------------------------------------------------------------------------------------------------
 Version: 1.13.0
 Date: 2025-09-13
   Features:

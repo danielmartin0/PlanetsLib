@@ -9,7 +9,17 @@ local rocket_part_recipe_data = {
     }
 }
 
-data:extend{rocket_part_recipe_data}
+local lock_silo_recipe_data = {
+    type = "mod-data",
+    name = "Planetslib-planet-lock-rocket-silos",
+    data_type = "recipe",
+    data = {
+        default = true, --Used for surfaces not specified. Mods that add new optional rocket part recipes should set the default to false.
+    }
+}
+
+
+data:extend{rocket_part_recipe_data,lock_silo_recipe_data}
 local blacklisted_planets = { --Planets with their own system for replacing rocket part recipes.
     "muluna",
     "maraxsis",

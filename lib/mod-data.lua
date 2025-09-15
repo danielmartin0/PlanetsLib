@@ -1,6 +1,6 @@
 local Public = {}
 
-function Public.assign_rocket_part_recipe(planet, recipe)
+function Public.assign_rocket_part_recipe(planet, recipe, lock_silo)
 	local planet_name
 	local recipe_name
 	if type(planet) == "list" then
@@ -14,6 +14,10 @@ function Public.assign_rocket_part_recipe(planet, recipe)
 		recipe_name = recipe
 	end
 	data.raw["mod-data"]["Planetslib-planet-rocket-part-recipe"].data[planet_name] = recipe_name
+	if recipe_name ~= "_other" then
+		data.raw["mod-data"]["Planetslib-planet-lock-rocket-silos"].data[planet_name] = lock_silo or true
+	end
+	
 end
 
 local function initialize_planet_cargo_drops_whitelist(planet_name)
