@@ -13,6 +13,14 @@ local fluid_boxes = {
 		pipe_connections = { { flow_direction = "input", direction = defines.direction.north, position = { 0, -1 } } },
 	},
 	{
+		production_type = "output",
+		pipe_picture = pipe_picture,
+		pipe_covers = pipecoverspictures(),
+		volume = 1000,
+		pipe_connections = { { flow_direction = "output", direction = defines.direction.south, position = { 0, 1 } } },
+	},
+	--[[
+	{
 		production_type = "input",
 		pipe_picture = pipe_picture,
 		pipe_covers = pipecoverspictures(),
@@ -24,16 +32,32 @@ local fluid_boxes = {
 		pipe_picture = pipe_picture,
 		pipe_covers = pipecoverspictures(),
 		volume = 1000,
-		pipe_connections = { { flow_direction = "output", direction = defines.direction.south, position = { 0, 1 } } },
-	},
-	{
-		production_type = "output",
-		pipe_picture = pipe_picture,
-		pipe_covers = pipecoverspictures(),
-		volume = 1000,
 		pipe_connections = { { flow_direction = "output", direction = defines.direction.east, position = { 1, 0 } } },
 	},
+	--]]
 }
+if settings.startup["PlanetsLib-enable-additional-centrifuge-fluidboxes"].value then
+	table.insert(
+		fluid_boxes,
+		{
+			production_type = "input",
+			pipe_picture = pipe_picture,
+			pipe_covers = pipecoverspictures(),
+			volume = 1000,
+			pipe_connections = { { flow_direction = "input", direction = defines.direction.west, position = { -1, 0 } } },
+		}
+	)
+	table.insert(
+		fluid_boxes,
+		{
+			production_type = "output",
+			pipe_picture = pipe_picture,
+			pipe_covers = pipecoverspictures(),
+			volume = 1000,
+			pipe_connections = { { flow_direction = "output", direction = defines.direction.east, position = { 1, 0 } } },
+		}
+	)
+end
 
 -- Ensure centrifuges can accept fluid recipes. It isn't ideal that we change modded centrifuges this way, as the fluid boxes may be in the wrong positions, but on the other hand they're only visible when fluid recipes are used.
 for _, machine in pairs(data.raw["assembling-machine"]) do

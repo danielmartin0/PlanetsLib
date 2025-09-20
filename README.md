@@ -13,6 +13,7 @@ Code, graphics and conventions to help modders creating planets, moons and other
 * [notnotmelon](https://mods.factorio.com/user/notnotmelon)
 * [Frontrider](https://mods.factorio.com/user/Frontrider)
 * Zwvei
+* [allisonlastname](https://mods.factorio.com/user/allisonlastname)
 
 #### Notes for contributors
 
@@ -196,6 +197,10 @@ On Windows, this script can run with Git Bash. An untested equivalent Powershell
 On Linux, with python3 you can run `sudo apt install python3-pip python3-numpy python3-matplotlib` and then `python3 generate_orbit_graphics.py 10 vulcanus Planetslib`.
 
 * `helper_scripts/generate-visit-planet-achievement.bat` — a script to generate images for "Visit [planet]" achievements. When provided an image of a planet, it automatically scales, crops and composes it into a ready to use achievement graphic.
+
+#### Centrifuge fluidboxes
+
+PlanetsLib adds fluidboxes to the centrifuge. By default, two are added: one input and one output. If the value of `PlanetsLib-enable-additional-centrifuge-fluidboxes` is set to true, an additional input and output will be added.
 
 
 [![Discord](https://img.shields.io/discord/1309620686347702372?style=for-the-badge&logoColor=bf6434&label=The%20Foundry&labelColor=222222&color=bf6434)](https://foundrygg.com)
