@@ -79,4 +79,12 @@ data:extend({
 		default_value = true,
 		hidden = true,
 	},
+	{
+		type = "bool-setting",
+		setting_type = "startup",
+		name = "PlanetsLib-enable-additional-centrifuge-fluidboxes",
+		forced_value = false,
+		default_value = false,
+		hidden = true,
+	}
 })
