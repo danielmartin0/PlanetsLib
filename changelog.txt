@@ -2,6 +2,7 @@
 Version: 1.13.2
   Features:
     - Added an additonal two fluidboxes to the centrifuge, controlled by a setting.
+    - Clearer error message when calling PlanetsLib:update() with an invalid parent.
 ---------------------------------------------------------------------------------------------------
 Version: 1.13.1
 Date: 2025-09-14
