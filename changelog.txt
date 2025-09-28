@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.13.3
-Date: ????
+Date: 2025-09-28
   Changes:
     - Added robustness fallback for PlanetsLib:update() to handle cases where the parent has been converted from a space location to a real planet.
 ---------------------------------------------------------------------------------------------------
