@@ -104,7 +104,7 @@ function Public.update(config)
 				data.raw[config.type][config.name].orientation
 			)
 
-			local parent_prototype = data.raw[v.parent.type][v.parent.name]
+			local parent_prototype = data.raw[v.parent.type][v.parent.name] or data.raw.planet[v.parent.name] -- NOTE(thesixthroc): I added this planet fallback because people sometimes convert space locations to planets
 
 			if not parent_prototype then
 				error("PlanetsLib.update: update called with invalid parent: " .. v.parent.name)
