@@ -12,5 +12,8 @@
         "? PlanetsLibTiers",
         "(?) Cosmic-Social-Distancing >= 1.0.2",
         "! MT-lib"
-    ]
+    ],
+    "package": {
+        "ignore": ["generate-visit-planet-achievement.bat"]
+    }
 }
