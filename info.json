@@ -14,6 +14,6 @@
         "! MT-lib"
     ],
     "package": {
-        "ignore": ["./helper_scripts/generate-visit-planet-achievement.bat"]
+        "ignore": ["**/*.bat"]
     }
 }
