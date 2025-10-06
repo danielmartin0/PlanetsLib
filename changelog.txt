@@ -2,6 +2,7 @@
 Version: 1.13.6
 Date: ????
   Changes:
+    - If a planet becomes hidden, its children will no longer draw orbit graphics.
 ---------------------------------------------------------------------------------------------------
 Version: 1.13.5
 Date: 2025-09-29

@@ -31,7 +31,7 @@ function Public.update_starmap_layers(planet)
 	end
 
 	if planet.orbit and planet.orbit.sprite then
-		Public.draw_orbit_of_planet(planet)
+		Public.try_draw_orbit_of_planet(planet)
 
 		return { should_disable_default_orbit_sprite = true }
 	end
@@ -39,7 +39,7 @@ function Public.update_starmap_layers(planet)
 	return { should_disable_default_orbit_sprite = false }
 end
 
-function Public.draw_orbit_of_planet(planet)
+function Public.try_draw_orbit_of_planet(planet)
 	local orbit = planet.orbit
 	local parent = orbit.parent
 
@@ -49,6 +49,21 @@ function Public.draw_orbit_of_planet(planet)
 	)
 
 	local parent_data = data.raw[parent.type][parent.name]
+
+	if not parent_data then
+		log("[PLANETSLIB] Not drawing orbit of " .. planet.name .. " because parent " .. parent.name .. " is not found")
+	end
+
+	if parent_data.type == "planet" and parent_data.hidden then
+		-- When mods hide a planet, they usually want to hide the orbit graphics of its moons, because those moons will now sit in empty space.
+		log(
+			"[PLANETSLIB] Not drawing orbit of "
+				.. planet.name
+				.. " because parent "
+				.. parent.name
+				.. " is a hidden planet"
+		)
+	end
 
 	local parent_x, parent_y =
 		orbits.get_rectangular_position_from_polar(parent_data.distance * 32, parent_data.orientation)
