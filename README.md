@@ -143,6 +143,30 @@ effects not flagged with `PlanetsLib_force_include`.
 #### New ['RecipePrototype'](https://lua-api.factorio.com/latest/prototypes/RecipePrototype.html) field: `PlanetsLib_blacklist_technology_updates`
 *  Stops PlanetsLib from targeting this recipe in technology updates.
 
+#### Example
+```
+{
+   type = "technology",
+   name = "thruster-fuel-productivity",
+   --Other required fields here
+   PlanetsLib_recipe_productivity_effects = {
+               purge_other_effects = true,
+               effects = {
+                   {
+                       type = "fluid",
+                       name = "thruster-fuel",
+                       change = 0.1
+                   },
+                   {
+                       type = "fluid",
+                       name = "thruster-oxidizer",
+                       change = 0.1
+                   },
+               }
+           }
+}
+```
+
 #### Tech tree adjustments
 
 * `PlanetsLib.excise_tech_from_tech_tree(tech_name)` — Seamlessly removes a technology from the tech tree by making all its dependencies depend instead on the technology's prerequisites. In addition, `hidden = true` is set on the technology.
