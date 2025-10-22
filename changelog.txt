@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.13.7
-Date: ????
-  Changes:
+Date: 2025-10-22
+  Bugfixes:
+    - Fixed issue where recipes with the default crafting category("crafting") fail to get added to recipe productivity technologies with PlanetsLib_recipe_productivity_effects defined.
 ---------------------------------------------------------------------------------------------------
 Version: 1.13.6
 Date: 2025-10-06

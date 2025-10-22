@@ -397,10 +397,12 @@ function Public.process_technology_recipe_productivity_effects(tech)
 
             for _,recipe in pairs(data.raw["recipe"]) do
 				--recipe.allow_productivity = false
-                if not (recipe.Planetslib_blacklist_technology_updates or rro.contains(category_blacklist,recipe.category) )
+				local recipe_category = recipe.category
+				if recipe_category == nil then category = "crafting" end
+                if not (recipe.Planetslib_blacklist_technology_updates or rro.contains(category_blacklist,recipe_category))
                 and recipe.results and (#recipe.results == 1 or effect.allow_multiple_results) and (settings.allow_recipes_without_productivity or recipe.allow_productivity) then
                     for _,result in pairs(recipe.results) do
-                        if result.type == type and ((not name and recipe.category == category) or result.name == name) then
+                        if result.type == type and ((not name and recipe_category == category) or result.name == name) then
                             local new_effect = {
                                 type = "change-recipe-productivity",
                                 recipe = recipe.name,
