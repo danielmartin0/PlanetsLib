@@ -4,6 +4,8 @@
 
 Code, graphics and conventions to help modders creating planets, moons and other systems. This library is a community project and will grow over time. Anyone is welcome to open a [pull request](https://github.com/danielmartin0/PlanetsLib/pulls) on Github. For feature requests, please open an [issue](https://github.com/danielmartin0/PlanetsLib/issues). For general discussion, use [Discord](https://discord.gg/VuVhYUBbWE).
 
+Since many other mods make use of the 'orbit structure' PlanetsLib provides to the solar system, it is recommended to add PlanestLib compatibility to your planet mod either by defining your planet prototype with PlanetsLib:extend (as in the first image in the mod portal gallery), or by using PlanetsLib:update in data-updates.lua (second image in the gallery).
+
 ## Contributors
 
 * [thesixthroc](https://mods.factorio.com/user/thesixthroc)
