@@ -8,7 +8,7 @@ function Public.extend(config)
 
 	local planet = {}
 
-	local distance, orientation = orbits.get_absolute_polar_position_from_orbit(config.orbit)
+	local distance, orientation = orbits.get_absolute_polar_position_from_orbit(config.orbit, true)
 
 	planet.distance = distance
 	planet.orientation = orientation

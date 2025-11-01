@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.14.0
+Date: 2025-10-22
+  Changes:
+    - Added support for mods calling PlanetsLib:extend on a parent that does not yet exist, as long as the parent exists before PlanetsLib's data-updates.lua runs.
+    - PlanetsLib:update now once again supports taking an array of configs.
+  Bugfixes:
+    - Fixed a corner case in which the orbital children of the vanilla planets were not correctly moved with the planet if the planet was moved by another mod. This occurred in the case that the definition of the children and the movement of the parent happened before PlanetsLib got a chance to interact, and is fixed by PlanetsLib assigning `orbit` fields to the vanilla planet prototypes in data.lua.
+---------------------------------------------------------------------------------------------------
 Version: 1.13.7
 Date: 2025-10-22
   Bugfixes:

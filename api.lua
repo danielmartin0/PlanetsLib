@@ -23,8 +23,8 @@ PlanetsLib.technology_icon_moon = technology.technology_icon_moon
 PlanetsLib.technology_icon_planet = technology.technology_icon_planet
 PlanetsLib.cargo_drops_technology_base = technology.cargo_drops_technology_base
 
-PlanetsLib.crushing_recipe_icons =  recipe.crushing_recipe_icons
-PlanetsLib.asteroid_crushing_recipe_icons =  recipe.asteroid_crushing_recipe_icons
+PlanetsLib.crushing_recipe_icons = recipe.crushing_recipe_icons
+PlanetsLib.asteroid_crushing_recipe_icons = recipe.asteroid_crushing_recipe_icons
 PlanetsLib.advanced_crushing_recipe_icons = recipe.advanced_crushing_recipe_icons
 
 PlanetsLib.assign_rocket_part_recipe = mod_data.assign_rocket_part_recipe
@@ -46,7 +46,7 @@ PlanetsLib.visit_planet_achievement = achievements.visit_planet_achievement
 --- Options specified in `options`:
 --- track_types(table): Allows the selection of only tracks matching one or more track types.
 --- modifier_function(function): Function applied to each borrowed track: Expected form: modifier_function = function(track) {Apply changes to track table here} end
--- @param source_planet 
+-- @param source_planet
 -- @param target_planet
 -- @param options table Table of options (track_types)
 PlanetsLib.borrow_music = planet.borrow_music
@@ -58,15 +58,14 @@ function PlanetsLib:extend(configOrConfigs)
 		planet.extend(config)
 	end
 end
-function PlanetsLib:update(config)
-	if #config == 1 then
-		planet.update(config[1])
-	else
+
+function PlanetsLib:update(configOrConfigs)
+	local configs = lib.wrap_single_config(util.table.deepcopy(configOrConfigs))
+
+	for _, config in ipairs(configs) do
 		planet.update(config)
 	end
 end
-
-
 
 --== Undocumented APIs ==--
 -- Though these APIs are undocumented we should still support them, as mods may be using them.

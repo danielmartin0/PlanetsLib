@@ -15,7 +15,13 @@ function Public.get_polar_position_from_rectangular(x, y)
 	return distance, orientation
 end
 
-function Public.get_absolute_polar_position_from_orbit(orbit)
+Public.SPECIAL_PLACEHOLDERS_FOR_MISSING_PARENT = {
+	-- Hopefully, nobody uses exactly these values in their mod!
+	distance = 43168,
+	orientation = 0.43168,
+}
+
+function Public.get_absolute_polar_position_from_orbit(orbit, return_special_placeholders_if_missing_parent)
 	local parent = orbit.parent
 
 	assert(
@@ -29,7 +35,21 @@ function Public.get_absolute_polar_position_from_orbit(orbit)
 
 	local parent_data = data.raw[parent.type][parent.name]
 
-	assert(parent_data, string.format("%s with name '%s' not found", parent.type, parent.name))
+	if return_special_placeholders_if_missing_parent then
+		if not parent_data then
+			return Public.SPECIAL_PLACEHOLDERS_FOR_MISSING_PARENT.distance,
+				Public.SPECIAL_PLACEHOLDERS_FOR_MISSING_PARENT.orientation
+		end
+	else
+		assert(
+			parent_data,
+			string.format(
+				"Tried to calculate the position corresponding to an orbit structure, but the parent %s '%s' was not found",
+				parent.type,
+				parent.name
+			)
+		)
+	end
 
 	local parent_distance = parent_data.distance
 	local parent_orientation = parent_data.orientation

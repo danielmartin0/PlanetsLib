@@ -1,3 +1,5 @@
+local orbits = require("lib.orbits")
+
 PlanetsLib = {}
 
 require("api")
@@ -8,6 +10,8 @@ if mods["space-age"] then
 	require("prototypes.categories")
 	require("prototypes.star")
 	require("prototypes.mod-data")
+
+	orbits.ensure_all_locations_have_orbits() -- We also call this in data-updates, but it's good to call it here as well so that if the vanilla planets are moved in data.lua (or before this code runs in data-updates.lua), we correctly recognize that their orbital children should be moved as well.
 end
 
 data:extend({

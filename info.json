@@ -1,19 +1,19 @@
 {
-    "name": "PlanetsLib",
-    "version": "1.13.7",
-    "factorio_version": "2.0",
-    "title": "PlanetsLib",
-    "author": "thesixthroc",
-    "description": "Code, graphics and conventions to help modders creating planets, moons and other systems. This is a community project.",
-    "homepage": "https://github.com/danielmartin0/PlanetsLib",
-    "dependencies": [
-        "base >= 2.0.60",
-        "? space-age >= 2.0.60",
-        "? PlanetsLibTiers",
-        "(?) Cosmic-Social-Distancing >= 1.0.2",
-        "! MT-lib"
-    ],
-    "package": {
-        "ignore": ["**/*.bat"]
-    }
+  "name": "PlanetsLib",
+  "version": "1.14.0",
+  "factorio_version": "2.0",
+  "title": "PlanetsLib",
+  "author": "thesixthroc",
+  "description": "Code, graphics and conventions to help modders creating planets, moons and other systems. This is a community project.",
+  "homepage": "https://github.com/danielmartin0/PlanetsLib",
+  "dependencies": [
+    "base >= 2.0.60",
+    "? space-age >= 2.0.60",
+    "? PlanetsLibTiers",
+    "(?) Cosmic-Social-Distancing >= 1.0.2",
+    "! MT-lib"
+  ],
+  "package": {
+    "ignore": ["**/*.bat"]
+  }
 }
