@@ -136,35 +136,55 @@ local function examine_cargo_pods(platform, planet_name)
 	end
 end
 
-script.on_nth_tick(20, function()
-	for _, force in pairs(game.forces) do
-		for _, platform in pairs(force.platforms) do
-			if platform and platform.valid and platform.surface and platform.surface.valid then
-				local planet_name = nil
-				if platform.space_location and platform.space_location.valid and platform.space_location.name then
-					planet_name = platform.space_location.name
-				end
+script.on_event(defines.events.on_cargo_pod_started_ascending, function(event)
+	local cargo_pod = event.cargo_pod
+	if not (cargo_pod and cargo_pod.valid) then
+		return
+	end
 
-				if planet_name then
-					local cargo_drops_tech = force.technologies[cargo_drops_technology_names[planet_name]]
+	local surface = cargo_pod.surface
+	if not (surface and surface.valid) then
+		return
+	end
 
-					if cargo_drops_tech and not cargo_drops_tech.researched then
-						local has_nothing_effect = false
-						for _, effect in pairs(cargo_drops_tech.prototype.effects) do
-							if effect.type == "nothing" then
-								has_nothing_effect = true
-								break
-							end
-						end
+	local platform = surface.platform
+	if not (platform and platform.valid) then
+		return
+	end
 
-						if has_nothing_effect then
-							examine_cargo_pods(platform, planet_name)
-						end
-					end
-				end
-			end
+	local planet_name = nil
+	if platform.space_location and platform.space_location.valid and platform.space_location.name then
+		planet_name = platform.space_location.name
+	end
+
+	if not planet_name then
+		return
+	end
+
+	local force = cargo_pod.force
+	if not (force and force.valid) then
+		return
+	end
+
+	local cargo_drops_tech = force.technologies[cargo_drops_technology_names[planet_name]]
+
+	if (not cargo_drops_tech) or cargo_drops_tech.researched then
+		return
+	end
+
+	local has_nothing_effect = false
+	for _, effect in pairs(cargo_drops_tech.prototype.effects) do
+		if effect.type == "nothing" then
+			has_nothing_effect = true
+			break
 		end
 	end
+
+	if not has_nothing_effect then
+		return
+	end
+
+	examine_cargo_pods(platform, planet_name)
 end)
 
 -- Deprecated whitelist API, not sure if we'll ever remove it?

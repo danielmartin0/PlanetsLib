@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.14.1
 Date: ????
-  Changes:
+  Optimizations:
+    - Removed a performance hit when hovering platforms above planets with cargo drop restrictions by using the new on_cargo_pod_started_ascending API.
 ---------------------------------------------------------------------------------------------------
 Version: 1.14.0
 Date: 2025-11-01
