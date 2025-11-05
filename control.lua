@@ -5,8 +5,12 @@ if script.active_mods["space-age"] then
 	require("scripts.cargo-pods")
 end
 
+
 script.on_event(defines.events.on_built_entity, function(event)
-	rocket_parts.on_built_rocket_silo(event)
+	if script.active_mods["space-age"] then
+		rocket_parts.on_built_rocket_silo(event)
+	end
+	
 end)
 
 script.on_event(defines.events.on_player_joined_game, function()

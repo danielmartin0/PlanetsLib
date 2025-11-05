@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.14.2
-Date: ????
-  Changes:
+Date: 2025-11-04
+  Bugfixes:
+    - When Space Age is not loaded, all elements of PlanetsLib's rocket part replacement script are disabled.
 ---------------------------------------------------------------------------------------------------
 Version: 1.14.1
 Date: 2025-11-01
