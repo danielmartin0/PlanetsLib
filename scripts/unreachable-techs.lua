@@ -2,6 +2,19 @@ local Public = {}
 
 local WARN_COLOR = { r = 255, g = 90, b = 54 }
 
+local function format_tech_list(techs, max_techs)
+	max_techs = max_techs or 10
+	if #techs <= max_techs then
+		return table.concat(techs, ", ")
+	else
+		local shown = {}
+		for i = 1, max_techs do
+			table.insert(shown, techs[i])
+		end
+		return table.concat(shown, ", ") .. ", ... (see game logs for full list)"
+	end
+end
+
 function Public.warn_unreachable_techs()
 	if #prototypes.mod_data["Planetslib"].data.unlinked_prerequisites > 0 then
 		return Public.warn_unlinked_prerequisites()
@@ -23,17 +36,24 @@ function Public.warn_unreachable_techs()
 	end
 
 	local warnings = {}
+	local full_warnings = {}
 	for prereq_name, successors in pairs(hidden_prereq_successors) do
 		local tech_links = {}
 		for _, tech_name in pairs(successors) do
 			table.insert(tech_links, "[technology=" .. tech_name .. "]")
 		end
-		local successor_list = table.concat(tech_links, ", ")
-		table.insert(warnings, successor_list .. " due to hidden prerequisite '" .. prereq_name .. "'")
+		local full_successor_list = table.concat(tech_links, ", ")
+		local formatted_successor_list = format_tech_list(tech_links)
+		local warning_msg = formatted_successor_list .. " due to hidden prerequisite '" .. prereq_name .. "'"
+		local full_warning_msg = full_successor_list .. " due to hidden prerequisite '" .. prereq_name .. "'"
+		table.insert(warnings, warning_msg)
+		table.insert(full_warnings, full_warning_msg)
 	end
 
 	if #warnings > 0 then
 		local all_warnings = table.concat(warnings, ", ")
+		local full_all_warnings = table.concat(full_warnings, ", ")
+		log("PlanetsLib: " .. full_all_warnings)
 		game.print({
 			"",
 			{ "planetslib.planetslib-print" },
@@ -47,8 +67,10 @@ function Public.warn_unlinked_prerequisites()
 	for _, prerequisite in pairs(prototypes.mod_data["Planetslib"].data.unlinked_prerequisites) do
 		table.insert(prerequisites, prerequisite)
 	end
-	local all_warnings = table.concat(prerequisites, ", ")
+	local full_all_warnings = table.concat(prerequisites, ", ")
+	local all_warnings = format_tech_list(prerequisites)
 
+	log("PlanetsLib: " .. full_all_warnings)
 	game.print({
 		"",
 		{ "planetslib.planetslib-print" },

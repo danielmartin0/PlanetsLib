@@ -2,6 +2,7 @@
 Version: 1.14.4
 Date: ????
   Changes:
+    - PlanetsLib's warning about unresearchable technologies no longer prints more than 10 technologies to chat. The full list is printed in the game logs.
 ---------------------------------------------------------------------------------------------------
 Version: 1.14.3
 Date: 2025-11-05
