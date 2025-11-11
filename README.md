@@ -180,13 +180,6 @@ effects not flagged with `PlanetsLib_force_include`.
 
 Because modders often forget about the Biolab, PlanetsLib mirrors all science packs from the vanilla lab to the Biolab in `data-final-fixes`.
 
-## Subgroups
-
-Subgroups are rows in Factoriopedia.
-
-* `satellites` — A new Factoriopedia row for satellites (below the planets row).
-    * Note that being in this subgroup affects [Redrawn Space Connections](https://mods.factorio.com/mod/Redrawn-Space-Connections) and [Cosmic Social Distancing](https://mods.factorio.com/mod/Cosmic-Social-Distancing).
-
 ## Achievements
 
 Planetslib includes functions to generate certain kinds of achievements.
