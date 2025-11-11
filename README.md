@@ -47,6 +47,8 @@ The reasons one may choose to use it over a plain `data:extend` are some additio
 
 PlanetsLib has some extra compatibility code in `data-final-fixes` in which if a planet has noticed to have a `position` and `orientation` different from that implied by its orbit fields, those values will be treated as authoritative, its `orbit` field will be updated, and a simulated `PlanetsLib:update` call will be made to update the `position` and `orientation` of its children. However, using `PlanetsLib:update` over this method is recommended for compatibility.
 
+Please note that the orbit structure does not yet dictate layering of the sprites on the spacemap — this is a desired feature from future contributors.
+
 Neither `PlanetsLib:extend` nor `PlanetsLib:update` should be called in `data-final-fixes`.
 
 ## Planet tiers
