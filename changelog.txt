@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.14.5
-Date: ????
+Date: 2025-11-19
   Changes:
     - Added documentation for a new orbit field "is_satellite", which will be used by Redrawn Space Connections to detect if a planet should be treated 'as a moon'. This is intended to deprecate the subgroup="satellites" convention in order to decouple these behaviors from the Factoriopedia position of the prototype.
     - Removed some old code which renamed the internal name of space connections. This removal is expected to have no effect as it applied only to connections between subgroup="satellite" locations, which is a misspelling of the PlanetsLib subgroup.
