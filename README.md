@@ -38,9 +38,10 @@ The reasons one may choose to use it over a plain `data:extend` are some additio
         * `distance` — Number — orbital distance from parent
         * `orientation` — Number — orbital angle from parent (0-1). Note that orientation is absolute, not relative to the parent's orientation.
         * `sprite` — Object (optional) — Sprite for the planet’s orbit. This will be centered on the parent's location. If the parent is a planet that becomes hidden, the orbit sprite will not be drawn.
+    * `type` — `"planet"` or `"space-location"`
     * `sprite_only` — Boolean (optional) — If true, this prototype will be removed in `data-final-fixes` and replaced by its sprites on the starmap (unless it has no sprites, in which case nothing will show).
         * This is useful for constructing stars and other locations that should not have a space platform 'docking ring'.
-    * `type` — `"planet"` or `"space-location"`
+    * `is_satellite` — Boolean (optional) — Has no effect in PlanetsLib, but other mods such as [Redrawn Space Connections](https://mods.factorio.com/mod/Redrawn-Space-Connections) are sensitive to this field. (Conventionally, such mods should also treat `subgroup = "satellites"` planets as satellites.)
     * Any other valid `planet` or `space-location` prototype fields.
     * See [here](https://github.com/danielmartin0/Cerys-Moon-of-Fulgora/blob/main/prototypes/planet/planet.lua) or [here](https://github.com/danielmartin0/PlanetsLib/issues/12#issuecomment-2585484116) for usage examples.
 * `PlanetsLib:update(configs)` — Updates the position of a pre-existing space location, as identified by the passed `type` and `name` fields. Any other fields passed will be updated on the prototype, and if the `orbit` field is passed the `distance` and `orientation` fields on the prototype will also be updated, along with the `distance` and `orientation` of its children and grandchildren. Any fields not passed will be left unchanged.
