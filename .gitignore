@@ -3,3 +3,4 @@
 prepublish.js
 *.pyc
 .venv
+.idea
