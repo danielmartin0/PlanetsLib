@@ -18,7 +18,7 @@ if settings.startup["PlanetsLib-enable-temperature"].value == true then
 	data.raw.planet["aquilo"].surface_properties.temperature = 258
 end
 
--- automatically applied to planets that 
+-- automatically applied to planets that require heating, so we can make recipe conditions with it.
 data:extend({
 	{
 		type = "surface-property",
