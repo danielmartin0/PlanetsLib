@@ -17,3 +17,13 @@ if settings.startup["PlanetsLib-enable-temperature"].value == true then
 	data.raw.planet["gleba"].surface_properties.temperature = 298
 	data.raw.planet["aquilo"].surface_properties.temperature = 258
 end
+
+-- automatically applied to planets that 
+data:extend({
+	{
+		type = "surface-property",
+		name = "is-freezing",
+		default_value = 0,
+		hidden=true
+	},
+})
