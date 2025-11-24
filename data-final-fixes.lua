@@ -5,6 +5,7 @@ require("prototypes.override-final.enhanced-tooltips")
 if mods["space-age"] then
 	require("prototypes.override-final.check-unexpected-positions")
 	require("prototypes.override-final.update-connections")
+    require("prototypes.override-final.set-default-weights")
 	local ps = require("lib.planet-str")
 
 	local planets = data.raw.planet
