@@ -16,6 +16,12 @@ if mods["space-age"] then
 			local truncated_name = string.sub(planet.name, 1, 8) --Planet strings can only be 8 characters or less.
 			ps.set_planet_str(planet, truncated_name)
 		end
+		-- add a surface property that marks that the planet is freezing, entities need heating
+		if planet["entities_require_heating"] then
+			local properties = planet["surface_properties"] or {}
+			properties["is-freezing"] = 1
+			planet["surface_properties"] = properties
+		end
 	end
 
 	require("prototypes.override-final.starmap")

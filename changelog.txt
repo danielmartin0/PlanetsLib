@@ -2,6 +2,7 @@
 Version: 1.14.6
 Date: ????
   Changes:
+    - Added surface property "is-freezing" to be able to restrict recipes and entities to frozen planets.
 ---------------------------------------------------------------------------------------------------
 Version: 1.14.5
 Date: 2025-11-19
