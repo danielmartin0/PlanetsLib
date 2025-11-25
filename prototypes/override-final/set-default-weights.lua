@@ -305,12 +305,7 @@ for _, entry in pairs(items_per_rocket) do
     local amount = entry[2]
     local type = entry[3] or "item"
     local item = data.raw[type][name]
-    if not item then
-        log("item not found: [" .. type .. "] " .. name)
-        goto continue
-    end
-    if not item.weight then
+    if item and not item.weight then
         item.weight = rocket_lift_weight / amount
     end
-    :: continue ::
 end
