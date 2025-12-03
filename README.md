@@ -4,7 +4,7 @@
 
 Code, graphics and conventions to help modders creating planets, moons and other systems. This library is a community project and will grow over time. Anyone is welcome to open a [pull request](https://github.com/danielmartin0/PlanetsLib/pulls) on Github. For feature requests, please open an [issue](https://github.com/danielmartin0/PlanetsLib/issues). For general discussion, use [Discord](https://discord.gg/VuVhYUBbWE).
 
-Since many other mods make use of the 'orbit structure' PlanetsLib provides to the solar system, it is recommended to add PlanestLib compatibility to your planet mod either by defining your planet prototype with PlanetsLib:extend (as in the first image in the [mod portal gallery](https://mods.factorio.com/mod/PlanetsLib)), or by using PlanetsLib:update in data-updates.lua (second image in the gallery).
+Since other mods make use of the 'orbit structure' PlanetsLib provides to the solar system, it is recommended to add PlanestLib compatibility to your planet mod either by defining your planet prototype with PlanetsLib:extend (as in the first image in the [mod portal gallery](https://mods.factorio.com/mod/PlanetsLib)), or by using PlanetsLib:update in data-updates.lua (second image in the gallery). This also adds compatibility in case another mod updates the position of your planet's orbital parent: your planet will be moved too.
 
 ## Contributors
 
@@ -41,14 +41,14 @@ The reasons one may choose to use it over a plain `data:extend` are some additio
     * `type` — `"planet"` or `"space-location"`
     * `sprite_only` — Boolean (optional) — If true, this prototype will be removed in `data-final-fixes` and replaced by its sprites on the starmap (unless it has no sprites, in which case nothing will show).
         * This is useful for constructing stars and other locations that should not have a space platform 'docking ring'.
-    * `is_satellite` — Boolean (optional) — Has no effect in PlanetsLib, but other mods such as [Redrawn Space Connections](https://mods.factorio.com/mod/Redrawn-Space-Connections) are sensitive to this field. (Conventionally, such mods should also treat `subgroup = "satellites"` planets as satellites.)
+    * `is_satellite` — Boolean (optional) — Has no effect in PlanetsLib, but other mods such as [Redrawn Space Connections](https://mods.factorio.com/mod/Redrawn-Space-Connections) are sensitive to this field. (Conventionally, such mods also treat `subgroup = "satellites"` planets as satellites, this is the legacy marker.)
     * Any other valid `planet` or `space-location` prototype fields.
     * See [here](https://github.com/danielmartin0/Cerys-Moon-of-Fulgora/blob/main/prototypes/planet/planet.lua) or [here](https://github.com/danielmartin0/PlanetsLib/issues/12#issuecomment-2585484116) for usage examples.
 * `PlanetsLib:update(configs)` — Updates the position of a pre-existing space location, as identified by the passed `type` and `name` fields. Any other fields passed will be updated on the prototype, and if the `orbit` field is passed the `distance` and `orientation` fields on the prototype will also be updated, along with the `distance` and `orientation` of its children and grandchildren. Any fields not passed will be left unchanged.
 
 PlanetsLib has some extra compatibility code in `data-final-fixes` in which if a planet has noticed to have a `position` and `orientation` different from that implied by its orbit fields, those values will be treated as authoritative, its `orbit` field will be updated, and a simulated `PlanetsLib:update` call will be made to update the `position` and `orientation` of its children. However, using `PlanetsLib:update` over this method is recommended for compatibility.
 
-Please note that the orbit structure does not yet dictate layering of the sprites on the spacemap — this is a desired feature from future contributors.
+Please note that the orbit structure does not yet dictate layering of the sprites on the spacemap — this is a desired feature from future contributors, it has not been built yet.
 
 Neither `PlanetsLib:extend` nor `PlanetsLib:update` should be called in `data-final-fixes`.
 
