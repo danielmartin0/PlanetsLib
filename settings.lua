@@ -27,7 +27,14 @@ data:extend({
 		default_value = true,
 		order = "ad",
 	},
-	
+	{
+		type = "string-setting",
+		setting_type = "startup",
+		name = "PlanetsLib-enable-debug",
+        default_value = "Disable",
+		allowed_values = { "Disable", "Enable" },
+		order = "ae",
+	},
 })
 
 data:extend({

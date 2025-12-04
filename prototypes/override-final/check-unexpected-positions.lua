@@ -23,21 +23,23 @@ for _, location in pairs(ordered_locations) do
 		if
 			parent_data.distance ~= parent_distance_via_orbit
 			or (parent_data.orientation ~= parent_orientation_via_orbit and parent_data.distance ~= 0)
-		then
-			log("--------------------------------")
-			log(
-				"PlanetsLib: parent "
-					.. parent.name
-					.. " was unexpectedly found at "
-					.. parent_data.distance
-					.. ", "
-					.. parent_data.orientation
-					.. " when its orbit implied it should be at "
-					.. parent_distance_via_orbit
-					.. ", "
-					.. parent_orientation_via_orbit
-					.. ". Adjusting its orbit to match, and the positions of all its children."
-			)
+        then
+		    if settings.startup["PlanetsLib-enable-debug"].value == "Enable" then
+                log("--------------------------------")
+                log(
+                    "PlanetsLib: parent "
+                        .. parent.name
+                        .. " was unexpectedly found at "
+                        .. parent_data.distance
+                        .. ", "
+                        .. parent_data.orientation
+                        .. " when its orbit implied it should be at "
+                        .. parent_distance_via_orbit
+                        .. ", "
+                        .. parent_orientation_via_orbit
+                        .. ". Adjusting its orbit to match, and the positions of all its children."
+                )
+            end
 
 			local parent_x_via_orbit, parent_y_via_orbit =
 				orbits.get_rectangular_position_from_polar(parent_distance_via_orbit, parent_orientation_via_orbit)
@@ -61,7 +63,9 @@ for _, location in pairs(ordered_locations) do
 			parent_data.orbit.orientation = new_parent_orbital_orientation
 
 			orbits.update_positions_of_all_children_via_orbits(parent_data)
-			log("--------------------------------")
+			if settings.startup["PlanetsLib-enable-debug"].value == "Enable" then
+			    log("--------------------------------")
+            end
 		end
 	end
 end
