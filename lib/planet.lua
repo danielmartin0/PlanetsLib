@@ -85,17 +85,19 @@ function Public.update(config)
 
 	for k, v in pairs(config) do
 		if k == "orbit" then
-			log("--------------------------------")
+			if settings.startup["PlanetsLib-enable-debug"].value == "Enable" then
+                log("--------------------------------")
 
-			log(
-				"PlanetsLib:update called on "
-					.. config.name
-					.. ", changing orbit from "
-					.. serpent.line(data.raw[config.type][config.name].orbit)
-					.. " to "
-					.. serpent.line(config.orbit)
-					.. " and updating the positions of children appropriately:"
-			)
+                log(
+                    "PlanetsLib:update called on "
+                        .. config.name
+                        .. ", changing orbit from "
+                        .. serpent.line(data.raw[config.type][config.name].orbit)
+                        .. " to "
+                        .. serpent.line(config.orbit)
+                        .. " and updating the positions of children appropriately:"
+                )
+            end
 
 			data.raw[config.type][config.name].orbit = v
 
@@ -117,18 +119,20 @@ function Public.update(config)
 
 			local new_x, new_y = parent_x + orbit_x, parent_y + orbit_y
 
-			log(
-				"PlanetsLib: updating "
-					.. config.name
-					.. " from x="
-					.. current_x
-					.. ", y="
-					.. current_y
-					.. " to x="
-					.. new_x
-					.. ", y="
-					.. new_y
-			)
+			if settings.startup["PlanetsLib-enable-debug"].value == "Enable" then
+                log(
+                    "PlanetsLib: updating "
+                        .. config.name
+                        .. " from x="
+                        .. current_x
+                        .. ", y="
+                        .. current_y
+                        .. " to x="
+                        .. new_x
+                        .. ", y="
+                        .. new_y
+                )
+            end
 
 			local new_distance, new_orientation = orbits.get_polar_position_from_rectangular(new_x, new_y)
 
@@ -137,7 +141,9 @@ function Public.update(config)
 
 			orbits.update_positions_of_all_children_via_orbits(data.raw[config.type][config.name])
 
-			log("--------------------------------")
+			if settings.startup["PlanetsLib-enable-debug"].value == "Enable" then
+			    log("--------------------------------")
+            end
 		else
 			data.raw[config.type][config.name][k] = v
 		end
