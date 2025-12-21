@@ -28,11 +28,10 @@ data:extend({
 		order = "ad",
 	},
 	{
-		type = "string-setting",
+		type = "bool-setting",
 		setting_type = "startup",
-		name = "PlanetsLib-enable-debug",
-        default_value = "Enable",
-		allowed_values = { "Disable", "Enable" },
+		name = "PlanetsLib-enable-detailed-logs",
+        default_value = false,
 		order = "ae",
 	},
 })
