@@ -1,6 +1,6 @@
 local util = require("util")
 local orbits = require("lib.orbits")
-local PlanetsLib = require("__PlanetsLib__/lib/lib")
+local lib = require("lib/lib")
 
 local Public = {}
 
@@ -86,8 +86,8 @@ function Public.update(config)
 
 	for k, v in pairs(config) do
 		if k == "orbit" then
-            PlanetsLib.log("--------------------------------")
-            PlanetsLib.log(
+            lib.detailed_log("--------------------------------")
+            lib.detailed_log(
                 "PlanetsLib:update called on "
                     .. config.name
                     .. ", changing orbit from "
@@ -117,7 +117,7 @@ function Public.update(config)
 
 			local new_x, new_y = parent_x + orbit_x, parent_y + orbit_y
 
-            PlanetsLib.log(
+            lib.detailed_log(
                 "PlanetsLib: updating "
                     .. config.name
                     .. " from x="
@@ -137,7 +137,7 @@ function Public.update(config)
 
 			orbits.update_positions_of_all_children_via_orbits(data.raw[config.type][config.name])
 
-            PlanetsLib.log("--------------------------------")
+            lib.detailed_log("--------------------------------")
 		else
 			data.raw[config.type][config.name][k] = v
 		end

@@ -1,5 +1,5 @@
 local orbits = require("lib.orbits")
-local PlanetsLib = require("__PlanetsLib__/lib/lib")
+local lib = require("lib/lib")
 
 -- If the position/orientation of a location's parent prototype doesn't match its orbit, that implies the position has been moved by another mod. In this code we adjust the position of its children accordingly.
 
@@ -25,8 +25,8 @@ for _, location in pairs(ordered_locations) do
 			parent_data.distance ~= parent_distance_via_orbit
 			or (parent_data.orientation ~= parent_orientation_via_orbit and parent_data.distance ~= 0)
         then
-            PlanetsLib.log("--------------------------------")
-            PlanetsLib.log(
+            lib.detailed_log("--------------------------------")
+            lib.detailed_log(
                 "PlanetsLib: parent "
                     .. parent.name
                     .. " was unexpectedly found at "
@@ -62,7 +62,7 @@ for _, location in pairs(ordered_locations) do
 			parent_data.orbit.orientation = new_parent_orbital_orientation
 
 			orbits.update_positions_of_all_children_via_orbits(parent_data)
-            PlanetsLib.log("--------------------------------")
+            lib.detailed_log("--------------------------------")
 		end
 	end
 end
