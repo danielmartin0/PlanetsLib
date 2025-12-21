@@ -1,3 +1,4 @@
+local lib = require("lib/lib")
 local Public = {}
 
 function Public.get_rectangular_position_from_polar(distance, orientation)
@@ -214,18 +215,18 @@ function Public.update_positions_of_all_children_via_orbits(parent_prototype)
 				Public.get_polar_position_from_rectangular(child_new_x, child_new_y)
 
 			if child_x ~= child_new_x or child_y ~= child_new_y then
-				log(
-					"PlanetsLib: updating "
-						.. location.name
-						.. " from x="
-						.. child_x
-						.. ", y="
-						.. child_y
-						.. " to x="
-						.. child_new_x
-						.. ", y="
-						.. child_new_y
-				)
+                lib.detailed_log(
+                    "PlanetsLib: updating "
+                        .. location.name
+                        .. " from x="
+                        .. child_x
+                        .. ", y="
+                        .. child_y
+                        .. " to x="
+                        .. child_new_x
+                        .. ", y="
+                        .. child_new_y
+                )
 
 				location.distance = child_new_distance
 				location.orientation = child_new_orientation
