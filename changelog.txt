@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.0
-Date: ????
+Date: 2025-12-29
   Changes:
     - The 'Unlink hidden prerequisites' setting no longer tries to unlink hidden prerequisites of hidden technologies.
 ---------------------------------------------------------------------------------------------------
