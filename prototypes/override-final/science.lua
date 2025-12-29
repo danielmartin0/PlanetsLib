@@ -5,7 +5,7 @@ local tech = require("lib.technology")
 
 if settings.startup["PlanetsLib-unlink-hidden-prerequisites"].value then
 	for _, technology in pairs(data.raw.technology) do
-		if technology and technology.prerequisites then
+		if technology and technology.prerequisites and not technology.hidden then
 			local valid_prereqs = {}
 			for _, prereq_name in ipairs(technology.prerequisites) do
 				local prereq_tech = data.raw.technology[prereq_name]
