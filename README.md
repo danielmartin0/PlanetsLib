@@ -16,6 +16,7 @@ Since other mods make use of the 'orbit structure' PlanetsLib provides to the so
 * [Frontrider](https://mods.factorio.com/user/Frontrider)
 * Zwvei
 * [allisonlastname](https://mods.factorio.com/user/allisonlastname)
+* [SirPuck](https://mods.factorio.com/user/SirPuck)
 
 #### Notes for contributors
 
