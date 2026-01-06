@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.1
-Date: ????
+Date: 2026-01-06
   Changes:
     - Certain logging is now hidden behind a new mod setting 'Enable detailed logging', false by default.
     - Minor tweak to the cargo-drop blocking script to only block cargo pods ejected from platforms above a planet if the pod is actually travelling to that planet.
