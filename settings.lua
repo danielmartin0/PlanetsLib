@@ -27,7 +27,13 @@ data:extend({
 		default_value = true,
 		order = "ad",
 	},
-	
+	{
+		type = "bool-setting",
+		setting_type = "startup",
+		name = "PlanetsLib-enable-detailed-logs",
+        default_value = false,
+		order = "ae",
+	},
 })
 
 data:extend({
