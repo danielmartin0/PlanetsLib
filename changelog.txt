@@ -2,7 +2,8 @@
 Version: 1.15.1
 Date: ????
   Changes:
-    - Change the cargo-pods script that checks if drop pods are allowed to reach a surface. Before, the script would cancel any pod departure if the platform was at a space location associated with a planet that forbids pods to be sent. Now, the script will only cancel the pods that actually target a surface associated with a planet that forbids cargo pods to be sent. This will allow pods to be sent to other destinations, by other mods for instance. 
+    - Certain logging is now hidden behind a new mod setting 'Enable detailed logging', false by default.
+    - Minor tweak to the cargo-drop blocking script to only block cargo pods ejected from platforms above a planet if the pod is actually travelling to that planet.
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.0
 Date: 2025-12-29
