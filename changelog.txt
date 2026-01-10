@@ -2,6 +2,7 @@
 Version: 1.15.2
 Date: ????
   Changes:
+    - (No functionality for users) The Python scripts are now standalone files without shell scripts to run them due to environment issues with the current scripts.
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.1
 Date: 2026-01-06

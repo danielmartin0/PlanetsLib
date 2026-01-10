@@ -180,7 +180,7 @@ Because modders often forget about the Biolab, PlanetsLib mirrors all science pa
 
 Planetslib includes functions to generate certain kinds of achievements.
 
-* `PlanetsLib.visit_planet_achievement(planet: SpaceLocationPrototype, icon: string, (optional) icon_size: integer)` — Returns an achievement for visiting the provided planet. The icon can be generated with `helper_scripts/generate-visit-planet-achievement.bat`(or `.sh`) helper script.
+* `PlanetsLib.visit_planet_achievement(planet: SpaceLocationPrototype, icon: string, (optional) icon_size: integer)` — Returns an achievement for visiting the provided planet. The icon can be generated with the `helper_scripts/generate_visit_planet_achievement.py` helper script (we recommend using `uv run` to execute it).
 
 ## Assorted helpers
 
@@ -197,20 +197,17 @@ Planetslib includes functions to generate certain kinds of achievements.
 
 #### Python helper scripts
 
-* `lib/orbit_graphic_generator.py` — contains a Python script that generates orbit sprites. `generate_orbit(distance, output_file, mod_name)`, `distance` being the same as your orbital distance. After generating your sprite, the script will print a block of lua code that imports your sprite with proper scaling. Orbit sprites should be scaled at 0.25 to ensure that no pixels are visible on 4K monitors.
+PlanetsLib includes standalone Python scripts for generating graphics. We recommend using [uv](https://docs.astral.sh/uv/) to run these scripts, as it automatically handles Python and dependency installation.
 
-If the generated image were to have a higher resolution than what Factorio can support (4096x4096), then image quality will be sacrificed for it by increasing the scale. 
-Orbits above 100 start to break as the tool can no longer generate with the default line thickness. 
-Above 200, the orbit becomes a 1 pixel thick line, so orbits will appear thicker than they should be.
+* `helper_scripts/generate_orbit_graphics.py` — Generates orbit sprites for planets. The script takes three arguments: `distance` (the orbital distance from the parent), `planet_name`, and `mod_name`. After generating your sprite, the script will print a block of Lua code that imports your sprite with proper scaling. Orbit sprites should be scaled at 0.25 to ensure that no pixels are visible on 4K monitors.
 
-PlanetsLib also includes a Bash script(`generate-orbit.sh`) that can be used to run the python script. It will also install all dependencies into a python virtual environment, so you don't need to deal with those anymore.
-The arguments are: distance, the name of the planet then the name of the mod. This is also included in the program itself, you will be told what you did wrong.
-Eg: `sh generate-orbit.sh 10 vulcanus Planetslib`
+    Example: `uv run helper_scripts/generate_orbit_graphics.py 1.6 muluna planet-muluna`
 
-On Windows, this script can run with Git Bash. An untested equivalent Powershell script is also included.
-On Linux, with python3 you can run `sudo apt install python3-pip python3-numpy python3-matplotlib` and then `python3 generate_orbit_graphics.py 10 vulcanus Planetslib`.
+    If the generated image were to have a higher resolution than what Factorio can support (4096x4096), then image quality will be sacrificed for it by increasing the scale. Orbits above 100 start to break as the tool can no longer generate with the default line thickness. Above 200, the orbit becomes a 1 pixel thick line, so orbits will appear thicker than they should be.
 
-* `helper_scripts/generate-visit-planet-achievement.bat` — a script to generate images for "Visit [planet]" achievements. When provided an image of a planet, it automatically scales, crops and composes it into a ready to use achievement graphic.
+* `helper_scripts/generate_visit_planet_achievement.py` — Generates images for "Visit [planet]" achievements. When provided an image of a planet, it automatically scales, crops and composes it into a ready to use achievement graphic. The script uses resource files (background, overlay, frame masks) that are bundled with PlanetsLib in the `helper_scripts/` directory.
+
+    Example: `uv run helper_scripts/generate_visit_planet_achievement.py planet-icon.png`
 
 #### Centrifuge fluidboxes
 
