@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.2
-Date: ????
+Date: 2026-01-11
   Changes:
     - (No functionality change) PlanetsLib Python scripts are now standalone files without shell scripts to run them, to avoid them getting tangled with user Python environment issues.
 ---------------------------------------------------------------------------------------------------
