@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.3
 Date: ????
-  Changes:
+  Bugfixes:
+    - Fix the enhanced tooltip constructor. It will now apply correctly to all "item" subtypes.
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.2
 Date: 2026-01-11
