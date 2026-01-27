@@ -1,14 +1,26 @@
 local rro = PlanetsLib.rro
+
+--- Check that the recipe result references an item prototype that has spoilage.
+--- A recipe result is defined as {name="foo", amount=...}.
+--- Items and their subtypes (capsule, ammo, etc.) are stored in data.raw under their respective type tables.
+--- This function iterates through all "item" prototype types to verify the result's item exists and has a non nil spoil_ticks.
+---@param result table A recipe result with a 'name' field
+---@return boolean True if the result references an item with spoil_ticks defined
+local function assert_recipe_result_is_eligible(result)
+    for type_, _ in pairs(defines.prototypes.item) do
+        if data.raw[type_] and data.raw[type_][result.name] and data.raw[type_][result.name].spoil_ticks ~= nil then
+            return true
+        end
+    end
+    return false
+end
+
 if settings.startup["PlanetsLib-enhanced-tooltips"].value == true then
-    -- for _,prototype_type in pairs(data.raw) do
-    --     for _,prototype in pairs(prototype_type) do
-    --           if prototype.type == "recipe" then
-                
-    --           end  
-    --     end
-    -- end
     for _,recipe in pairs(data.raw["recipe"]) do
-        if recipe.results and rro.count(recipe.results,function(result) return (result.type == "item" and data.raw["item"][result.name] ~= nil and data.raw["item"][result.name].spoil_ticks ~= nil) end) > 0 then
+        if recipe.results and rro.count(
+            recipe.results,
+            function(result) return assert_recipe_result_is_eligible(result) end
+            ) > 0 then
             local i = 200
             for _,tooltip_name in pairs({"result_is_always_fresh","reset_freshness_on_craft"}) do
                 i = i + 1
