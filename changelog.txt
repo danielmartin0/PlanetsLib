@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.4
 Date: ????
-  Changes:
+  Locale:
+    - Fix error mix up between Resets freshness on beginning craft and Resets freshness on completing craft
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.3
 Date: 2026-01-27
