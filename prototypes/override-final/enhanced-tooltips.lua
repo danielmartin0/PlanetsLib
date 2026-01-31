@@ -22,7 +22,7 @@ if settings.startup["PlanetsLib-enhanced-tooltips"].value == true then
             function(result) return assert_recipe_result_is_eligible(result) end
             ) > 0 then
             local i = 200
-            for _,tooltip_name in pairs({"result_is_always_fresh","reset_freshness_on_craft","preserve_products_in_machine_output"}) do
+            for _,tooltip_name in pairs({"result_is_always_fresh","reset_freshness_on_craft"}) do
                 i = i + 1
                 local value = "gui.no"
                 print(recipe.name)
