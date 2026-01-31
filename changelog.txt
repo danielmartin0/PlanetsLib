@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.4
 Date: ????
+  Features:
+    - Expanded enhanced tooltips to include: Products are preserve in machine output
   Locale:
     - Fixed mix up between Resets freshness on beginning craft and Resets freshness on completing craft
 ---------------------------------------------------------------------------------------------------
