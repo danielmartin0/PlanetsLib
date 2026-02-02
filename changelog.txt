@@ -2,6 +2,8 @@
 Version: 1.15.4
 Date: ????
   Changes:
+    - Updated reprocessing-arrow.png
+    - Added reprocessing-arrow-top.png overlay icon
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.3
 Date: 2026-01-27
