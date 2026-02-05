@@ -1,7 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.4
 Date: ????
-  Locale:
+  Features:
+    - Expanded enhanced tooltips to include: Products preserved in machine output
+  Bugfixes:
     - Fixed that the "Resets freshness on beginning craft" and "Resets freshness on completing craft" tooltip were unfortunately mixed up.
   Changes:
     - Updated reprocessing-arrow.png
