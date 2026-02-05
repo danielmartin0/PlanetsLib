@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.4
 Date: ????
+  Locale:
+    - Fixed that the "Resets freshness on beginning craft" and "Resets freshness on completing craft" tooltip were unfortunately mixed up.
   Changes:
     - Updated reprocessing-arrow.png
     - Added reprocessing-arrow-top.png overlay icon
