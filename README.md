@@ -6,11 +6,7 @@ Code and graphics to help modders creating planets, moons and other systems. Thi
 
 Since other mods make use of the 'orbit structure' this mod provides to the solar system, it is recommended to add PlanetsLib compatibility to your planet mod either by defining your planet prototype with PlanetsLib:extend (as in the first image in the [mod portal gallery](https://mods.factorio.com/mod/PlanetsLib)), or by using PlanetsLib:update in data-updates.lua (second image in the gallery). This also adds compatibility in case another mod updates the position of your planet's orbital parent: your planet will be moved too.
 
-## Contributors
-
-[thesixthroc](https://mods.factorio.com/user/thesixthroc), [MeteorSwarm](https://mods.factorio.com/user/MeteorSwarm), [Midnighttigger](https://mods.factorio.com/user/Midnighttigger), [Tserup](https://mods.factorio.com/user/Tserup), [notnotmelon](https://mods.factorio.com/user/notnotmelon), [Frontrider](https://mods.factorio.com/user/Frontrider), Zwvei, [allisonlastname](https://mods.factorio.com/user/allisonlastname), Hoochie63, [SirPuck](https://mods.factorio.com/user/SirPuck), [Osmo](https://mods.factorio.com/user/O5MO).
-
-#### Notes for contributors
+### Notes for contributors
 
 * We aim to *never make any breaking API changes*. We can deprecate APIs by removing them from the documentation, but they should stay functional.
 * In your pull requests, please list your changes in changelog.txt to be included in the next release. Please also update `README.md` to add sections for your new functionality (even with only 'Documentation pending') and add yourself to the contributors list.
@@ -230,6 +226,10 @@ PlanetsLib includes standalone Python scripts for generating graphics. We recomm
 * `helper_scripts/generate_visit_planet_achievement.py` — Generates images for "Visit [planet]" achievements. When provided an image of a planet, it automatically scales, crops and composes it into a ready to use achievement graphic. The script uses resource files (background, overlay, frame masks) that are bundled with PlanetsLib in the `helper_scripts/` directory.
 
     Example: `uv run helper_scripts/generate_visit_planet_achievement.py planet-icon.png`
+
+# Contributors
+
+[thesixthroc](https://mods.factorio.com/user/thesixthroc), [MeteorSwarm](https://mods.factorio.com/user/MeteorSwarm), [Midnighttigger](https://mods.factorio.com/user/Midnighttigger), [Tserup](https://mods.factorio.com/user/Tserup), [notnotmelon](https://mods.factorio.com/user/notnotmelon), [Frontrider](https://mods.factorio.com/user/Frontrider), Zwvei, [allisonlastname](https://mods.factorio.com/user/allisonlastname), Hoochie63, [SirPuck](https://mods.factorio.com/user/SirPuck), [Osmo](https://mods.factorio.com/user/O5MO).
 
 
 [![Discord](https://img.shields.io/discord/1309620686347702372?style=for-the-badge&logoColor=bf6434&label=The%20Foundry&labelColor=222222&color=bf6434)](https://foundrygg.com)
