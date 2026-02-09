@@ -6,7 +6,7 @@ Code and graphics to help modders creating planets, moons and other systems. Thi
 
 Since other mods make use of the 'orbit structure' this mod provides to the solar system, it is recommended to add PlanetsLib compatibility to your planet mod either by defining your planet prototype with PlanetsLib:extend (as in the first image in the [mod portal gallery](https://mods.factorio.com/mod/PlanetsLib)), or by using PlanetsLib:update in data-updates.lua (second image in the gallery). This also adds compatibility in case another mod updates the position of your planet's orbital parent: your planet will be moved too.
 
-We aim to *never make any breaking API changes*. We sometimes deprecate APIs by removing them from the documentation, but they stay functional.
+We aim to *never make any breaking API changes* such that the library is safe to use. We sometimes deprecate APIs by removing them from the documentation, but they stay functional.
 
 # Notes for contributors
 
