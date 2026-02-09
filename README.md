@@ -10,7 +10,7 @@ We aim to *never make any breaking API changes* such that the library is safe to
 
 # Player-facing features
 
-The primary intent of PlanetsLib is to be a library which provides opt-in functionality for other mods. However, a small number of mechanics-affecting or player-interface-affecting features have been added over time. These are listed below, player feedback on them is most welcome in [Discord](https://discord.gg/nFVqaPEk97).
+The primary intent of PlanetsLib is to be a library which provides opt-in functionality for other mods. However, a small number of game-affecting or player-interface-affecting features have been added over time. These are listed below, player feedback on them is most welcome in [Discord](https://discord.gg/nFVqaPEk97).
 
 * Unlinking hidden prerequisites
     * If PlanetsLib detects that technologies have hidden prerequisites such that they would be unresearchable, it warns players about this fact.
