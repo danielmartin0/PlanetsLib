@@ -8,12 +8,6 @@ Since other mods make use of the 'orbit structure' this mod provides to the sola
 
 We aim to *never make any breaking API changes* such that the library is safe to use. We sometimes deprecate APIs by removing them from the documentation, but they stay functional.
 
-# Notes for contributors
-
-* In your pull requests, please list your changes in changelog.txt to be included in the next release. Please also update `README.md` to add sections for your new functionality (even with only 'Documentation pending') and add yourself to the contributors list.
-* Contributions MUST be tested before a PR is made, ideally with multiple planets installed.
-* Feel free to use the file `todo.md`.
-
 # Player-facing features
 
 The primary intent of PlanetsLib is to be a library which provides opt-in functionality for other mods. However, a small number of mechanics-affecting or player-interface-affecting features have been added over time. These are listed below, player feedback on them is most welcome in [Discord](https://discord.gg/nFVqaPEk97).
@@ -41,6 +35,12 @@ The primary intent of PlanetsLib is to be a library which provides opt-in functi
 * Centrifuge entity improvements
     * This entity is given an input and an output fluidbox (or two of each if the mod setting `PlanetsLib-enable-additional-centrifuge-fluidboxes` is enabled).
     * Also, the graphics of the working glow are improved so that it naturally glows different colors depending on the recipe.
+
+# Notes for contributors
+
+* In your pull requests, please list your changes in changelog.txt to be included in the next release. Please also update `README.md` to add sections for your new functionality (even with only 'Documentation pending') and add yourself to the contributors list.
+* Contributions MUST be tested before a PR is made, ideally with multiple planets installed.
+* Feel free to use the file `todo.md`.
 
 # API documentation
 
