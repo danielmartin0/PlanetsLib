@@ -1,15 +1,11 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.16.3
-Date: ????
-  Changes:
----------------------------------------------------------------------------------------------------
-Version: 1.16.0-1.16.2
+Version: 1.16.0-1.16.3
 Date: 2026-02-09
   Changes:
     - The custom recipe tooltips 'Freshness resets on craft completion', 'Freshness resets on craft beginning' and 'Products preserved in machine output' now show *only* if their value is 'Yes'.
     - Reworded 'Heat dissipation' tooltip to 'Energy to heat up'.
   Info:
-    - Added a 'Player-facing feature' section near the top of the documentation.
+    - Added a 'Player-facing features' section near the top of the documentation.
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.4
 Date: 2026-02-05
