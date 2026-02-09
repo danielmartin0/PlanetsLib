@@ -1,7 +1,9 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.15.5
+Version: 1.16.0
 Date: ????
   Changes:
+    - The 'Freshness resets on craft completion', 'Freshness resets on craft beginning' and 'Products preserved in machine output' tooltips now only show if they are true.
+    - 'Heat dissipation' tooltip reworded to 'Energy to heat'.
 ---------------------------------------------------------------------------------------------------
 Version: 1.15.4
 Date: 2026-02-05
