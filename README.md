@@ -1,8 +1,8 @@
-[![foundrygg.com](https://img.shields.io/badge/foundrygg-4a1402?style=for-the-badge&logo=vercel&logoColor=white)](https://foundrygg.com)[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/VuVhYUBbWE)[![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/danielmartin0/PlanetsLib)
+[![foundrygg.com](https://img.shields.io/badge/foundrygg-4a1402?style=for-the-badge&logo=vercel&logoColor=white)](https://foundrygg.com)[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/nFVqaPEk97)[![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/danielmartin0/PlanetsLib)
 
 # PlanetsLib
 
-Code and graphics to help modders creating planets, moons and other systems. This library is a community project and will grow over time. Anyone is welcome to open a [pull request](https://github.com/danielmartin0/PlanetsLib/pulls) on Github. For feature requests, please open an [issue](https://github.com/danielmartin0/PlanetsLib/issues). For general discussion, use [Discord](https://discord.gg/VuVhYUBbWE).
+Code and graphics to help modders creating planets, moons and other systems. This library is a community project and will grow over time. Anyone is welcome to open a [pull request](https://github.com/danielmartin0/PlanetsLib/pulls) on Github. For feature requests, please open an [issue](https://github.com/danielmartin0/PlanetsLib/issues). For general discussion, use [Discord](https://discord.gg/nFVqaPEk97).
 
 Since other mods make use of the 'orbit structure' this mod provides to the solar system, it is recommended to add PlanetsLib compatibility to your planet mod either by defining your planet prototype with PlanetsLib:extend (as in the first image in the [mod portal gallery](https://mods.factorio.com/mod/PlanetsLib)), or by using PlanetsLib:update in data-updates.lua (second image in the gallery). This also adds compatibility in case another mod updates the position of your planet's orbital parent: your planet will be moved too.
 
@@ -16,7 +16,7 @@ We aim to *never make any breaking API changes* such that the library is safe to
 
 # Player-facing features
 
-The primary intent of PlanetsLib is to be a library which provides opt-in functionality for other mods. However, a small number of mechanics-affecting or player-interface-affecting features have been added over time. These are listed below, your feedback on them is most welcome in Discord.
+The primary intent of PlanetsLib is to be a library which provides opt-in functionality for other mods. However, a small number of mechanics-affecting or player-interface-affecting features have been added over time. These are listed below, player feedback on them is most welcome in [Discord](https://discord.gg/nFVqaPEk97).
 
 * Unlinking hidden prerequisites
     * PlanetsLib detects technologies that have hidden prerequisites and warns players about them. It does this because Factorio makes such technologies unresearchable but without any apparent explanation or reason.
