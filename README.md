@@ -2,13 +2,13 @@
 
 # PlanetsLib
 
-Code, graphics and conventions to help modders creating planets, moons and other systems. This library is a community project and will grow over time. Anyone is welcome to open a [pull request](https://github.com/danielmartin0/PlanetsLib/pulls) on Github. For feature requests, please open an [issue](https://github.com/danielmartin0/PlanetsLib/issues). For general discussion, use [Discord](https://discord.gg/VuVhYUBbWE).
+Code and graphics to help modders creating planets, moons and other systems. This library is a community project and will grow over time. Anyone is welcome to open a [pull request](https://github.com/danielmartin0/PlanetsLib/pulls) on Github. For feature requests, please open an [issue](https://github.com/danielmartin0/PlanetsLib/issues). For general discussion, use [Discord](https://discord.gg/VuVhYUBbWE).
 
-Since other mods make use of the 'orbit structure' PlanetsLib provides to the solar system, it is recommended to add PlanestLib compatibility to your planet mod either by defining your planet prototype with PlanetsLib:extend (as in the first image in the [mod portal gallery](https://mods.factorio.com/mod/PlanetsLib)), or by using PlanetsLib:update in data-updates.lua (second image in the gallery). This also adds compatibility in case another mod updates the position of your planet's orbital parent: your planet will be moved too.
+Since other mods make use of the 'orbit structure' PlanetsLib provides to the solar system, it is recommended to add PlanetsLib compatibility to your planet mod either by defining your planet prototype with PlanetsLib:extend (as in the first image in the [mod portal gallery](https://mods.factorio.com/mod/PlanetsLib)), or by using PlanetsLib:update in data-updates.lua (second image in the gallery). This also adds compatibility in case another mod updates the position of your planet's orbital parent: your planet will be moved too.
 
 ## Contributors
 
-[thesixthroc](https://mods.factorio.com/user/thesixthroc), [MeteorSwarm](https://mods.factorio.com/user/MeteorSwarm), [Midnighttigger](https://mods.factorio.com/user/Midnighttigger), [Tserup](https://mods.factorio.com/user/Tserup), [notnotmelon](https://mods.factorio.com/user/notnotmelon), [Frontrider](https://mods.factorio.com/user/Frontrider), Zwvei, [allisonlastname](https://mods.factorio.com/user/allisonlastname), Hoochie63, [SirPuck](https://mods.factorio.com/user/SirPuck), [Osmo](https://mods.factorio.com/user/O5MO)
+[thesixthroc](https://mods.factorio.com/user/thesixthroc), [MeteorSwarm](https://mods.factorio.com/user/MeteorSwarm), [Midnighttigger](https://mods.factorio.com/user/Midnighttigger), [Tserup](https://mods.factorio.com/user/Tserup), [notnotmelon](https://mods.factorio.com/user/notnotmelon), [Frontrider](https://mods.factorio.com/user/Frontrider), Zwvei, [allisonlastname](https://mods.factorio.com/user/allisonlastname), Hoochie63, [SirPuck](https://mods.factorio.com/user/SirPuck), [Osmo](https://mods.factorio.com/user/O5MO).
 
 #### Notes for contributors
 
@@ -18,6 +18,32 @@ Since other mods make use of the 'orbit structure' PlanetsLib provides to the so
 * Feel free to use the file `todo.md`.
 
 # Documentation
+
+## Player-facing features
+
+The primary intent of PlanetsLib is to be a library which provides opt-in functionality for other mods. However, a small number of mechanics-affecting or player-interface-affecting features have been added over time. These are listed below, your feedback on them is most welcome in Discord.
+
+* Unlinking hidden prerequisites
+    * PlanetsLib detects technologies that have hidden prerequisites and warns players about them. It does this because Factorio makes such technologies unresearchable but without any apparent explanation or reason.
+    * It also provides mod settings to repair the user's game by unlinking all such prerequisites, or to disable the warning.
+* Fixed rocket weights of vanilla items
+    * If an item prototype does not have an explicitly specified rocket weight, the behavior of the Factorio engine is to assign it a weight based on the recipes that produce it. Unfortunately, this means that the rocket weight of vanilla items is liable to change when additional mods are installed. PlanetsLib therefore sets an explicit weight on vanilla items equal to their weight in Space Age. This occurs in `data-final-fixes` and only if the item does not have a weight by that point.
+* Extra informational tooltips
+    * On recipes:
+        * Freshness resets on craft completion
+            * This tracks `result_is_always_fresh` and only appears if `true`.
+        * Freshness resets on craft beginning
+            * This tracks `reset_freshness_on_craft` and only appears if `true`.
+        * Products preserved in machine output
+            * This tracks `preserve_products_in_machine_output` and only appears if `true`.
+    * On entities:
+        * Energy to heat up
+            * This tracks `heating_energy` and only appears if defined.
+    * All such tooltips are added in `data-final-fixes`.
+* Biolab inputs
+    * Because modders often forget about the Biolab, PlanetsLib mirrors all science packs from the vanilla lab to the Biolab in `data-final-fixes`.
+* Centrifuge fluid inputs
+    * PlanetsLib adjusts the centrifuge entity to have an input and output fluidbox (or two of each if the mod setting `PlanetsLib-enable-additional-centrifuge-fluidboxes` is enabled).
 
 ## Defining planets
 
@@ -172,10 +198,6 @@ effects not flagged with `PlanetsLib_force_include`.
     * Example: `PlanetsLib.excise_effect_from_tech_tree({ type = "unlock-quality", quality = "uncommon" })`
 * `PlanetsLib.add_science_packs_from_vanilla_lab_to_technology(technology)` — Adds all science packs that the vanilla lab have slots for to the unit of the given technology. Can be useful when defining endgame technologies.
 
-#### Biolab
-
-Because modders often forget about the Biolab, PlanetsLib mirrors all science packs from the vanilla lab to the Biolab in `data-final-fixes`.
-
 ## Achievements
 
 Planetslib includes functions to generate certain kinds of achievements.
@@ -208,10 +230,6 @@ PlanetsLib includes standalone Python scripts for generating graphics. We recomm
 * `helper_scripts/generate_visit_planet_achievement.py` — Generates images for "Visit [planet]" achievements. When provided an image of a planet, it automatically scales, crops and composes it into a ready to use achievement graphic. The script uses resource files (background, overlay, frame masks) that are bundled with PlanetsLib in the `helper_scripts/` directory.
 
     Example: `uv run helper_scripts/generate_visit_planet_achievement.py planet-icon.png`
-
-#### Centrifuge fluidboxes
-
-PlanetsLib adds fluidboxes to the centrifuge. By default, two are added: one input and one output. If the value of `PlanetsLib-enable-additional-centrifuge-fluidboxes` is set to true, an additional input and output will be added.
 
 
 [![Discord](https://img.shields.io/discord/1309620686347702372?style=for-the-badge&logoColor=bf6434&label=The%20Foundry&labelColor=222222&color=bf6434)](https://foundrygg.com)
