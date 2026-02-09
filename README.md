@@ -17,9 +17,7 @@ Since other mods make use of the 'orbit structure' PlanetsLib provides to the so
 * We aim to never make any breaking changes. Sometimes APIs are removed from the documentation, that does not mean they are no longer supported.
 * Feel free to use the file `todo.md`.
 
-# Documentation
-
-## Player-facing features
+# Player-facing features
 
 The primary intent of PlanetsLib is to be a library which provides opt-in functionality for other mods. However, a small number of mechanics-affecting or player-interface-affecting features have been added over time. These are listed below, your feedback on them is most welcome in Discord.
 
@@ -44,6 +42,8 @@ The primary intent of PlanetsLib is to be a library which provides opt-in functi
     * Because modders often forget about the Biolab, PlanetsLib mirrors all science packs from the vanilla lab to the Biolab in `data-final-fixes`.
 * Centrifuge fluid inputs
     * PlanetsLib adjusts the centrifuge entity to have an input and output fluidbox (or two of each if the mod setting `PlanetsLib-enable-additional-centrifuge-fluidboxes` is enabled).
+
+# API documentation
 
 ## Defining planets
 
