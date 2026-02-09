@@ -1,6 +1,6 @@
 # Todo List
 
-To avoid duplication of effort, please post in [Discord](https://discord.gg/nFVqaPEk97) if you are working on one of these tasks.
+This list may be out of date. To avoid duplication of effort, please post in [Discord](https://discord.gg/nFVqaPEk97) if you are working on one of these tasks.
 
 ## Significant
 
