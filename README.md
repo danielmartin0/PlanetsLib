@@ -12,9 +12,9 @@ Since other mods make use of the 'orbit structure' this mod provides to the sola
 
 #### Notes for contributors
 
+* We aim to *never make any breaking API changes*. We can deprecate APIs by removing them from the documentation, but they should stay functional.
 * In your pull requests, please list your changes in changelog.txt to be included in the next release. Please also update `README.md` to add sections for your new functionality (even with only 'Documentation pending') and add yourself to the contributors list.
 * Contributions MUST be tested before a PR is made, ideally with multiple planets installed.
-* We aim to never make any breaking changes. Sometimes APIs are removed from the documentation, that does not mean they are no longer supported.
 * Feel free to use the file `todo.md`.
 
 # Player-facing features
