@@ -4,7 +4,7 @@
 
 Code and graphics to help modders creating planets, moons and other systems. This library is a community project and will grow over time. Anyone is welcome to open a [pull request](https://github.com/danielmartin0/PlanetsLib/pulls) on Github. For feature requests, please open an [issue](https://github.com/danielmartin0/PlanetsLib/issues). For general discussion, use [Discord](https://discord.gg/nFVqaPEk97).
 
-Since other mods make use of the 'orbit structure' this mod provides to the solar system, it is recommended to add PlanetsLib compatibility to your planet mod either by defining your planet prototype with PlanetsLib:extend (as in the first image in the [mod portal gallery](https://mods.factorio.com/mod/PlanetsLib)), or by using PlanetsLib:update in data-updates.lua (second image in the gallery). This also adds compatibility in case another mod updates the position of your planet's orbital parent: your planet will be moved too.
+Since other mods make use of the 'orbit structure' this mod provides to the solar system, it is recommended to add PlanetsLib compatibility to your planet mod either by defining your planet prototype using PlanetsLib (as in the first image in the [mod portal gallery](https://mods.factorio.com/mod/PlanetsLib)), or by calling `PlanetsLib:update` in data-updates.lua (second image in the gallery). Besides improving compatibility with PlanetsLib consumers, this means if another mod updates the position of your planet's orbital parent without moving your planet, your planet will be moved too.
 
 We aim to *never make any breaking API changes* such that the library is safe to use. We sometimes deprecate APIs by removing them from the documentation, but they stay functional.
 
@@ -19,8 +19,9 @@ We aim to *never make any breaking API changes* such that the library is safe to
 The primary intent of PlanetsLib is to be a library which provides opt-in functionality for other mods. However, a small number of mechanics-affecting or player-interface-affecting features have been added over time. These are listed below, player feedback on them is most welcome in [Discord](https://discord.gg/nFVqaPEk97).
 
 * Unlinking hidden prerequisites
-    * PlanetsLib detects technologies that have hidden prerequisites and warns players about them. It does this because Factorio makes such technologies unresearchable but without any apparent explanation or reason.
-    * It also provides mod settings to repair the user's game by unlinking all such prerequisites, or to disable the warning.
+    * If PlanetsLib detects that technologies have hidden prerequisites such that they would be unresearchable, it warns players about this fact.
+        * This is done because the Factorio client gives no explanation or reason for why these technologies cannot be researched.
+        * There are PlanetsLib mod settings to repair the user's game by unlinking all such prerequisites, or to disable the warning.
 * Fixed rocket weights of vanilla items
     * If an item prototype does not have an explicitly specified rocket weight, the behavior of the Factorio engine is to assign it a weight based on the recipes that produce it. Unfortunately, this means that the rocket weight of vanilla items is liable to change when additional mods are installed. PlanetsLib therefore sets an explicit weight on vanilla items equal to their weight in Space Age. This occurs in `data-final-fixes` and only if the item does not have a weight by that point.
 * Extra informational tooltips
@@ -36,9 +37,10 @@ The primary intent of PlanetsLib is to be a library which provides opt-in functi
             * This tracks `heating_energy` and only appears if defined.
     * All such tooltips are added in `data-final-fixes`.
 * Biolab inputs
-    * Because modders often forget about the Biolab, PlanetsLib mirrors all science packs from the vanilla lab to the Biolab in `data-final-fixes`.
-* Centrifuge fluid inputs
-    * PlanetsLib adjusts the centrifuge entity to have an input and output fluidbox (or two of each if the mod setting `PlanetsLib-enable-additional-centrifuge-fluidboxes` is enabled).
+    * Because modders often forget about the Biolab when adding a new science pack, PlanetsLib mirrors all science packs from the vanilla lab to the Biolab in `data-final-fixes`.
+* Centrifuge entity improvements
+    * This entity is given an input and an output fluidbox (or two of each if the mod setting `PlanetsLib-enable-additional-centrifuge-fluidboxes` is enabled).
+    * Also, the graphics of the working glow are improved so that it naturally glows different colors depending on the recipe.
 
 # API documentation
 
@@ -62,7 +64,7 @@ The reasons one may choose to use it over a plain `data:extend` are some additio
     * See [here](https://github.com/danielmartin0/Cerys-Moon-of-Fulgora/blob/main/prototypes/planet/planet.lua) or [here](https://github.com/danielmartin0/PlanetsLib/issues/12#issuecomment-2585484116) for usage examples.
 * `PlanetsLib:update(configs)` — Updates the position of a pre-existing space location, as identified by the passed `type` and `name` fields. Any other fields passed will be updated on the prototype, and if the `orbit` field is passed the `distance` and `orientation` fields on the prototype will also be updated, along with the `distance` and `orientation` of its children and grandchildren. Any fields not passed will be left unchanged.
 
-PlanetsLib has some extra compatibility code in `data-final-fixes` in which if a planet has noticed to have a `position` and `orientation` different from that implied by its orbit fields, those values will be treated as authoritative, its `orbit` field will be updated, and a simulated `PlanetsLib:update` call will be made to update the `position` and `orientation` of its children. However, using `PlanetsLib:update` over this method is recommended for compatibility.
+PlanetsLib has some extra compatibility code in `data-final-fixes` in which if a planet has noticed to have a `position` and `orientation` different from that implied by its orbit fields, those values will be treated as authoritative, its `orbit` field will be updated, and a simulated `PlanetsLib:update` call will be made to update the `position` and `orientation` of its children. However, using `PlanetsLib:update` to update planetary positions is generally recommended.
 
 Please note that the orbit structure does not yet dictate layering of the sprites on the spacemap — this is a desired feature from future contributors, it has not been built yet.
 
