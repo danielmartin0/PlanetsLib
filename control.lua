@@ -1,13 +1,24 @@
 local rocket_parts = require("scripts.rocket-parts")
 local unreachable_techs = require("scripts.unreachable-techs")
 
+-- By convention, please register event handlers in this file rather than the scripts directory, to help avoid collisions
+
+local cargo_pods
 if script.active_mods["space-age"] then
-	require("scripts.cargo-pods")
+	cargo_pods = require("scripts.cargo-pods")
 end
 
-if script.active_mods["space-age"] then
-	script.on_event(defines.events.on_built_entity, function(event)
-		rocket_parts.on_built_rocket_silo(event)
+if cargo_pods then
+	script.on_event(
+		defines.events.on_built_entity,
+		rocket_parts.on_built_rocket_silo,
+		{ { filter = "type", type = "rocket-silo" }, { filter = "ghost_type", type = "rocket-silo" } }
+	)
+
+	script.on_event(defines.events.on_cargo_pod_started_ascending, cargo_pods.on_cargo_pod_started_ascending)
+
+	script.on_init(function()
+		cargo_pods.init_storage()
 	end)
 end
 
@@ -20,6 +31,10 @@ if settings.startup["PlanetsLib-warn-on-hidden-prerequisites"].value then
 end
 
 script.on_configuration_changed(function(data)
+	if cargo_pods then
+		cargo_pods.init_storage()
+	end
+
 	local mod_changed = false
 
 	for _, _ in pairs(data.mod_changes) do

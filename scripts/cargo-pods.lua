@@ -1,19 +1,13 @@
+local Public = {}
+
 local warn_color = { r = 255, g = 90, b = 54 }
 
-local function init_storage()
+function Public.init_storage()
 	storage.planets_lib = storage.planets_lib or {}
 
 	storage.planets_lib.cargo_pods_seen_on_platforms = storage.planets_lib.cargo_pods_seen_on_platforms or {}
 	storage.planets_lib.cargo_pod_canceled_whisper_ticks = storage.planets_lib.cargo_pod_canceled_whisper_ticks or {}
 end
-
-script.on_init(function()
-	init_storage()
-end)
-
-script.on_configuration_changed(function()
-	init_storage()
-end)
 
 local cargo_drops_technology_names = {}
 for _, planet in pairs(prototypes.space_location) do
@@ -102,7 +96,17 @@ local function destroy_pod_on_platform(pod, platform, planet_name)
 	storage.planets_lib.cargo_pods_seen_on_platforms[pod_unit_number] = nil
 end
 
+local function prune_stale_cargo_pods()
+	for unit_number, entry in pairs(storage.planets_lib.cargo_pods_seen_on_platforms) do
+		if not (entry.entity and entry.entity.valid) then
+			storage.planets_lib.cargo_pods_seen_on_platforms[unit_number] = nil
+		end
+	end
+end
+
 local function examine_cargo_pods(platform, planet_name)
+	prune_stale_cargo_pods()
+
 	local cargo_pods = platform.surface.find_entities_filtered({ type = "cargo-pod" })
 
 	if #cargo_pods == 0 then
@@ -142,7 +146,7 @@ local function examine_cargo_pods(platform, planet_name)
 	end
 end
 
-script.on_event(defines.events.on_cargo_pod_started_ascending, function(event)
+function Public.on_cargo_pod_started_ascending(event)
 	local cargo_pod = event.cargo_pod
 	if not (cargo_pod and cargo_pod.valid) then
 		return
@@ -191,7 +195,7 @@ script.on_event(defines.events.on_cargo_pod_started_ascending, function(event)
 	end
 
 	examine_cargo_pods(platform, planet_name)
-end)
+end
 
 -- Deprecated whitelist API, not sure if we'll ever remove it?
 remote.add_interface("planetslib", {
@@ -278,3 +282,5 @@ remote.add_interface("planetslib", {
 		end
 	end,
 })
+
+return Public

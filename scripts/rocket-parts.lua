@@ -14,8 +14,7 @@ function Public.on_built_rocket_silo(event)
     local entity = event.entity
     if not entity.valid then return end
     local prototype = entity.name == "entity-ghost" and entity.ghost_prototype or entity.prototype
-    if prototype.type ~= "rocket-silo" then return end
-    
+
     if not prototype.crafting_categories["rocket-building"] then return end
     local rocket_part_recipe_data = prototypes.mod_data["Planetslib-planet-rocket-part-recipe"].data
     local lock_rocket_silo_data = prototypes.mod_data["Planetslib-planet-lock-rocket-silos"].data
