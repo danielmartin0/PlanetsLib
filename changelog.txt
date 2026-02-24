@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.17.0
-Date: ????
+Date: 2026-02-24
   Changes:
     - Fixed that the cargo drop restriction technology API only prevented cargo pods landing on planets directly; drops to cargo landing pads were unaffected.
 ---------------------------------------------------------------------------------------------------
