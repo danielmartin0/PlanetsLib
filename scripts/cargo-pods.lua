@@ -114,13 +114,27 @@ local function examine_cargo_pods(platform, planet_name)
 	end
 
 	for _, pod in pairs(cargo_pods) do
-		if pod
-			and pod.valid
-			and pod.cargo_pod_destination
-			and pod.cargo_pod_destination.surface
-			and pod.cargo_pod_destination.surface.planet
-			and pod.cargo_pod_destination.surface.planet.name == planet_name
-			and not storage.planets_lib.cargo_pods_seen_on_platforms[pod.unit_number] then
+		local destination = pod and pod.valid and pod.cargo_pod_destination
+		local destination_planet_name = nil
+
+		if destination then
+			if destination.surface and destination.surface.planet then
+				destination_planet_name = destination.surface.planet.name
+			elseif
+				destination.station
+				and destination.station.valid
+				and destination.station.surface
+				and destination.station.surface.planet
+				and destination.station.surface.planet.valid
+			then
+				destination_planet_name = destination.station.surface.planet.name
+			end
+		end
+
+		if
+			destination_planet_name == planet_name
+			and not storage.planets_lib.cargo_pods_seen_on_platforms[pod.unit_number]
+		then
 			local pod_contents = pod.get_inventory(defines.inventory.cargo_unit).get_contents()
 
 			local has_only_allowed_cargo = pod_contents_is_allowed(pod_contents, planet_name)
