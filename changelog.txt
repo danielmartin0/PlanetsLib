@@ -1,7 +1,11 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.17.1
 Date: ????
+  Bugfixes:
+    - Fixed that ChangeResultProductivityModifier.type was required even when using ChangeResultProductivityModifier.category.
   Changes:
+    - When evaluating recipes for PlanetsLib_recipe_productivity_effects, products having 'ignored_by_productivity >= (amount or amount_max)' are ignored.
+    - When evaluating recipes for PlanetsLib_recipe_productivity_effects, multiple products with the same name are counted as a single product for `allow_multiple_results`.
 ---------------------------------------------------------------------------------------------------
 Version: 1.17.0
 Date: 2026-02-24

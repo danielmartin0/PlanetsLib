@@ -367,75 +367,93 @@ end
 
 ---@param tech table (TechnologyPrototype)
 ---@author MeteorSwarm
-function Public.process_technology_recipe_productivity_effects(tech) 
-    if tech.PlanetsLib_recipe_productivity_effects then
-        if not tech.effects then tech.effects = {} end
-        local new_effects = {}
-        if tech.PlanetsLib_recipe_productivity_effects.purge_other_effects then
-            for _,effect in pairs(tech.effects) do
-                if effect.PlanetsLib_force_include then
-                    table.insert(new_effects,effect)
-                end
-            end
-        else
-            new_effects = table.deepcopy(tech.effects)
-        end
-        if not new_effects then new_effects = {} end
-        
-		local settings = tech.PlanetsLib_recipe_productivity_effects
-        for _,effect in pairs(settings.effects) do
-            local type = effect.type
-            local name = effect.name
-            local change = effect.change
-            local category = effect.category 
-            assert(xor(name,category),"You may only filter by result name or by category.")
-            if category then
-                assert(tech.PlanetsLib_recipe_productivity_effects.category_blacklist == nil,"category_blacklist and category are incompatible.")
-            end
+function Public.process_technology_recipe_productivity_effects(tech)
+    if not tech.PlanetsLib_recipe_productivity_effects then
+		return
+	end
 
-            local category_blacklist = tech.PlanetsLib_recipe_productivity_effects.category_blacklist or {"recycling"} --Excluded recipe categories
+	if not tech.effects then tech.effects = {} end
+	local new_effects = {}
+	if tech.PlanetsLib_recipe_productivity_effects.purge_other_effects then
+		for _,effect in pairs(tech.effects) do
+			if effect.PlanetsLib_force_include then
+				table.insert(new_effects,effect)
+			end
+		end
+	else
+		new_effects = table.deepcopy(tech.effects)
+	end
+	if not new_effects then new_effects = {} end
+	
+	local settings = tech.PlanetsLib_recipe_productivity_effects
+	for _,effect in pairs(settings.effects) do
+		local type = effect.type
+		local name = effect.name
+		local change = effect.change
+		local category = effect.category
+		assert(xor(name,category),"You may only filter either by result name or by category.")
+		if name then
+			assert(type,"You must provide a type if filtering by result name name.")
+		else
+			assert(tech.PlanetsLib_recipe_productivity_effects.category_blacklist == nil,"category_blacklist and category are incompatible.")
+		end
 
-            for _,recipe in pairs(data.raw["recipe"]) do
-				--recipe.allow_productivity = false
-				local recipe_category = recipe.category
-				if recipe_category == nil then category = "crafting" end
-                if not (recipe.Planetslib_blacklist_technology_updates or rro.contains(category_blacklist,recipe_category))
-                and recipe.results and (#recipe.results == 1 or effect.allow_multiple_results) and (settings.allow_recipes_without_productivity or recipe.allow_productivity) then
-                    for _,result in pairs(recipe.results) do
-                        if result.type == type and ((not name and recipe_category == category) or result.name == name) then
-                            local new_effect = {
-                                type = "change-recipe-productivity",
-                                recipe = recipe.name,
-                                change = change,
-                                hidden = effect.hidden,
-                                use_icon_overlay_constant = effect.use_icon_overlay_constant,
-                                icons = effect.icons,
-                                icon = effect.icon,
-                                icon_size = effect.icon_size,
-                            }
-                            --Check if effect already exists 
-                            local contains = false
-                            for _,effect in pairs(new_effects) do
-                                if effect.recipe == new_effect.recipe then
-                                    contains = true
-                                end
-                            end
-                            if not contains then
-                                table.insert(new_effects,new_effect)
-                            end
-                            break --To stop the same recipe from being added multiple times per result item.
-                        end
-                    end
-                end
-            end
-            tech.effects = new_effects
+		local category_blacklist = tech.PlanetsLib_recipe_productivity_effects.category_blacklist or {"recycling"} --Excluded recipe categories
 
-        end
-        tech.PlanetsLib_recipe_producitivity_effects = nil
-    end
+		for _,recipe in pairs(data.raw["recipe"]) do
+			if not recipe.results then
+				goto continue
+			end
 
+			local recipe_category = recipe.category or "crafting"
+			if recipe.Planetslib_blacklist_technology_updates or rro.contains(category_blacklist,recipe_category) then
+				goto continue
+			end
 
+			local net_results = {} --Filter out results that cannot be affected by productivity
+			for _,result in pairs(recipe.results) do
+				if not result.ignored_by_productivity or result.ignored_by_productivity < (result.amount or result.amount_max) then
+					net_results[result.name] = result.type --Count multiple results with the same same name as a single result
+				end
+			end
+			local results_count = table_size(net_results)
+			if results_count == 0
+					or (not effect.allow_multiple_results and results_count > 1)
+					or (not settings.allow_recipes_without_productivity and not recipe.allow_productivity) then
+				goto continue
+			end
 
+			for result_name,result_type in pairs(net_results) do
+				if (recipe_category == category) or (result_type == type and result_name == name) then
+					local new_effect = {
+						type = "change-recipe-productivity",
+						recipe = recipe.name,
+						change = change,
+						hidden = effect.hidden,
+						use_icon_overlay_constant = effect.use_icon_overlay_constant,
+						icons = effect.icons,
+						icon = effect.icon,
+						icon_size = effect.icon_size,
+					}
+					local contains = false
+					for _,effect in pairs(new_effects) do
+						if effect.recipe == new_effect.recipe then
+							contains = true
+							break
+						end
+					end
+					if not contains then
+						table.insert(new_effects,new_effect)
+					end
+					break --To stop the same recipe from being added multiple times per result item.
+				end
+			end
+			::continue::
+		end
+		tech.effects = new_effects
+
+	end
+	tech.PlanetsLib_recipe_producitivity_effects = nil
 end
 
 return Public

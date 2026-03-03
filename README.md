@@ -137,20 +137,22 @@ NOTE: Calling `relax_surface_conditions` without a `min` field will not remove a
 
 ### Recipe productivity technology helper field
 
-PlanetsLib adds a new field named `PlanetsLib_recipe_productivity_effects` to technologies, used by recipe productivity technologies. During `data-final-fixes,` technologies with this field will have their effects list appended or replaced with recipes matching either an output name or recipe category.
+PlanetsLib adds a new field named `PlanetsLib_recipe_productivity_effects` to technologies, used by recipe productivity technologies. During `data-final-fixes`, technologies with this field will have their effects list appended or replaced with recipes matching either an output name or recipe category. Recipes will be excluded if they have the field `PlanetsLib_blacklist_technology_updates` set to true `true`.
+
+Recipe products are ignored if they are not "productivity-capable"—if `ignored_by_productivity` is greater than or equal to `amount` (or `amount_max`)—because changing a recipe's productivity has no effect on such products. If a recipe has no productivity-capable products, it is fully ineligible; and if a recipe has multiple products, but only one product is productivity-capable (e.g. Kovarex enrichment), it is eligible _even if `allow_multiple_results` = false_.
 
 #### [`TechnologyPrototype`](https://lua-api.factorio.com/latest/prototypes/TechnologyPrototype.html) field: `PlanetsLib_recipe_productivity_effects` Properties:
 *   `effects`: `array[ChangeResultProductivityModifier]`
 *   `category_blacklist` - `array[`[`RecipeCategoryID`](https://lua-api.factorio.com/latest/types/RecipeCategoryID.html)`]`
 *   `purge_other_effects`- `boolean`. Default: false. Before adding effects added by `PlanetsLib_recipe_productivity_effects`, remove all 
 effects not flagged with `PlanetsLib_force_include`.
-*   `allow_recipes_without_productivity` - `boolean`. Default: false. Captures recipes that have `allow_productivity` set to false.
+*   `allow_recipes_without_productivity` - `boolean`. Default: false. Captures recipes even if they have `allow_productivity` set to false.
 
 #### `ChangeResultProductivityModifier` Properties:
-*   `allow_multiple_results`: boolean. Default: false. When false, only recipes with one result are added to the technology's effect list.
-*   `category` (optional) - [`RecipeCategoryID`](https://lua-api.factorio.com/latest/types/RecipeCategoryID.html)  Either `(name and type) or category` required. Forbidden when `category_blacklist ~= nil`.
-*   `type` (optional) - [`ProductPrototype`](https://lua-api.factorio.com/latest/types/ProductPrototype.html)
-*   `name` (optional) - [`ItemID`](https://lua-api.factorio.com/latest/types/ItemID.html)
+*   `name` (optional) - [`ItemID`](https://lua-api.factorio.com/latest/types/ItemID.html) Required if not using `category`. Incompatible with `category`.
+*   `type` (optional) - [`ProductPrototype`](https://lua-api.factorio.com/latest/types/ProductPrototype.html) Required if using `name`.
+*   `category` (optional) - [`RecipeCategoryID`](https://lua-api.factorio.com/latest/types/RecipeCategoryID.html)  Required if not using `name`. Incompatible with `name` and `category_blacklist`.
+*   `allow_multiple_results`: `boolean`. Default: false. When false, only recipes with one (productivity-capable) result are added to the technology's effect list. If multiple results have the same name, they are counted as a single result rather than being counted individually.
 ##### Inherited from [`ChangeRecipeProductivityModifier`](https://lua-api.factorio.com/latest/types/ChangeRecipeProductivityModifier.html)
 *   `change`
 *   `icons` (optional)
@@ -232,7 +234,7 @@ PlanetsLib includes standalone Python scripts for generating graphics. We recomm
 
 # Contributors
 
-[thesixthroc](https://mods.factorio.com/user/thesixthroc), [MeteorSwarm](https://mods.factorio.com/user/MeteorSwarm), [Midnighttigger](https://mods.factorio.com/user/Midnighttigger), [Tserup](https://mods.factorio.com/user/Tserup), [notnotmelon](https://mods.factorio.com/user/notnotmelon), [Frontrider](https://mods.factorio.com/user/Frontrider), Zwvei, [allisonlastname](https://mods.factorio.com/user/allisonlastname), Hoochie63, [SirPuck](https://mods.factorio.com/user/SirPuck), [Osmo](https://mods.factorio.com/user/O5MO).
+[thesixthroc](https://mods.factorio.com/user/thesixthroc), [MeteorSwarm](https://mods.factorio.com/user/MeteorSwarm), [Midnighttigger](https://mods.factorio.com/user/Midnighttigger), [Tserup](https://mods.factorio.com/user/Tserup), [notnotmelon](https://mods.factorio.com/user/notnotmelon), [Frontrider](https://mods.factorio.com/user/Frontrider), Zwvei, [allisonlastname](https://mods.factorio.com/user/allisonlastname), Hoochie63, [SirPuck](https://mods.factorio.com/user/SirPuck), [Osmo](https://mods.factorio.com/user/O5MO), [Thremtopod](https://mods.factorio.com/user/thremtopod).
 
 
 [![Discord](https://img.shields.io/discord/1309620686347702372?style=for-the-badge&logoColor=bf6434&label=The%20Foundry&labelColor=222222&color=bf6434)](https://foundrygg.com)
