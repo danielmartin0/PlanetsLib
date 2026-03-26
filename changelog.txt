@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.17.1
-Date: ????
+Date: 2026-03-26
   Bugfixes:
     - Fixed that ChangeResultProductivityModifier.type was required even when using ChangeResultProductivityModifier.category.
   Changes:
