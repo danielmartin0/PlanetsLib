@@ -2,7 +2,7 @@
 
 # PlanetsLib
 
-Code and graphics to help modders creating planets, moons and other systems. This library is a community project and will grow over time. Anyone is welcome to open a [pull request](https://github.com/danielmartin0/PlanetsLib/pulls) on Github. For feature requests, please open an [issue](https://github.com/danielmartin0/PlanetsLib/issues). For general discussion, use [Discord](https://discord.gg/nFVqaPEk97).
+Code and graphics to help modders creating planets, moons and other systems. This library is a community project. Anyone is welcome to open a [pull request](https://github.com/danielmartin0/PlanetsLib/pulls) on Github. For feature requests, please open an [issue](https://github.com/danielmartin0/PlanetsLib/issues). For general discussion, use [Discord](https://discord.gg/nFVqaPEk97).
 
 Since other mods make use of the 'orbit structure' this mod provides to the solar system, it is recommended to add PlanetsLib compatibility to your planet mod either by defining your planet prototype using PlanetsLib (as in the first image in the [mod portal gallery](https://mods.factorio.com/mod/PlanetsLib)), or by calling `PlanetsLib:update` in data-updates.lua (second image in the gallery). Besides improving compatibility with PlanetsLib consumers, this means if another mod updates the position of your planet's orbital parent without moving your planet, your planet will be moved too.
 
@@ -66,7 +66,7 @@ The reasons one may choose to use it over a plain `data:extend` are some additio
 
 PlanetsLib has some extra compatibility code in `data-final-fixes` in which if a planet has noticed to have a `position` and `orientation` different from that implied by its orbit fields, those values will be treated as authoritative, its `orbit` field will be updated, and a simulated `PlanetsLib:update` call will be made to update the `position` and `orientation` of its children. However, using `PlanetsLib:update` to update planetary positions is generally recommended.
 
-Please note that the orbit structure does not yet dictate layering of the sprites on the spacemap — this is a desired feature from future contributors, it has not been built yet.
+Please note that the orbit structure does not yet dictate layering of the sprites on the spacemap – this is a desired feature from future contributors, it has not been built yet.
 
 Neither `PlanetsLib:extend` nor `PlanetsLib:update` should be called in `data-final-fixes`.
 
