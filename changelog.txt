@@ -1,7 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.18.0
+Date: ---
+  Changes:
+    - Added a variant of the empty space tile that can not be covered by anything to superceed the one in Cerys and Cloud City.
+---------------------------------------------------------------------------------------------------
 Version: 1.17.2
 Date: 2026-04-15
-   Locale:
+  Locale:
     - Added Polish locale(By Hacai666).
 ---------------------------------------------------------------------------------------------------
 Version: 1.17.1

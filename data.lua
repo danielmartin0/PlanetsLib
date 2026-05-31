@@ -1,5 +1,6 @@
-local orbits = require("lib.orbits")
+require("prototypes.tiles")
 
+local orbits = require("lib.orbits")
 PlanetsLib = {}
 
 require("api")
