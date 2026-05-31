@@ -219,20 +219,6 @@ Planetslib includes functions to generate certain kinds of achievements.
 
 * `__PlanetsLib__/graphics/icons/research-progress-product.png` — an iconographic science pack icon intended for items used exclusively as ResearchProgressProducts, since mods using a common icon might help players understand the mechanic.
 
-#### Python helper scripts
-
-PlanetsLib includes standalone Python scripts for generating graphics. We recommend using [uv](https://docs.astral.sh/uv/) to run these scripts, as it automatically handles Python and dependency installation.
-
-* `helper_scripts/generate_orbit_graphics.py` — Generates orbit sprites for planets. The script takes three arguments: `distance` (the orbital distance from the parent), `planet_name`, and `mod_name`. After generating your sprite, the script will print a block of Lua code that imports your sprite with proper scaling. Orbit sprites should be scaled at 0.25 to ensure that no pixels are visible on 4K monitors.
-
-    Example: `uv run helper_scripts/generate_orbit_graphics.py 1.6 muluna planet-muluna`
-
-    If the generated image were to have a higher resolution than what Factorio can support (4096x4096), then image quality will be sacrificed for it by increasing the scale. Orbits above 100 start to break as the tool can no longer generate with the default line thickness. Above 200, the orbit becomes a 1 pixel thick line, so orbits will appear thicker than they should be.
-
-* `helper_scripts/generate_visit_planet_achievement.py` — Generates images for "Visit [planet]" achievements. When provided an image of a planet, it automatically scales, crops and composes it into a ready to use achievement graphic. The script uses resource files (background, overlay, frame masks) that are bundled with PlanetsLib in the `helper_scripts/` directory.
-
-    Example: `uv run helper_scripts/generate_visit_planet_achievement.py planet-icon.png`
-
 # Contributors
 
 [thesixthroc](https://mods.factorio.com/user/thesixthroc), [MeteorSwarm](https://mods.factorio.com/user/MeteorSwarm), [Midnighttigger](https://mods.factorio.com/user/Midnighttigger), [Tserup](https://mods.factorio.com/user/Tserup), [notnotmelon](https://mods.factorio.com/user/notnotmelon), [Frontrider](https://mods.factorio.com/user/Frontrider), Zwvei, [allisonlastname](https://mods.factorio.com/user/allisonlastname), Hoochie63, [SirPuck](https://mods.factorio.com/user/SirPuck), [Osmo](https://mods.factorio.com/user/O5MO), [Thremtopod](https://mods.factorio.com/user/thremtopod).
