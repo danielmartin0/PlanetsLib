@@ -1,7 +1,20 @@
-if not settings.startup["PlanetsLib-enable-blocking-empty-space-tile"].value then
+if (not settings.startup["PlanetsLib-enable-blocking-empty-space-tile"].value) or (not mods["space-age"]) then
     return
 end
 
+local function merge(old, new)
+	old = util.table.deepcopy(old)
+
+	for k, v in pairs(new) do
+		if v == "nil" then
+			old[k] = nil
+		else
+			old[k] = v
+		end
+	end
+
+	return old
+end
 
 local tile = merge(data.raw.tile["empty-space"], {
     subgroup = data.raw.tile["empty-space"].subgroup,

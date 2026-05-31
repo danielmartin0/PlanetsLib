@@ -35,7 +35,8 @@ The primary intent of PlanetsLib is to be a library which provides opt-in functi
 * Centrifuge entity improvements
     * This entity is given an input and an output fluidbox (or two of each if the mod setting `PlanetsLib-enable-additional-centrifuge-fluidboxes` is enabled).
     * Also, the graphics of the working glow are improved so that it naturally glows different colors depending on the recipe.
-
+* Space tile without the ability to cover it
+    * A space tile that can be used around limited surfaces floating in space, as it can not be covered in space platform tiles. Modders, enable it with the `PlanetsLib-enable-blocking-empty-space-tile` setting. The name of the tile is `planetslib-empty-space`, all localization is set to match the regular `empty-space` tile from space age.
 # Notes for contributors
 
 * In your pull requests, please list your changes in changelog.txt to be included in the next release. Please also update `README.md` to add sections for your new functionality (even with only 'Documentation pending') and add yourself to the contributors list.
