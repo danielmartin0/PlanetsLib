@@ -31,7 +31,7 @@ data:extend({
 		type = "bool-setting",
 		setting_type = "startup",
 		name = "PlanetsLib-enable-detailed-logs",
-        default_value = false,
+		default_value = false,
 		order = "ae",
 	},
 })
@@ -89,6 +89,14 @@ data:extend({
 		type = "bool-setting",
 		setting_type = "startup",
 		name = "PlanetsLib-enable-additional-centrifuge-fluidboxes",
+		forced_value = false,
+		default_value = false,
+		hidden = true,
+	},
+	{
+		type = "bool-setting",
+		setting_type = "startup",
+		name = "PlanetsLib-enable-blocking-empty-space-tile",
 		forced_value = false,
 		default_value = false,
 		hidden = true,
