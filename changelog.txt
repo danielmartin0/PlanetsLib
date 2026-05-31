@@ -1,8 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.18.0
-Date: ---
+Date: 2026-05-31
   Changes:
-    - Added a variant of the empty space tile that can not be covered by anything to superceed the one in Cerys and other "floating in space" style surfaces.
+    - Added a variant of the empty space tile that can not be covered by anything to supersede the one in Cerys and other "floating in space" style surfaces.
+    - Removed Python helper scripts as these are no longer permitted on the mod portal.
 ---------------------------------------------------------------------------------------------------
 Version: 1.17.2
 Date: 2026-04-15
