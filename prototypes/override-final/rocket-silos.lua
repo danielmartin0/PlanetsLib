@@ -11,5 +11,6 @@ for lift_multiplier,multiplier_table in pairs(lift_multipliers) do
         --Implement changed silo data once Factorio 2.1 comes out
         new_silo.name = silo.name .. "-lift-multiplied-" .. lift_multiplier
         multiplier_table[silo.name]=new_silo.name
+        data:extend{new_silo}
     end
 end
