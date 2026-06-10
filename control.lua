@@ -7,7 +7,7 @@ local cargo_pods
 if script.active_mods["space-age"] then
 	cargo_pods = require("scripts.cargo-pods")
 end
-
+local is_cargo_pods = cargo_pods ~= nil
 if cargo_pods then
 	-- script.on_event(
 	-- 	defines.events.on_built_entity,
@@ -52,7 +52,7 @@ script.on_configuration_changed(function(data)
 end)
 
 local function on_built_entity_combined(event)
-if cargo_pods then
+if is_cargo_pods then
 	rocket_parts.on_built_rocket_silo(event)
 end
 	entity_replacement.on_built_entity(event)
