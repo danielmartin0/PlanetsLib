@@ -9,6 +9,10 @@ local mod_data = require("lib.mod-data")
 local recipe = require("lib.recipe")
 local achievements = require("lib.achievements")
 
+--Constants
+--Data added to PlanetsLib.constants, a mod-data prototype.
+
+
 --== APIs ==--
 -- API documentation lives in README.md (or on the mod portal.)
 

@@ -1,15 +1,16 @@
 local Public = {}
-local entity_replacements = 
-{ --Test data, replace with mod-data when script is confirmed to work.
-    ["nauvis"] = { --If on planet (or "space-platform")
-        ["chemical-plant"] = "assembling-machine-2" --If chemical plant placed on Nauvis, replace with assembling-machine 2
-    },
-    ["space-platform"] = { --If on planet (or "space-platform")
-        ["chemical-plant"] = "assembling-machine-3" --If chemical plant placed on space platform, replace with assembling-machine 3
-    },
-}
+local entity_replacements = PlanetsLib.constants
+-- local entity_replacements = 
+-- { --Test data, replace with mod-data when script is confirmed to work.
+--     ["nauvis"] = { --If on planet (or "space-platform")
+--         ["chemical-plant"] = "assembling-machine-2" --If chemical plant placed on Nauvis, replace with assembling-machine 2
+--     },
+--     ["space-platform"] = { --If on planet (or "space-platform")
+--         ["chemical-plant"] = "assembling-machine-3" --If chemical plant placed on space platform, replace with assembling-machine 3
+--     },
+-- }
 
-function Public.on_built_entity(event) -- Based on Maraxsis function
+function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills rule "If entity X placed on planet Y, replace entity with entity Z"
     local entity = event.entity
     local surface = entity.surface
     local planet_object = surface.planet

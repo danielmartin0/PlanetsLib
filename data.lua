@@ -15,6 +15,11 @@ data:extend({
 					item_names = {},
 				},
 			},
+			on_entity_placed_on_planet_replacements = {
+				--["planet-name"] = {
+				-- ["entity-to-replace"] = "new-entity"
+				--}
+			},
 			rocket_silo_lift_multipliers = {
 				--[number(str)] == table {base_silo = replacement_silo}
 			},
