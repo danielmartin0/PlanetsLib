@@ -1,3 +1,6 @@
+PlanetsLib = {}
+PlanetsLib.constants = prototypes.mod_data.Planetslib.data
+PlanetsLib.objects = require("lib.remove-replace-object")
 local rocket_parts = require("scripts.rocket-parts")
 local unreachable_techs = require("scripts.unreachable-techs")
 local entity_replacement = require("scripts.entity-replacement")
@@ -51,16 +54,40 @@ script.on_configuration_changed(function(data)
 	end
 end)
 
-local function on_built_entity_combined(event)
-if is_cargo_pods then
-	rocket_parts.on_built_rocket_silo(event)
-end
-	entity_replacement.on_built_entity(event)
+local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_replacements
+local is_entity_replacements = not PlanetsLib.objects.deep_equals(entity_replacements,{}) --If no mods add entity replacements, disable related event triggers.
+
+local on_built_filters = {} --List of entity filters derived from entity_replacements to improve performance on entities not governed by replacement rules.
+local on_built_filters_and_silos = {}
+for planet_name,replacements in pairs(entity_replacements) do
+	for entity,replacement in pairs(replacements) do
+		table.insert(on_built_filters,{filter = "name", name = entity})
+		table.insert(on_built_filters,{filter = "ghost_name", name = entity})
+		table.insert(on_built_filters_and_silos,{filter = "name", name = entity}) --This lines are copy-pasted because to my shock, table.deepcopy is unavailable in control.
+		table.insert(on_built_filters_and_silos,{filter = "ghost_name", name = entity})
+	end
 end
 
-script.on_event(defines.events.on_built_entity,on_built_entity_combined)
-script.on_event(defines.events.on_robot_built_entity,entity_replacement.on_built_entity)
-script.on_event(defines.events.script_raised_built,entity_replacement.on_built_entity)
-script.on_event(defines.events.script_raised_revive,entity_replacement.on_built_entity)
-script.on_event(defines.events.on_space_platform_built_entity,entity_replacement.on_built_entity)
-script.on_event(defines.events.on_biter_base_built,entity_replacement.on_built_entity)
+
+table.insert(on_built_filters_and_silos,{filter = "type", type = "rocket-silo"})
+table.insert(on_built_filters_and_silos,{filter = "ghost_type", type = "rocket-silo"})
+
+local function on_built_entity_combined(event)
+	if is_cargo_pods then
+		rocket_parts.on_built_rocket_silo(event)
+	end
+	if is_entity_replacements then
+		entity_replacement.on_built_entity(event)
+	end
+	
+end
+
+script.on_event(defines.events.on_built_entity,on_built_entity_combined,on_built_filters_and_silos)
+if is_entity_replacements then
+	script.on_event(defines.events.on_robot_built_entity,entity_replacement.on_built_entity,on_built_filters)
+	script.on_event(defines.events.script_raised_built,entity_replacement.on_built_entity,on_built_filters)
+	script.on_event(defines.events.script_raised_revive,entity_replacement.on_built_entity,on_built_filters)
+	script.on_event(defines.events.on_space_platform_built_entity,entity_replacement.on_built_entity,on_built_filters)
+	--script.on_event(defines.events.on_biter_base_built,entity_replacement.on_built_entity)
+
+end
