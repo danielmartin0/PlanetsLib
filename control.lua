@@ -1,6 +1,6 @@
 local rocket_parts = require("scripts.rocket-parts")
 local unreachable_techs = require("scripts.unreachable-techs")
-
+local entity_replacement = require("scripts.entity-replacement")
 -- By convention, please register event handlers in this file rather than the scripts directory, to help avoid collisions
 
 local cargo_pods
@@ -9,11 +9,11 @@ if script.active_mods["space-age"] then
 end
 
 if cargo_pods then
-	script.on_event(
-		defines.events.on_built_entity,
-		rocket_parts.on_built_rocket_silo,
-		{ { filter = "type", type = "rocket-silo" }, { filter = "ghost_type", type = "rocket-silo" } }
-	)
+	-- script.on_event(
+	-- 	defines.events.on_built_entity,
+	-- 	rocket_parts.on_built_rocket_silo,
+	-- 	{ { filter = "type", type = "rocket-silo" }, { filter = "ghost_type", type = "rocket-silo" } }
+	-- )
 
 	script.on_event(defines.events.on_cargo_pod_started_ascending, cargo_pods.on_cargo_pod_started_ascending)
 
@@ -50,3 +50,17 @@ script.on_configuration_changed(function(data)
 		unreachable_techs.warn_unreachable_techs()
 	end
 end)
+
+local function on_built_entity_combined(event)
+if cargo_pods then
+	rocket_parts.on_built_rocket_silo(event)
+end
+	entity_replacement.on_built_entity(event)
+end
+
+script.on_event(defines.events.on_built_entity,on_built_entity_combined)
+script.on_event(defines.events.on_robot_built_entity,entity_replacement.on_built_entity)
+script.on_event(defines.events.script_raised_built,entity_replacement.on_built_entity)
+script.on_event(defines.events.script_raised_revive,entity_replacement.on_built_entity)
+script.on_event(defines.events.on_space_platform_built_entity,entity_replacement.on_built_entity)
+script.on_event(defines.events.on_biter_base_built,entity_replacement.on_built_entity)
