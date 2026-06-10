@@ -8,10 +8,7 @@ local surface_conditions = require("lib.surface_conditions")
 local mod_data = require("lib.mod-data")
 local recipe = require("lib.recipe")
 local achievements = require("lib.achievements")
-
---Constants
---Data added to PlanetsLib.constants, a mod-data prototype.
-
+local entity_replacements = require("lib.add-entity-replacement")
 
 --== APIs ==--
 -- API documentation lives in README.md (or on the mod portal.)
@@ -44,6 +41,9 @@ PlanetsLib.remove_surface_condition = surface_conditions.remove_surface_conditio
 PlanetsLib.set_default_import_location = planet.set_default_import_location
 
 PlanetsLib.visit_planet_achievement = achievements.visit_planet_achievement
+
+PlanetsLib.create_planet_entity_variant = entity_replacements.create_planet_entity_variant
+PlanetsLib.assign_entity_replacement = entity_replacements.assign_entity_replacement
 
 --- Clones music tracks from source_planet to target_planet.
 --- Does not overwrite existing music for target_planet.
