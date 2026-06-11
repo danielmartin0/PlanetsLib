@@ -1,6 +1,13 @@
 local Public = {}
 local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_replacements
+local entity_replacements_inverted = {}
 
+for _,planet in pairs(entity_replacements) do
+    --entity_replacements_inverted[planet] = {}
+    for key,value in pairs(planet) do
+        entity_replacements_inverted[value] = key
+    end
+end
 
 function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills rule "If entity X placed on planet Y, replace entity with entity Z"
     local entity = event.entity
@@ -13,9 +20,9 @@ function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills r
         planet = "space-platform"
     end
     
-    if not entity_replacements[planet] then return end
+    --if not entity_replacements[planet] then return end
     
-    if not entity_replacements[planet][entity.name] then return end
+    if not ((entity_replacements_inverted[entity.name]) or (entity_replacements[planet] and entity_replacements[planet][entity.name]))  then return end
 
     if not entity.valid then return end 
 
@@ -27,7 +34,15 @@ function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills r
     local name = is_ghost and entity.ghost_name or entity.name
 
     local is_space = not not surface.platform
-    local swap_target = entity_replacements[planet][name]
+
+    local swap_target
+    game.print(serpent.block(entity_replacements_inverted))
+    if entity_replacements_inverted[name] then
+        swap_target = entity_replacements[planet][entity_replacements_inverted[name]]
+    else
+        swap_target = entity_replacements[planet][name]
+    end
+     
 
     local player = event.player_index and game.get_player(event.player_index)
 
@@ -71,5 +86,22 @@ function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills r
 
 
 end
+
+
+--Function called to replace PlanetsLib planet-exclusive entity replacements with original versions. Keeping blueprints in a stable state feels like a safer choice than allowing people to 
+
+
+
+-- function Public.blueprint_standardize(event)
+--     local record = event.record
+
+--     for _,entity in pairs(record.get_blueprint_entities()) do
+--         if entity_replacements_inverted[entity.name] then 
+--             entity.name = entity_replacements_inverted[entity.name] 
+--         end
+--     end
+
+-- end
+
 
 return Public

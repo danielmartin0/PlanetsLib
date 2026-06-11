@@ -1,3 +1,4 @@
+PlanetsLib.current_stage = "data-final-fixes"
 PlanetsLib.check_global_variables()
 require("prototypes.override-final.science")
 require("prototypes.override-final.technology-updates")
@@ -6,6 +7,7 @@ if mods["space-age"] then
 	require("prototypes.override-final.check-unexpected-positions")
 	require("prototypes.override-final.update-connections")
     require("prototypes.override-final.set-default-weights")
+	require("prototypes.override-final.planet-entity-variants")
 	local ps = require("lib.planet-str")
 
 	local planets = data.raw.planet

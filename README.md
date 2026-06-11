@@ -109,7 +109,7 @@ You can use the library to assign unique rocket part recipes to rocket silos pla
 PlanetsLib allows you to quickly generate planet-exclusive variants of entities.
 
 * `PlanetsLib.create_planet_entity_variant(planet_names(table of strings or string),entity(table),new_properties(table))` – Creates a variant of `entity` with a unique name, the same localized name/description, and new properties taken from new_properties. When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity.
-* `PlanetsLib.assign_entity_replacement(planet,entity,new_entity)` – When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity.
+* `PlanetsLib.assign_entity_replacement(planet,entity,new_entity)` – When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity. 
 * `PlanetsLib.assign_entity_replacement(planet,entity_list)` – For each key/value pair in `entity_list`, when `key` is placed on planet during gameplay, PlanetsLib will replace `key` with `value`.
 
 ## Surface conditions

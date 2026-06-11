@@ -2,7 +2,7 @@ require("prototypes.tiles")
 
 local orbits = require("lib.orbits")
 PlanetsLib = {}
-
+PlanetsLib.current_stage = "data"
 data:extend({
 	{
 		type = "mod-data",
