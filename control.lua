@@ -52,6 +52,8 @@ script.on_configuration_changed(function(data)
 	if settings.startup["PlanetsLib-warn-on-hidden-prerequisites"].value then
 		unreachable_techs.warn_unreachable_techs()
 	end
+
+	--entity_replacement.migrate_entity_replacements() --Scan every entity in the world for entities that need to be changed, and change them if necessary.
 end)
 
 local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_replacements

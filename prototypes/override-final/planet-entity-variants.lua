@@ -1,6 +1,7 @@
 
 for _,planet in pairs(PlanetsLib.constants.on_entity_placed_on_planet_replacements) do
-    for old_entity_name,new_entity_name in pairs(planet) do
+    for old_entity_name,new_entity_table in pairs(planet) do
+        local new_entity_name = new_entity_table.entity
         for _,item in pairs(data.raw["item"]) do
             if item.place_result == old_entity_name then
                 local new_entity
