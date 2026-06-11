@@ -38,7 +38,7 @@ function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills r
     local swap_target
     --game.print(serpent.block(entity_replacements_inverted))
     if entity_replacements_inverted[name] then
-        swap_target = entity_replacements[planet][entity_replacements_inverted[name]]
+        swap_target = entity_replacements[planet][entity_replacements_inverted[name].entity]
     else
         swap_target = entity_replacements[planet][name]
     end

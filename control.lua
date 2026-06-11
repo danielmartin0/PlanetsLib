@@ -60,7 +60,8 @@ local is_entity_replacements = not PlanetsLib.objects.deep_equals(entity_replace
 local on_built_filters = {} --List of entity filters derived from entity_replacements to improve performance on entities not governed by replacement rules.
 local on_built_filters_and_silos = {}
 for planet_name,replacements in pairs(entity_replacements) do
-	for entity,replacement in pairs(replacements) do
+	for entity,replacement_table in pairs(replacements) do
+		local replacement = replacement_table.entity
 		table.insert(on_built_filters,{filter = "name", name = entity})
 		table.insert(on_built_filters,{filter = "ghost_name", name = entity})
 		table.insert(on_built_filters_and_silos,{filter = "name", name = entity}) --This lines are copy-pasted because to my shock, table.deepcopy is unavailable in control.
