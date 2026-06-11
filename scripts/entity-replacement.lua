@@ -36,7 +36,7 @@ function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills r
     local is_space = not not surface.platform
 
     local swap_target
-    game.print(serpent.block(entity_replacements_inverted))
+    --game.print(serpent.block(entity_replacements_inverted))
     if entity_replacements_inverted[name] then
         swap_target = entity_replacements[planet][entity_replacements_inverted[name]]
     else
