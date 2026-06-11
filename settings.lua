@@ -34,6 +34,20 @@ data:extend({
 		default_value = false,
 		order = "ae",
 	},
+	{
+		type = "bool-setting",
+		setting_type = "startup",
+		name = "PlanetsLib-enable-entity-replacements",
+		default_value = true,
+		order = "af",
+	},
+	{
+		type = "bool-setting",
+		setting_type = "startup",
+		name = "PlanetsLib-disable-all-entity-replacements",
+		default_value = false,
+		order = "ag",
+	},
 })
 
 data:extend({
@@ -75,6 +89,14 @@ data:extend({
 		name = "PlanetsLib-enable-argon",
 		forced_value = false,
 		default_value = false,
+		hidden = true,
+	},
+	{
+		type = "bool-setting",
+		setting_type = "startup",
+		name = "PlanetsLib-enable-rocket-lift-multiplier",
+		forced_value = true,
+		default_value = true,
 		hidden = true,
 	},
 	{
