@@ -39,6 +39,9 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties)
     if not entity.factoriopedia_alternative then
         new_entity.factoriopedia_alternative = entity.name
     end
+    if not entity.deconstruction_alternative  then
+        new_entity.deconstruction_alternative = entity.name
+    end
     -- if not new_entity.placeable_by and data.raw["item"][entity.name] then
     --     new_entity.placeable_by = {{item = entity.name, count =1}}
     -- end
@@ -50,6 +53,9 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties)
     if not new_entity.localised_description then
         new_entity.localised_description = {"entity-description." .. entity.name}
     end
+    new_entity.flags = new_entity.flags or {}
+    rro.soft_insert(new_entity.flags,"not-in-made-in")
+    new_entity.hide_from_bonus_gui = true
     new_entity = rro.merge(new_entity,new_properties) 
     
     if type(planet_names) == "table" then
