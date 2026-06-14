@@ -31,7 +31,7 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties)
     if PlanetsLib.current_stage == "data-final-fixes" then
         error("This function can only be run before data-final-fixes.")
     end
-    local first_planet_name = (type(planet) == "table" and planet_names[1]) or planet_names
+    local first_planet_name = (type(planet_names) == "table" and planet_names[1]) or planet_names
     if not entity.fast_replaceable_group then
         entity.fast_replaceable_group = entity.name
     end
