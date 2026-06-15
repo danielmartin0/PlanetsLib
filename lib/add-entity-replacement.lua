@@ -34,9 +34,6 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
     if item_name == nil then
         item_name = entity.name
     end
-    if item_name == nil then
-        item_name = entity.name
-    end
     local first_planet_name = (type(planet) == "table" and planet_names[1]) or planet_names
     if not entity.fast_replaceable_group then
         entity.fast_replaceable_group = entity.name .. "-PlanetsLib-group"
