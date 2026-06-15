@@ -28,9 +28,6 @@ end
 -- 6. Adds new_entity to data.raw.
 -- 7. Returns new_entity to make it easier to reference the generated entity in subsequent code.
 function Public.create_planet_entity_variant(planet_names,entity,new_properties,item_name)
-    if PlanetsLib.current_stage == "data-final-fixes" then
-        error("This function can only be run before data-final-fixes.")
-    end
     if item_name == nil then
         item_name = entity.name
     end
