@@ -45,6 +45,7 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
     if not new_entity.placeable_by then
         new_entity.placeable_by = {{item = item_name, count =1}}
     end
+    new_entity.hidden_in_factoriopedia = true
     new_entity.name = entity.name .. "-PlanetsLib-" .. first_planet_name 
     
     if not new_entity.localised_name then
