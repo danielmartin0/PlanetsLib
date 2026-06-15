@@ -55,12 +55,13 @@ function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills r
         force = entity.force_index,
         quality = entity.quality,
         health = entity.health,
-        raise_built = true,
+        raise_built = false,
         player = player,
+        mirror = entity.mirroring
     }
     
     if not new_entity or not new_entity.valid then return end
-    new_entity.mirroring = entity.mirroring
+    --new_entity.mirroring = entity.mirroring
     new_entity.copy_settings(entity)
 
     if not is_ghost then
@@ -81,6 +82,7 @@ function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills r
     end
 
     entity.destroy()
+    script.raise_script_built{entity=new_entity}
     
 
 
