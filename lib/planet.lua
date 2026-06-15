@@ -28,6 +28,12 @@ function Public.extend(config)
 		end
 	end
 
+	if planet.special_properties then
+		local special_properties = planet.special_properties
+		PlanetsLib.constants.planet_properties[planet.name] = special_properties
+		planet.special_properties = nil
+	end
+
 	data:extend({ planet })
 end
 
@@ -46,6 +52,9 @@ function Public.is_space_location_or_space_platform(planet)
 end
 -- TODO: Add checks to ensure the structure of orbit is correct.
 function Public.verify_extend_fields(config)
+	if PlanetsLib.current_stage == "data-final-fixes" then
+        error("PlanetsLib:extend() - This function can only be run before data-final-fixes. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib.")
+    end
 	if not Public.is_space_location(config) then
 		error(
 			"PlanetsLib:extend() - extend only takes a planet or space-location prototype. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
@@ -80,6 +89,9 @@ function Public.verify_extend_fields(config)
 end
 
 function Public.update(config)
+	if PlanetsLib.current_stage == "data-final-fixes" then
+        error("This function can only be run before data-final-fixes.")
+    end
 	Public.verify_update_fields(config)
 
 	orbits.ensure_all_locations_have_orbits()
@@ -138,6 +150,14 @@ function Public.update(config)
 			orbits.update_positions_of_all_children_via_orbits(data.raw[config.type][config.name])
 
             lib.detailed_log("--------------------------------")
+		elseif k == "special_properties" then
+			if not PlanetsLib.constants.planet_properties[config.name] then
+					PlanetsLib.constants.planet_properties[config.name] = {}
+			end
+			for field,value in pairs(v) do
+				
+				PlanetsLib.constants.planet_properties[config.name][field] = value
+			end
 		else
 			data.raw[config.type][config.name][k] = v
 		end
