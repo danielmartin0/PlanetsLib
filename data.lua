@@ -32,7 +32,7 @@ data:extend({
 					-- },
 				
 			},
-			planet_data = { --Place to store arbitrary planet properties to avoid a proliferation of new mod-data objects.
+			planet_properties = { --Place to store arbitrary planet properties to avoid a proliferation of new mod-data objects.
 				--[planet name] = table {incl. rocket_lift_multiplier}
 			}
 		},

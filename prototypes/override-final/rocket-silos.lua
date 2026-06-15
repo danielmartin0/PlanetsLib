@@ -1,5 +1,5 @@
 local lift_multipliers = PlanetsLib.constants.rocket_silo_lift_multipliers
-for _,planet in pairs(PlanetsLib.constants.planet_data) do
+for _,planet in pairs(PlanetsLib.constants.planet_properties) do
     local lift_multiplier = planet.lift_multiplier
     if lift_multiplier then
         lift_multipliers[tostring(lift_multiplier)] = {}
