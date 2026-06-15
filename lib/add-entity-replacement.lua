@@ -28,15 +28,15 @@ end
 -- 6. Adds new_entity to data.raw.
 -- 7. Returns new_entity to make it easier to reference the generated entity in subsequent code.
 function Public.create_planet_entity_variant(planet_names,entity,new_properties,item_name)
-    if PlanetsLib.current_stage == "data-final-fixes" then
-        error("This function can only be run before data-final-fixes.")
-    end
+    -- if PlanetsLib.current_stage == "data-final-fixes" then
+    --     error("This function can only be run before data-final-fixes.")
+    -- end
     if item_name == nil then
         item_name = entity.name
     end
     local first_planet_name = (type(planet) == "table" and planet_names[1]) or planet_names
     if not entity.fast_replaceable_group then
-        entity.fast_replaceable_group = entity.name
+        entity.fast_replaceable_group = entity.name .. "-PlanetsLib-group"
     end
     local new_entity = table.deepcopy(entity)
     if not entity.factoriopedia_alternative then

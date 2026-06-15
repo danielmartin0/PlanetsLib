@@ -45,8 +45,7 @@ function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills r
      
 
     local player = event.player_index and game.get_player(event.player_index)
-
-    local new_entity = surface.create_entity {
+    local new_entity_properties = {
         name = is_ghost and "entity-ghost" or swap_target,
         inner_name = is_ghost and swap_target or nil,
         tags = is_ghost and entity.tags or nil,
@@ -59,6 +58,8 @@ function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills r
         player = player,
         mirror = entity.mirroring
     }
+    --if not surface.can_place_entity{new_entity_properties} then return end
+    local new_entity = surface.create_entity(new_entity_properties)
     
     if not new_entity or not new_entity.valid then return end
     --new_entity.mirroring = entity.mirroring
