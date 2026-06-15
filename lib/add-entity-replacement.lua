@@ -27,11 +27,14 @@ end
 -- 5. Makes the deepcopy replace entity when on each "planet".
 -- 6. Adds new_entity to data.raw.
 -- 7. Returns new_entity to make it easier to reference the generated entity in subsequent code.
-function Public.create_planet_entity_variant(planet_names,entity,new_properties)
+function Public.create_planet_entity_variant(planet_names,entity,new_properties,item_name)
     if PlanetsLib.current_stage == "data-final-fixes" then
         error("This function can only be run before data-final-fixes.")
     end
-    local first_planet_name = (type(planet_names) == "table" and planet_names[1]) or planet_names
+    if item_name == nil then
+        item_name = entity.name
+    end
+    local first_planet_name = (type(planet) == "table" and planet_names[1]) or planet_names
     if not entity.fast_replaceable_group then
         entity.fast_replaceable_group = entity.name
     end
@@ -45,6 +48,9 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties)
     -- if not new_entity.placeable_by and data.raw["item"][entity.name] then
     --     new_entity.placeable_by = {{item = entity.name, count =1}}
     -- end
+    if not new_entity.placeable_by then
+        new_entity.placeable_by = {{item = item_name, count =1}}
+    end
     new_entity.name = entity.name .. "-PlanetsLib-" .. first_planet_name 
     
     if not new_entity.localised_name then
