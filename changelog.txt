@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.18.1
-Date: ????
+Version: 1.19.0
+Date: 2026-06-23
   Changes:
+    - Initial release for Factorio 2.1. No changes for code using documented functions are expected. Report bugs to https://github.com/danielmartin0/PlanetsLib/issues.
 ---------------------------------------------------------------------------------------------------
 Version: 1.18.0
 Date: 2026-05-31

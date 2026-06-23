@@ -1,15 +1,16 @@
 {
   "name": "PlanetsLib",
-  "version": "1.18.1",
+  "version": "1.19.0",
   "factorio_version": "2.1",
   "title": "PlanetsLib",
   "author": "thesixthroc",
   "description": "Code, graphics and conventions to help modders creating planets, moons and other systems. This is a community project.",
   "homepage": "https://github.com/danielmartin0/PlanetsLib",
   "dependencies": [
-    "base >= 2.1.0",
-    "? space-age >= 2.1.0",
-    "? quality >= 2.1.0",
+    "base >= 2.1.7",
+    "? space-age >= 2.1.7",
+    "? quality >= 2.1.7",
+    "? recycler >= 2.1.7",
     "? PlanetsLibTiers",
     "(?) Cosmic-Social-Distancing >= 1.0.2",
     "! MT-lib"
