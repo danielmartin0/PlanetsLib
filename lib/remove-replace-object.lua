@@ -161,6 +161,18 @@ function rro.contains(list,object)
     return false
 end
 
+--Checks if any objects in one list exist in another list.
+function rro.contains_any(list1,list2)
+    for _,object in pairs(list1) do
+        if rro.contains(list,object) then
+            return true
+        end
+    end
+    return false
+
+
+end
+
 ---Check if string.find(string,list[i]) returns a value for any i in list
 function rro.find_many(string,list) 
     --local contains = false

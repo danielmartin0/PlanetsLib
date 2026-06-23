@@ -405,8 +405,8 @@ function Public.process_technology_recipe_productivity_effects(tech)
 				goto continue
 			end
 
-			local recipe_category = recipe.category or "crafting"
-			if recipe.Planetslib_blacklist_technology_updates or rro.contains(category_blacklist,recipe_category) then
+			local recipe_categories = recipe.categories or {"crafting"}
+			if recipe.Planetslib_blacklist_technology_updates or PlanetsLib.rro.contains_any(category_blacklist,recipe_categories) then
 				goto continue
 			end
 
@@ -424,7 +424,7 @@ function Public.process_technology_recipe_productivity_effects(tech)
 			end
 
 			for result_name,result_type in pairs(net_results) do
-				if (recipe_category == category) or (result_type == type and result_name == name) then
+				if (PlanetsLib.rro.contains(recipe_categories,category)) or (result_type == type and result_name == name) then
 					local new_effect = {
 						type = "change-recipe-productivity",
 						recipe = recipe.name,
