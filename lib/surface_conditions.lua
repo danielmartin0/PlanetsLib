@@ -99,15 +99,35 @@ function Public.remove_surface_condition(recipe_or_entity, condition)
 	end
 end
 
-function Public.restrict_to_planet(recipe_or_entity, planet)
+local function create_is_planet_surface_property(planet)
+	local property_name = "PlanetsLib-is-" .. planet.name
+	if not data.raw["surface-property"][property_name] then
+		data:extend{
+			{
+				name = property_name,
+				type = "surface-property",
+				hidden=true, --This line does nothing. The locale is what determines if surface properties are hidden or not.
+				hidden_in_factoriopedia=true,
+				default_value=0, --Default, planets are not a specific planet
+				order="zzz"
+			}
+		}
+		data.raw["planet"][planet_name].surface_properties[property_name] = 1
+	end
+	return property_name
+
+end
+
+function Public.restrict_to_planet(recipe_or_entity, planet,invert)
+	local planet_name = type(planet) == "string" and planet or data.raw["planet"][planet].name
 	local surface_conditions = recipe_or_entity.surface_conditions
 			and util.table.deepcopy(recipe_or_entity.surface_conditions)
 		or {}
-
-	local condition_value = PlanetsLib.planet_str.get_planet_str_double(planet)
+	local property_name = create_is_planet_surface_property(planet)
+	local condition_value = invert and 0 or 1
 
 	table.insert(surface_conditions, {
-		property = "planet-str",
+		property = property_name,
 		min = condition_value,
 		max = condition_value,
 	})
