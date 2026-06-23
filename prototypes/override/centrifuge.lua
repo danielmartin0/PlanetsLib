@@ -1,4 +1,5 @@
-local pipe_picture = assembler3pipepictures()
+local assembler_pictures = require("__base__.prototypes.entity.assembler-pictures")
+local pipe_picture = assembler_pictures.assembler3pipepictures
 pipe_picture.north = util.empty_sprite()
 pipe_picture.south.filename = "__PlanetsLib__/graphics/entity/centrifuge/centrifuge-pipe-S.png"
 pipe_picture.east.filename = "__PlanetsLib__/graphics/entity/centrifuge/centrifuge-pipe-E.png"
