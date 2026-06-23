@@ -1,4 +1,4 @@
-local rocket_lift_weight = data.raw["utility-constants"]["default"].rocket_lift_weight
+local rocket_lift_weight = data.raw["utility-constants"]["default"].default_rocket_lift_weight
 
 local items_per_rocket = {
 
@@ -202,18 +202,18 @@ local items_per_rocket = {
     { "lithium-plate", 500 },
     { "quantum-processor", 200 },
     { "fusion-power-cell", 50 },
-    { "automation-science-pack", 1000, "tool" },
-    { "logistic-science-pack", 1000, "tool" },
-    { "military-science-pack", 1000, "tool" },
-    { "chemical-science-pack", 1000, "tool" },
-    { "production-science-pack", 1000, "tool" },
-    { "utility-science-pack", 1000, "tool" },
-    { "space-science-pack", 1000, "tool" },
-    { "metallurgic-science-pack", 1000, "tool" },
-    { "agricultural-science-pack", 1000, "tool" },
-    { "electromagnetic-science-pack", 1000, "tool" },
-    { "cryogenic-science-pack", 1000, "tool" },
-    { "promethium-science-pack", 1000, "tool" },
+    { "automation-science-pack", 1000,  },
+    { "logistic-science-pack", 1000,  },
+    { "military-science-pack", 1000,  },
+    { "chemical-science-pack", 1000,  },
+    { "production-science-pack", 1000,  },
+    { "utility-science-pack", 1000,  },
+    { "space-science-pack", 1000,  },
+    { "metallurgic-science-pack", 1000,  },
+    { "agricultural-science-pack", 1000,  },
+    { "electromagnetic-science-pack", 1000,  },
+    { "cryogenic-science-pack", 1000,  },
+    { "promethium-science-pack", 1000,  },
 
     -- Space
 
