@@ -7,4 +7,4 @@ if mods["space-age"] then
 	require("prototypes.override.rocket-silos")
 end
 
-require("prototypes.override.centrifuge")
+--require("prototypes.override.centrifuge")
