@@ -15,6 +15,15 @@ local function assert_recipe_result_is_eligible(result)
 	return false
 end
 
+local function any_product_has(recipe, field)
+	for _, result in pairs(recipe.results) do
+		if result[field] == true then
+			return true
+		end
+	end
+	return false
+end
+
 if settings.startup["PlanetsLib-enhanced-tooltips"].value == true then
 	for _, recipe in pairs(data.raw["recipe"]) do
 		if
@@ -25,28 +34,28 @@ if settings.startup["PlanetsLib-enhanced-tooltips"].value == true then
 				> 0
 		then
 			local i = 200
-			for _, tooltip_name in pairs({
-				"result_is_always_fresh",
-				"reset_freshness_on_craft",
-				"preserve_products_in_machine_output",
+			for _, tooltip in ipairs({
+				{ "result-is-always-fresh", any_product_has(recipe, "always_fresh") },
+				{ "reset-freshness-on-craft", any_product_has(recipe, "reset_freshness_on_craft") },
+				{ "preserve-products-in-machine-output", recipe.preserve_products_in_machine_output == true },
 			}) do
-				if recipe[tooltip_name] == true then
+				if tooltip[2] then
 					i = i + 1
-					local tooltip = {
-						name = { "tooltip." .. string.gsub(tooltip_name, "_", "-") },
+					local tooltip_field = {
+						name = { "tooltip." .. tooltip[1] },
 						value = { "gui.yes" },
 						order = i,
 					}
 					if not recipe.custom_tooltip_fields then
 						recipe.custom_tooltip_fields = {}
 					end
-					rro.soft_insert(recipe.custom_tooltip_fields, tooltip)
+					rro.soft_insert(recipe.custom_tooltip_fields, tooltip_field)
 					if data.raw["item"][recipe.name] then
 						local item = data.raw["item"][recipe.name]
 						if not item.custom_tooltip_fields then
 							item.custom_tooltip_fields = {}
 						end
-						rro.soft_insert(item.custom_tooltip_fields, tooltip)
+						rro.soft_insert(item.custom_tooltip_fields, tooltip_field)
 					end
 				end
 			end

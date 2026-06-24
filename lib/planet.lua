@@ -242,16 +242,19 @@ function Public.borrow_music(source_planet, target_planet, options)
 
 	for _, music in pairs(util.table.deepcopy(data.raw["ambient-sound"])) do
 		if
-			music.planet == source_name
+			PlanetsLib.rro.contains(music.planets,source_name)
 			and (options.track_types == nil or PlanetsLib.rro.contains(options.track_types, music.track_type))
-		then
+		then if not options.modifier_function then
+			table.insert(music.planets,target_name) --New in Factorio 2.1: Ambient sounds can be played for multiple planets, making borrow_music()'s old approach of copying tracks mostly obsolete. We will avoid making new tracks unless a modifier function is provided.
+
+		else
 			music.name = music.name .. "-" .. target_name
 			music.planet = target_name
-			if options.modifier_function then
-				options.modifier_function(music)
-			end -- options.modifier gives the opportunity to apply changes to the track's parameters through a function.
+			
+			options.modifier_function(music) -- options.modifier gives the opportunity to apply changes to the track's parameters through a function.
+			 
 			data:extend({ music })
-		end
+		end end
 	end
 end
 
