@@ -93,7 +93,7 @@ end)
 -- 	script.on_event(defines.events.on_space_platform_built_entity,on_built_entity_combined,on_built_filters_and_silos)
 -- 	--script.on_event(defines.events.on_biter_base_built,entity_replacement.on_built_entity)
 
--- 	--script.on_event(defines.events.on_player_setup_blueprint,entity_replacement.blueprint_standardize)
+	--script.on_event(defines.events.on_player_setup_blueprint,entity_replacement.blueprint_standardize)
 -- end
 
 if script.active_mods["gvv"] then require("__gvv__.gvv")() end --gvv enables debugging of storage values with a GUI
