@@ -50,3 +50,50 @@ script.on_configuration_changed(function(data)
 		unreachable_techs.warn_unreachable_techs()
 	end
 end)
+
+-- local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_replacements
+-- local is_entity_replacements = not PlanetsLib.objects.deep_equals(entity_replacements,{}) --If no mods add entity replacements, disable related event triggers.
+-- --is_entity_replacements = true
+-- local on_built_filters = {} --List of entity filters derived from entity_replacements to improve performance on entities not governed by replacement rules.
+-- local on_built_filters_and_silos = {}
+-- for planet_name,replacements in pairs(entity_replacements) do
+-- 	for entity,replacement_table in pairs(replacements) do
+-- 		local replacement = replacement_table.entity
+-- 		table.insert(on_built_filters,{filter = "name", name = entity})
+-- 		table.insert(on_built_filters,{filter = "ghost_name", name = entity})
+-- 		table.insert(on_built_filters_and_silos,{filter = "name", name = entity}) --This lines are copy-pasted because to my shock, table.deepcopy is unavailable in control.
+-- 		table.insert(on_built_filters_and_silos,{filter = "ghost_name", name = entity})
+-- 		table.insert(on_built_filters,{filter = "name", name = replacement})
+-- 		table.insert(on_built_filters,{filter = "ghost_name", name = replacement})
+-- 		table.insert(on_built_filters_and_silos,{filter = "name", name = replacement}) --This lines are copy-pasted because to my shock, table.deepcopy is unavailable in control.
+-- 		table.insert(on_built_filters_and_silos,{filter = "ghost_name", name = replacement})
+		
+-- 	end
+-- end
+
+
+-- table.insert(on_built_filters_and_silos,{filter = "type", type = "rocket-silo"})
+-- table.insert(on_built_filters_and_silos,{filter = "ghost_type", type = "rocket-silo"})
+-- print(serpent.block(on_built_filters))
+-- local function on_built_entity_combined(event)
+-- 	if is_cargo_pods then
+-- 		rocket_parts.on_built_rocket_silo(event)
+-- 	end
+-- 	if is_entity_replacements then
+-- 		entity_replacement.on_built_entity(event)
+-- 	end
+	
+-- end
+
+-- script.on_event(defines.events.on_built_entity,on_built_entity_combined,on_built_filters_and_silos)
+-- if is_entity_replacements then
+-- 	script.on_event(defines.events.on_robot_built_entity,on_built_entity_combined,on_built_filters_and_silos)
+-- 	--script.on_event(defines.events.script_raised_built,on_built_entity_combined,on_built_filters_and_silos) 
+-- 	--script.on_event(defines.events.script_raised_revive,on_built_entity_combined,on_built_filters_and_silos)
+-- 	script.on_event(defines.events.on_space_platform_built_entity,on_built_entity_combined,on_built_filters_and_silos)
+-- 	--script.on_event(defines.events.on_biter_base_built,entity_replacement.on_built_entity)
+
+-- 	--script.on_event(defines.events.on_player_setup_blueprint,entity_replacement.blueprint_standardize)
+-- end
+
+if script.active_mods["gvv"] then require("__gvv__.gvv")() end --gvv enables debugging of storage values with a GUI
