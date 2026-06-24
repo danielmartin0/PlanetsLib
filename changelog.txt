@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.19.1
-Date: 2026-06-23
+Date: 2026-06-24
   Bugfixes:
     - Ported science pack sorting and the recipe-productivity technology generator to 2.1.
     - Ported enhanced recipe tooltips to 2.1.
