@@ -2,7 +2,6 @@
 --- Dependencies: util, lib.lib, lib.remove-replace-object
 -- @module lib.technology.lua
 
-
 local util = require("util")
 local lib = require("lib.lib")
 local rro = require("lib.objects")
@@ -202,17 +201,13 @@ function Public.technology_effect_cargo_drops(planet_name, icons)
 	}
 end
 
-
-
-
 ---Create a moon discovery technology icon by adding a little moon icon on your technology icon, like in vanilla, but for moon type planets.
 ---@param tech_icon string The technology icon to add the moon icon
 ---@param icon_size integer Your icon size
 ---@param shadow_scale double Scale of planet relative to shadow icon. If nil, no shadow is drawn.
 ---@return data.IconData[]
-function Public.technology_icon_moon(tech_icon, icon_size,shadow_scale)
-	
-	local icons = Public.technology_icon_planet(tech_icon, icon_size,shadow_scale)
+function Public.technology_icon_moon(tech_icon, icon_size, shadow_scale)
+	local icons = Public.technology_icon_planet(tech_icon, icon_size, shadow_scale)
 	icons[#icons].icon = "__PlanetsLib__/graphics/icons/moon-technology-symbol.png"
 	return icons
 end
@@ -222,21 +217,20 @@ end
 ---@param icon_size integer Your icon size
 ---@param shadow_scale number Scale of planet relative to shadow icon. If nil, no shadow is drawn.
 ---@return data.IconData[]
-function Public.technology_icon_planet(tech_icon, icon_size,shadow_scale)
+function Public.technology_icon_planet(tech_icon, icon_size, shadow_scale)
 	icon_size = icon_size or 256
 	local icons = util.technology_icon_constant_planet(tech_icon)
 	icons[1].icon_size = icon_size
 	if shadow_scale then
-		icons[3]=icons[2]
-    	icons[2]=icons[1]
+		icons[3] = icons[2]
+		icons[2] = icons[1]
 		icons[1] = {
 			icon = "__PlanetsLib__/graphics/icons/planet-technology.png",
 			icon_size = 256,
-			shift = {0,10}
+			shift = { 0, 10 },
 		}
-		icons[2].scale = shadow_scale*128/icon_size
-		icons[2].shift = {0,10}
-    
+		icons[2].scale = shadow_scale * 128 / icon_size
+		icons[2].shift = { 0, 10 }
 	end
 	-- End result is an icons object ressembling the following, as of 2.0.37. Future API changes might change this code,
 	-- which is why this function is written to reference the base function instead of copying it by hand.
@@ -308,29 +302,32 @@ function Public.add_science_packs_from_vanilla_lab_to_technology(technology)
 	Public.set_science_packs_from_lab(technology, data.raw["lab"]["lab"])
 end
 
+local function try_find_item_prototype_by_name(name)
+	for item_type in pairs(defines.prototypes.item) do
+		local proto = (data.raw[item_type])[name]
+		if proto then
+			return proto
+		end
+	end
+end
+
 function Public.sort_science_pack_names(science_pack_names_table)
 	science_pack_names_table = util.table.deepcopy(science_pack_names_table)
 
 	lib.sort(science_pack_names_table, function(left, right)
-		if not (data.raw["tool"] and data.raw["tool"][left] and data.raw["tool"][right]) then
+		local left_proto = try_find_item_prototype_by_name(left)
+		local right_proto = try_find_item_prototype_by_name(right)
+		if not (left_proto and right_proto) then
 			return true
 		end
 
-		local left_order = data.raw["tool"][left].order
-		local right_order = data.raw["tool"][right].order
-
-		if left_order == nil then
-			left_order = data.raw["tool"][left].name
-		end
-		if right_order == nil then
-			right_order = data.raw["tool"][right].name
-		end
+		local left_order = left_proto.order or left_proto.name
+		local right_order = right_proto.order or right_proto.name
 
 		return left_order < right_order
 	end)
 	return science_pack_names_table
 end
-
 
 --New technologyPrototype field: PlanetsLib_recipe_productivity_effects
 --Properties:
@@ -340,18 +337,16 @@ end
 --ChangeResultProductivityModifier
 --Properties:
 --  allow_multiple_results: boolean. Default: false. When false, only recipes with one result are added to the technology's effect list.
---  category (optional) (Either (name and type) or category required) 
+--  category (optional) (Either (name and type) or category required)
 --Inherited from ChangeRecipeProductivityModifier https://lua-api.factorio.com/latest/types/ChangeRecipeProductivityModifier.html
 --  type (optional)
 --  name (optional)
---  change 
+--  change
 --  icons (optional)
 --  icon (optional)
 --  icon_size (optional)
 --  hidden (optional)
 --  use_icon_overlay_constant (optional)
-
-
 
 --New Modifier field: PlanetsLib_force_include
 -- Makes this modifier immune to purge_other_effects.
@@ -359,72 +354,88 @@ end
 --New recipe field: PlanetsLib_blacklist_technology_updates
 -- Stops PlanetsLib from targeting this recipe in technology updates.
 
-
-
-local function xor(a,b)
-    return (a or b) and (not(a and b))
+local function xor(a, b)
+	return (a or b) and not (a and b)
 end
 
 ---@param tech table (TechnologyPrototype)
 ---@author MeteorSwarm
 function Public.process_technology_recipe_productivity_effects(tech)
-    if not tech.PlanetsLib_recipe_productivity_effects then
+	if not tech.PlanetsLib_recipe_productivity_effects then
 		return
 	end
 
-	if not tech.effects then tech.effects = {} end
+	if not tech.effects then
+		tech.effects = {}
+	end
 	local new_effects = {}
 	if tech.PlanetsLib_recipe_productivity_effects.purge_other_effects then
-		for _,effect in pairs(tech.effects) do
+		for _, effect in pairs(tech.effects) do
 			if effect.PlanetsLib_force_include then
-				table.insert(new_effects,effect)
+				table.insert(new_effects, effect)
 			end
 		end
 	else
 		new_effects = table.deepcopy(tech.effects)
 	end
-	if not new_effects then new_effects = {} end
-	
+	if not new_effects then
+		new_effects = {}
+	end
+
 	local settings = tech.PlanetsLib_recipe_productivity_effects
-	for _,effect in pairs(settings.effects) do
+	for _, effect in pairs(settings.effects) do
 		local type = effect.type
 		local name = effect.name
 		local change = effect.change
 		local category = effect.category
-		assert(xor(name,category),"You may only filter either by result name or by category.")
+		assert(xor(name, category), "You may only filter either by result name or by category.")
 		if name then
-			assert(type,"You must provide a type if filtering by result name name.")
+			assert(type, "You must provide a type if filtering by result name name.")
 		else
-			assert(tech.PlanetsLib_recipe_productivity_effects.category_blacklist == nil,"category_blacklist and category are incompatible.")
+			assert(
+				tech.PlanetsLib_recipe_productivity_effects.category_blacklist == nil,
+				"category_blacklist and category are incompatible."
+			)
 		end
 
-		local category_blacklist = tech.PlanetsLib_recipe_productivity_effects.category_blacklist or {"recycling"} --Excluded recipe categories
+		local category_blacklist = tech.PlanetsLib_recipe_productivity_effects.category_blacklist or { "recycling" } --Excluded recipe categories
 
-		for _,recipe in pairs(data.raw["recipe"]) do
+		for _, recipe in pairs(data.raw["recipe"]) do
 			if not recipe.results then
 				goto continue
 			end
 
-			local recipe_categories = recipe.categories or {"crafting"}
-			if recipe.Planetslib_blacklist_technology_updates or PlanetsLib.rro.contains_any(category_blacklist,recipe_categories) then
+			local recipe_categories = recipe.categories or { "crafting" }
+			if
+				recipe.Planetslib_blacklist_technology_updates
+				or PlanetsLib.rro.contains_any(category_blacklist, recipe_categories)
+			then
 				goto continue
 			end
 
 			local net_results = {} --Filter out results that cannot be affected by productivity
-			for _,result in pairs(recipe.results) do
-				if not result.ignored_by_productivity or result.ignored_by_productivity < (result.amount or result.amount_max) then
+			for _, result in pairs(recipe.results) do
+				if
+					not result.ignored_by_productivity
+					or result.ignored_by_productivity < (result.amount or result.amount_max)
+				then
 					net_results[result.name] = result.type --Count multiple results with the same same name as a single result
 				end
 			end
 			local results_count = table_size(net_results)
-			if results_count == 0
-					or (not effect.allow_multiple_results and results_count > 1)
-					or (not settings.allow_recipes_without_productivity and not recipe.allow_productivity) then
+			if
+				results_count == 0
+				or (not effect.allow_multiple_results and results_count > 1)
+				or (not settings.allow_recipes_without_productivity and not recipe.allow_productivity)
+			then
 				goto continue
 			end
 
-			for result_name,result_type in pairs(net_results) do
-				if (PlanetsLib.rro.contains(recipe_categories,category)) or (result_type == type and result_name == name) then
+			for result_name, result_type in pairs(net_results) do
+				if
+					(PlanetsLib.rro.contains(recipe_categories, category))
+					or (result_type == type and result_name == name)
+				then
 					local new_effect = {
 						type = "change-recipe-productivity",
 						recipe = recipe.name,
@@ -436,14 +447,14 @@ function Public.process_technology_recipe_productivity_effects(tech)
 						icon_size = effect.icon_size,
 					}
 					local contains = false
-					for _,effect in pairs(new_effects) do
+					for _, effect in pairs(new_effects) do
 						if effect.recipe == new_effect.recipe then
 							contains = true
 							break
 						end
 					end
 					if not contains then
-						table.insert(new_effects,new_effect)
+						table.insert(new_effects, new_effect)
 					end
 					break --To stop the same recipe from being added multiple times per result item.
 				end
@@ -451,7 +462,6 @@ function Public.process_technology_recipe_productivity_effects(tech)
 			::continue::
 		end
 		tech.effects = new_effects
-
 	end
 	tech.PlanetsLib_recipe_producitivity_effects = nil
 end
