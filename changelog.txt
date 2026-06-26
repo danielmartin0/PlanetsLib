@@ -3,6 +3,9 @@ Version: 1.19.3
 Date: ???
   Changes:
     - Removed "Power required to heat up" tooltip, as it has been integrated into 2.1 vanilla.
+    - Changed "Freshness resets on craft beginning/completion" tooltips to specify which item(s) have their freshness reset.
+  Bugfixes:
+    - Fixed startup crash when a science pack prototype is an unexpected item sub-type.
 ---------------------------------------------------------------------------------------------------
 Version: 1.19.2
 Date: 2026-06-24
