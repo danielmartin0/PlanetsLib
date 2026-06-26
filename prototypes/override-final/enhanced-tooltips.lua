@@ -104,23 +104,23 @@ if settings.startup["PlanetsLib-enhanced-tooltips"].value == true then
 		end
 	end
 
-	for _, prototype_type in pairs(data.raw) do
-		for _, prototype in pairs(prototype_type) do
-			if prototype.heating_energy then
-				if not prototype.custom_tooltip_fields then
-					prototype.custom_tooltip_fields = {}
-				end
-				-- if prototype.name == "steam-recycler" then
-				--     error(serpent.block(localise_energy(prototype.heating_energy)))
-				-- end
-				rro.soft_insert(prototype.custom_tooltip_fields, {
-					name = { "tooltip.heating-energy" },
-					--quality_header = "quality-tooltip.decreases",
-					value = localise_energy(prototype.heating_energy),
-					order = 200,
-					--quality_values = {}
-				})
-			end
-		end
-	end
+	-- for _, prototype_type in pairs(data.raw) do
+	-- 	for _, prototype in pairs(prototype_type) do
+	-- 		if prototype.heating_energy then
+	-- 			if not prototype.custom_tooltip_fields then
+	-- 				prototype.custom_tooltip_fields = {}
+	-- 			end
+	-- 			-- if prototype.name == "steam-recycler" then
+	-- 			--     error(serpent.block(localise_energy(prototype.heating_energy)))
+	-- 			-- end
+	-- 			rro.soft_insert(prototype.custom_tooltip_fields, {
+	-- 				name = { "tooltip.heating-energy" },
+	-- 				--quality_header = "quality-tooltip.decreases",
+	-- 				value = localise_energy(prototype.heating_energy),
+	-- 				order = 200,
+	-- 				--quality_values = {}
+	-- 			})
+	-- 		end
+	-- 	end
+	-- end
 end

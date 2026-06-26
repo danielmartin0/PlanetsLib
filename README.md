@@ -26,9 +26,6 @@ The primary intent of PlanetsLib is to be a library which provides opt-in functi
             * This tracks `reset_freshness_on_craft` and only appears if `true`.
         * Products preserved in machine output
             * This tracks `preserve_products_in_machine_output` and only appears if `true`.
-    * On entities:
-        * Energy to heat up
-            * This tracks `heating_energy` and only appears if defined.
     * All such tooltips are added in `data-final-fixes`.
 * Biolab inputs
     * Because modders often forget about the Biolab when adding a new science pack, PlanetsLib mirrors all science packs from the vanilla lab to the Biolab in `data-final-fixes`.
