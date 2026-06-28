@@ -41,7 +41,10 @@ function Public.on_built_rocket_silo(event)
     if recipe == "_other" then return end --If planet excluded from planetlib script, do nothing, let other planet mod handle rocket part recipe assignment.
 
     entity.set_recipe(recipe)
-    entity.recipe_locked = lock_silo
+    if entity.recipe_locked == false then
+        entity.recipe_locked = lock_silo
+    end
+    
 end
 
 
