@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.19.4
-Date: ???
+Date: 2026-06-28
+  Change: 
+    - On placing rocket silos, PlanetsLib now checks if alternative rocket part recipes exist before locking rocket silos on planets with undefined lock behavior.
 ---------------------------------------------------------------------------------------------------
 Version: 1.19.3
 Date: 2026-06-24
