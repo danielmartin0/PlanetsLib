@@ -1,20 +1,22 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.19.2
+Version: 1.19.4
 Date: ????
   Features:
     - Added `PlanetsLib.create_planet_entity_variant`, a function that generates a variant of an existing entity and makes the game replace the entity with the variant when placed on a given planet.
     - Added `PlanetsLib.assign_entity_replacement`, a function that makes the game replace an entity with another entity when placed on a given planet.
 ---------------------------------------------------------------------------------------------------
-Version: 1.19.1
+Version: 1.19.3
 Date: 2026-06-24
-  Bugfixes:
-    - Ported science pack sorting and the recipe-productivity technology generator to 2.1.
-    - Ported enhanced recipe tooltips to 2.1.
----------------------------------------------------------------------------------------------------
-Version: 1.19.0
-Date: 2026-06-23
   Changes:
-    - Initial release for Factorio 2.1. No changes to code using documented functions are expected. Report bugs to https://github.com/danielmartin0/PlanetsLib/issues.
+    - Removed "Power required to heat up" tooltip, as it has been integrated into 2.1 vanilla.
+    - Changed "Freshness resets on craft beginning/completion" tooltips to specify which item(s) have their freshness reset.
+  Bugfixes:
+    - Fixed startup crash when a science pack prototype is an unexpected item sub-type.
+---------------------------------------------------------------------------------------------------
+Version: 1.19.2
+Date: 2026-06-24
+  Changes:
+    - Fixed PlanetsLib.restrict_to_planet.
 ---------------------------------------------------------------------------------------------------
 Version: 1.19.1
 Date: 2026-06-24

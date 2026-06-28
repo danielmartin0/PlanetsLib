@@ -100,3 +100,6 @@ if is_entity_replacements then
 
 	--script.on_event(defines.events.on_player_setup_blueprint,entity_replacement.blueprint_standardize)
 end
+
+
+if script.active_mods["gvv"] then require("__gvv__.gvv")() end --gvv enables debugging of storage values with a GUI

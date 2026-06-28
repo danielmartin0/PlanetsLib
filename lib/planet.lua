@@ -29,9 +29,10 @@ function Public.extend(config)
 	end
 
 	if planet.special_properties then
-		local special_properties = planet.special_properties
-		PlanetsLib.constants.planet_properties[planet.name] = special_properties
-		planet.special_properties = nil
+		error("special_properties is an invalid field.")
+		-- local special_properties = planet.special_properties
+		-- PlanetsLib.constants.planet_properties[planet.name] = special_properties
+		-- planet.special_properties = nil
 	end
 
 	data:extend({ planet })
@@ -151,13 +152,14 @@ function Public.update(config)
 
             lib.detailed_log("--------------------------------")
 		elseif k == "special_properties" then
-			if not PlanetsLib.constants.planet_properties[config.name] then
-					PlanetsLib.constants.planet_properties[config.name] = {}
-			end
-			for field,value in pairs(v) do
+			error("PlanetsLib:update() - special_properties is an invalid field.")
+			-- if not PlanetsLib.constants.planet_properties[config.name] then
+			-- 		PlanetsLib.constants.planet_properties[config.name] = {}
+			-- end
+			-- for field,value in pairs(v) do
 				
-				PlanetsLib.constants.planet_properties[config.name][field] = value
-			end
+			-- 	PlanetsLib.constants.planet_properties[config.name][field] = value
+			-- end
 		else
 			data.raw[config.type][config.name][k] = v
 		end

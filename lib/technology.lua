@@ -304,7 +304,7 @@ end
 
 local function try_find_item_prototype_by_name(name)
 	for item_type in pairs(defines.prototypes.item) do
-		local proto = (data.raw[item_type])[name]
+		local proto = (data.raw[item_type] or {})[name]
 		if proto then
 			return proto
 		end
