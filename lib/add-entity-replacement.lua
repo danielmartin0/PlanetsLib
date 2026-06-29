@@ -4,6 +4,7 @@ local Public = {}
 -- Creates "If entity placed on planet, replace entity with new_entity" rule.
 -- Mass-assignment is possible by making entity a dictionary table and new_entity nil.
 function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting)
+    
     local planet_name = (type(planet) == "table" and planet.name) or planet
     if not bound_setting then --Since entity replacements can potentially break saves, every entity replacement must be bound to a startup setting that can be disabled to aid in safe uninstallation.
         bound_setting = "PlanetsLib-enable-entity-replacements"
@@ -27,7 +28,9 @@ end
 -- 5. Makes the deepcopy replace entity when on each "planet".
 -- 6. Adds new_entity to data.raw.
 -- 7. Returns new_entity to make it easier to reference the generated entity in subsequent code.
-function Public.create_planet_entity_variant(planet_names,entity,new_properties,item_name)
+function Public.create_planet_entity_variant(planet_names,entity,new_properties,bound_setting,item_name)
+    assert(settings.startup[bound_setting],
+    "PlanetsLib.assign_entity_replacement(planet_names,entity,new_properties,bound_setting,item_name) - bound_setting must refer to a valid boolean startup setting.")
     if item_name == nil then
         item_name = entity.name
     end
@@ -51,6 +54,17 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
     if not new_entity.localised_description then
         new_entity.localised_description = {"entity-description." .. entity.name}
     end
+    
+    if not new_entity.icons then
+        new_entity.icons = {
+            {
+                icon = new_entity.icon,
+                icon_size = new_entity.icon_size
+            }
+        }
+    end
+    
+
     new_entity.flags = new_entity.flags or {}
     rro.soft_insert(new_entity.flags,"not-in-made-in")
     new_entity.hide_from_bonus_gui = true
@@ -58,10 +72,18 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
     
     if type(planet_names) == "table" then
         for _,planet in pairs(planet_names) do
-            Public.assign_entity_replacement(planet,entity.name,new_entity.name)
+            Public.assign_entity_replacement(planet,entity.name,new_entity.name,bound_setting)
         end
     else
-        Public.assign_entity_replacement(planet_names,entity.name,new_entity.name)
+        table.insert(new_entity.icons , {
+                icon = data.raw["planet"][planet_names].icon,
+                icon_size = data.raw["planet"][planet_names].icon_size,
+                scale = 64 / (data.raw["planet"][planet_names].icon_size or 64)* 0.25,
+                shift = {10,-10},
+                draw_background = true,
+        })
+        new_entity.order = (new_entity.order or "") .. "z" .. data.raw["planet"][planet_names].order
+        Public.assign_entity_replacement(planet_names,entity.name,new_entity.name,bound_setting)
     end
     
     data:extend{new_entity}

@@ -44,6 +44,9 @@ PlanetsLib.visit_planet_achievement = achievements.visit_planet_achievement
 
 PlanetsLib.create_planet_entity_variant = entity_replacements.create_planet_entity_variant
 PlanetsLib.assign_entity_replacement = entity_replacements.assign_entity_replacement
+PlanetsLib.set_special_properties = planet.set_special_properties
+PlanetsLib.get_special_property = planet.get_special_property
+PlanetsLib.get_special_properties = planet.get_special_properties
 
 --- Clones music tracks from source_planet to target_planet.
 --- Does not overwrite existing music for target_planet.

@@ -275,4 +275,46 @@ function Public.set_default_import_location(item_name, planet)
 	error("PlanetsLib.set_default_import_location() - Item not found: " .. item_name, 2)
 end
 
+--- PlanetsLib.set_special_properties(planet,properties)
+--- Assigns special properties to a planet stored in a mod-data object.
+--- Special properties are displayed as surface properties, but they are not intended to be used as surface properties.
+--- Like vanilla's robot-energy-multiplier, these special properties influence the behavior of entities, either through data-final-fixes or through a runtime script.
+--- Can be retrieved with PlanetsLib.get_special_property(planet,(string) property?)
+--- Can not be called during data-final-fixes, to allow variables defined as special properties to be used by PlanetsLib for particular functions
+--- List of special properties that PlanetsLib will use in the future::
+--- rocket_part_multiplier: Multiplies the parts required by rocket silos by this value via entity replacements.
+--- rocket_lift_multiplier: Multiplies the lift of rockets launched from rocket silos by this value via entity replacements.
+function Public.set_special_properties(planet,properties)
+	assert(PlanetsLib.stage ~= "data-final-fixes", "PlanetsLib.set_special_properties(planet,properties) - This function must be called before data-final-fixes.")
+	local planet_name = type(planet) == "table" and planet.name or planet
+	if not PlanetsLib.constants.planet_special_properties[planet_name] then
+		PlanetsLib.constants.planet_special_properties[planet_name] = table.deepcopy(properties) 
+	else
+		PlanetsLib.rro.merge(PlanetsLib.constants.planet_special_properties[planet_name],table.deepcopy(properties))
+	end
+	return PlanetsLib.constants.planet_special_properties[planet_name]
+end
+
+--- PlanetsLib.get_special_property(planet,property)
+function Public.get_special_property(planet,property)
+	local planet_name = type(planet) == "table" and planet.name or planet
+	if property == nil then
+		return PlanetsLib.constants.planet_special_properties[planet_name]
+	end
+	local planet_name = type(planet) == "table" and planet.name or planet
+	if not PlanetsLib.constants.planet_special_properties[planet_name] then
+		PlanetsLib.constants.planet_special_properties[planet_name] = table.deepcopy(properties) 
+	else
+		PlanetsLib.rro.merge(PlanetsLib.constants.planet_special_properties[planet_name],table.deepcopy(properties))
+	end
+	return PlanetsLib.constants.planet_special_properties[planet_name]
+end
+
+--- PlanetsLib.get_special_properties(planet)
+function Public.get_special_properties(planet)
+	local planet_name = type(planet) == "table" and planet.name or planet
+	return PlanetsLib.constants.planet_special_properties[planet_name]
+end
+
+
 return Public

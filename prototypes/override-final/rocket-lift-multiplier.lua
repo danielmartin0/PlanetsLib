@@ -1,42 +1,56 @@
 local order = 101
 for _,planet in pairs(data.raw["planet"]) do
-    if true or PlanetsLib.constants.planet_properties[planet.name] then
-        local properties = PlanetsLib.constants.planet_properties[planet.name] or {}
+    if true or PlanetsLib.constants.planet_special_properties[planet.name] then
+        local properties = PlanetsLib.constants.planet_special_properties[planet.name] or {}
         local lift_multiplier =  properties["rocket_lift_multiplier"]
         local part_multiplier =  properties["rocket_part_multiplier"]
         
         if lift_multiplier or part_multiplier then
-            if not planet.custom_tooltip_fields then planet.custom_tooltip_fields = {} end
+            
 
             if lift_multiplier then
-                table.insert(planet.custom_tooltip_fields,{
-                    name = {"surface-property-name.rocket-lift-multiplier"},
-                    value = {"surface-property-unit.multiplier",string.format(lift_multiplier,"%.2f")},
-                    order = order,
-                }   )  
+                if not data.raw["surface-property"]["PlanetsLib-lift-weight-multiplier"] then
+                    data:extend{{
+                        name = "PlanetsLib-lift-weight-multiplier",
+                        type = "surface-property",
+                        default_value = 1,
+                        order = (data.raw["surface-property"]["robot-energy-usage"].order or "") .. "a",
+                        localised_unit_key = "surface-property-unit.multiplier"
+                    }}
+                end
+                planet.surface_properties["PlanetsLib-lift-weight-multiplier"] = lift_multiplier
+                
             end
 
             if part_multiplier then
-                table.insert(planet.custom_tooltip_fields,{
-                    name = {"surface-property-name.rocket-part-multiplier"},
-                    value = {"surface-property-unit.multiplier",string.format(part_multiplier,"%.2f")},
-                    order = order,
-                }   )  
+                if not data.raw["surface-property"]["PlanetsLib-lift-weight-multiplier"] then
+                    data:extend{{
+                        name = "PlanetsLib-rocket-part-multiplier",
+                        type = "surface-property",
+                        default_value = 1,
+                        order = (data.raw["surface-property"]["robot-energy-usage"].order or "") .. "aa",
+                        localised_unit_key = "surface-property-unit.multiplier"
+                    }}
+                end
+                planet.surface_properties["PlanetsLib-rocket-part-multiplier"] = part_multiplier 
             end
 
-            --for _,silo in pairs(data.raw["rocket-silo"]) do
-                local silo = data.raw["rocket-silo"]["rocket-silo"]
+            for _,silo in pairs(data.raw["rocket-silo"]) do
+                --local silo = data.raw["rocket-silo"]["rocket-silo"]
                 local silo_item_name = silo.name
-                PlanetsLib.create_planet_entity_variant(
-                    planet.name,
-                    silo,
-                    {
-                        rocket_parts_required = silo.rocket_parts_required*(part_multiplier or 1),
-                        --Add rocket_lift_multiplier here when 2.1 comes out
-                    },
-                    silo_item_name
-                )
-            --end
+                if not silo.PlanetsLib_do_not_generate_variants and not string.find(silo.name,"PlanetsLib") then --Don't pass over existing silo variants. Skipping this check creates an infinite loop that consumes all RAM
+                    PlanetsLib.create_planet_entity_variant(
+                        planet.name,
+                        silo,
+                        {
+                            rocket_parts_required = silo.rocket_parts_required*(part_multiplier or 1),
+                            lift_weight = (silo.lift_weight or 1000000)*(lift_multiplier or 1)
+                        },
+                        "PlanetsLib-enable-runtime-rocket-silo-replacements",
+                        silo_item_name
+                    )
+                end
+            end
         end 
     end
    
