@@ -106,9 +106,8 @@ You can use the library to assign unique rocket part recipes to rocket silos pla
 
 PlanetsLib allows you to quickly generate planet-exclusive variants of entities. On placing an entity on a planet with a planet-exclusive variant, PlanetsLib will replace the original entity with your variant. The difference between entity variants and the original entity are invisible to the user, and variants can not be seen in the Factoriopedia. Every variant must be associated with a boolean startup setting that can be disabled to ease in uninstallation. Once an entity variant has been created, any attempt to create a variant for the same entity for the same planet will throw an error. This is a limitation of the current system that may change in the future.
 
-* `PlanetsLib.create_planet_entity_variant(planet_names(table of strings or string),entity(table),new_properties(table),bound_setting(startup setting name),item_name(defaults to entity name))` – Creates a variant of `entity` with a unique name, the same localized name/description, and new properties taken from new_properties. When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity.
+* `PlanetsLib.create_planet_entity_variant(planet_names(table of strings or string),entity(table),new_properties(table),bound_setting(startup setting name),item_name(defaults to entity name))` – Creates a variant of `entity` with a unique name, the same localized name/description, and new properties taken from new_properties. When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity. `bound_setting` is a boolean startup setting. This entity variant is only placed when this startup setting is enabled. When disabling this startup setting on an existing save, variant entities are migrated back to their original entities when appropriate. When enabling this startup setting on an existing save, variant entities are migrated from their original entities when appropriate. To aid in mod uninstallation, expose this setting to users.
 * `PlanetsLib.assign_entity_replacement(planet,entity,new_entity)` – When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity. Due to current system limitations, assigning an entity replacement of the same entity onto
-
 
 ## Planet Special Properties
 PlanetsLib allows the addition of "special properties", values which can be displayed as surface properties, but are not intended to be used as surface properties. These properties are used during data-final-fixes and in control scripts to execute certain behavior.
@@ -121,7 +120,6 @@ PlanetsLib allows the addition of "special properties", values which can be disp
 PlanetsLib reserves two special property values for runtime scripts set up during data-final-fixes. They are displayed as surface properties in game, but they are not intended to be surface properties. If no mods define these properties, they are not displayed.
 * `rocket_lift_multiplier(float)` — Multiplies the lift of every rocket silo placed on the planet. Achieved via runtime entity replacements(See Planet-exclusive entity variants).
 * `rocket_part_multiplier(float)` — Multiplies the rocket parts required of every rocket silo placed on the planet. Achieved via runtime entity replacements(See Planet-exclusive entity variants).
-
 
 ## Surface conditions
 
