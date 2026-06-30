@@ -14,7 +14,7 @@ local lock_silo_recipe_data = {
     name = "Planetslib-planet-lock-rocket-silos",
     data_type = "recipe",
     data = {
-        default = true, --Used for surfaces not specified. Mods that add new optional rocket part recipes should set the default to false.
+        default = nil, --Used for surfaces not specified. Mods that add new optional rocket part recipes should set the default to false.
     }
 }
 

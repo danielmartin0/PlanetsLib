@@ -1,9 +1,19 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.19.4
-Date: ????
-  Features:
+Version: 1.20.0
+Date: ???
+Features:
     - Added `PlanetsLib.create_planet_entity_variant`, a function that generates a variant of an existing entity and makes the game replace the entity with the variant when placed on a given planet.
     - Added `PlanetsLib.assign_entity_replacement`, a function that makes the game replace an entity with another entity when placed on a given planet.
+---------------------------------------------------------------------------------------------------
+Version: 1.19.5
+Date: 2026-06-28
+  Change: 
+    - PlanetsLib will not lock rocket silos if a script from another mod as already locked them.
+---------------------------------------------------------------------------------------------------
+Version: 1.19.4
+Date: 2026-06-28
+  Change: 
+    - On placing rocket silos, PlanetsLib now checks if alternative rocket part recipes exist before locking rocket silos on planets with undefined lock behavior.
 ---------------------------------------------------------------------------------------------------
 Version: 1.19.3
 Date: 2026-06-24

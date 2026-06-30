@@ -5,6 +5,9 @@
 
 local Public = {}
 
+local surface_properties_lib = require("lib.surface-property-lib")
+
+
 --- On building a rocket silo, if the silo is vanilla-like, its recipe is replaced if it was placed on a surface
 --- that according to "Planetslib-planet-rocket-part-recipe"(mod-data), should be replaced.
 --- Forked from NotNotMelon's [rocket silo code](https://github.com/notnotmelon/maraxsis/blob/main/scripts/project-seadragon.lua) for Maraxsis.
@@ -28,15 +31,21 @@ function Public.on_built_rocket_silo(event)
 
     if lock_rocket_silo_data[entity.surface.name] then
         lock_silo = lock_rocket_silo_data[entity.surface.name]
-    else 
+    elseif lock_rocket_silo_data["default"] then 
         lock_silo = lock_rocket_silo_data["default"]
+    else
+        local multiple_recipes_possible = surface_properties_lib.multiple_rocket_parts_can_be_crafted_in_vanilla_silo(entity.surface)
+        lock_silo = not multiple_recipes_possible
     end
     
 
     if recipe == "_other" then return end --If planet excluded from planetlib script, do nothing, let other planet mod handle rocket part recipe assignment.
 
     entity.set_recipe(recipe)
-    entity.recipe_locked = lock_silo
+    if entity.recipe_locked == false then
+        entity.recipe_locked = lock_silo
+    end
+    
 end
 
 
