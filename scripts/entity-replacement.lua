@@ -22,7 +22,7 @@ function Public.replace_entity(entity,new_entity,raise_built)
         quality = entity.quality,
         health = entity.health,
         raise_built = false,
-        player = player,
+        player = raise_built and player or nil,
         mirror = entity.mirroring
     }
     --if not surface.can_place_entity{new_entity_properties} then return end
@@ -50,7 +50,7 @@ function Public.replace_entity(entity,new_entity,raise_built)
     end
     new_entity.last_user = entity.last_user
     entity.destroy()
-    if raise_built then
+    if raise_built == true then
         script.raise_script_built{entity=new_entity}
     end
 

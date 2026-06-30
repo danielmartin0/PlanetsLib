@@ -1,3 +1,4 @@
+local rro = require("lib.remove-replace-object")
 PlanetsLib = {}
 PlanetsLib.constants = prototypes.mod_data.Planetslib.data
 PlanetsLib.objects = require("lib.remove-replace-object")
@@ -41,10 +42,13 @@ end)
 local function replace_entity(surface,old_entity,new_entity)
 	if surface then
 		--if surface.name == "muluna" then print("muluna") end
-		game.print({"planetslib.planetslib-entity-migration",old_entity,new_entity})
+		
 		local entities = surface.find_entities_filtered{name = old_entity}
+		if not rro.deep_equals(entities,{}) then
+			game.print({"planetslib.planetslib-entity-migration",old_entity,new_entity})
+		end
 		for _,entity in pairs(entities) do
-			entity_replacement.replace_entity(entity,new_entity)
+			entity_replacement.replace_entity(entity,new_entity,false)
 		end
 	end
 	
