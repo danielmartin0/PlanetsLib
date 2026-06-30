@@ -104,23 +104,23 @@ You can use the library to assign unique rocket part recipes to rocket silos pla
 
 ## Planet-exclusive entity variants
 
-PlanetsLib allows you to quickly generate planet-exclusive variants of entities. On placing an entity on a planet with a planet-exclusive variant, PlanetsLib will replace the original entity with your variant. Entity variants are invisible to the user, and can not be seened in the Factoriopedia. Every variant must be associated with a boolean startup setting that can be disabled to ease in uninstallation. 
+PlanetsLib allows you to quickly generate planet-exclusive variants of entities. On placing an entity on a planet with a planet-exclusive variant, PlanetsLib will replace the original entity with your variant. The difference between entity variants and the original entity are invisible to the user, and variants can not be seen in the Factoriopedia. Every variant must be associated with a boolean startup setting that can be disabled to ease in uninstallation. Once an entity variant has been created, any attempt to create a variant for the same entity for the same planet will throw an error. This is a limitation of the current system that may change in the future.
 
 * `PlanetsLib.create_planet_entity_variant(planet_names(table of strings or string),entity(table),new_properties(table),bound_setting(startup setting name),item_name(defaults to entity name))` – Creates a variant of `entity` with a unique name, the same localized name/description, and new properties taken from new_properties. When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity.
-* `PlanetsLib.assign_entity_replacement(planet,entity,new_entity)` – When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity. 
-* `PlanetsLib.assign_entity_replacement(planet,entity_list)` – For each key/value pair in `entity_list`, when `key` is placed on planet during gameplay, PlanetsLib will replace `key` with `value`.
+* `PlanetsLib.assign_entity_replacement(planet,entity,new_entity)` – When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity. Due to current system limitations, assigning an entity replacement of the same entity onto
+
 
 ## Planet Special Properties
 PlanetsLib allows the addition of "special properties", values which can be displayed as surface properties, but are not intended to be used as surface properties. These properties are used during data-final-fixes and in control scripts to execute certain behavior.
 
-* PlanetsLib.set_special_properties(planet(table or string),properties(table)) -> table — Sets the special properties of a planet. Can not be called during data-final-fixes.
-* PlanetsLib.get_special_property(planet(table or string),property(string)) -> object — Returns the value of a single special property
-* PlanetsLib.get_special_properties(planet(table or string)) -> table — Returns the entire `special_properties` table of a planet.
+* `PlanetsLib.set_special_properties(planet(table or string),properties(table)) -> table` — Sets the special properties of a planet. Can not be called during data-final-fixes.
+* `PlanetsLib.get_special_property(planet(table or string),property(string)) -> object` — Returns the value of a single special property
+* `PlanetsLib.get_special_properties(planet(table or string)) -> table` — Returns the entire `special_properties` table of a planet.
 
-### Special Properties
+### Hardcoded Special Properties
 PlanetsLib reserves two special property values for runtime scripts set up during data-final-fixes. They are displayed as surface properties in game, but they are not intended to be surface properties. If no mods define these properties, they are not displayed.
-* rocket_lift_multiplier(float) — Multiplies the lift of every rocket silo placed on the planet. Achieved via runtime entity replacements(See Planet-exclusive entity variants).
-* rocket_part_multiplier(float) — Multiplies the rocket parts required of every rocket silo placed on the planet. Achieved via runtime entity replacements(See Planet-exclusive entity variants).
+* `rocket_lift_multiplier(float)` — Multiplies the lift of every rocket silo placed on the planet. Achieved via runtime entity replacements(See Planet-exclusive entity variants).
+* `rocket_part_multiplier(float)` — Multiplies the rocket parts required of every rocket silo placed on the planet. Achieved via runtime entity replacements(See Planet-exclusive entity variants).
 
 
 ## Surface conditions
