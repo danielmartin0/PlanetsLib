@@ -9,7 +9,55 @@ for _,planet in pairs(entity_replacements) do
     end
 end
 
-function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills rule "If entity X placed on planet Y, replace entity with entity Z"
+function Public.replace_entity(entity,new_entity,raise_built)
+    local is_ghost = entity.name == "entity-ghost"
+    local player = entity.last_user
+    local new_entity_properties = {
+        name = is_ghost and "entity-ghost" or new_entity,
+        inner_name = is_ghost and new_entity or nil,
+        tags = is_ghost and entity.tags or nil,
+        position = entity.position,
+        direction = entity.direction,
+        force = entity.force_index,
+        quality = entity.quality,
+        health = entity.health,
+        raise_built = false,
+        player = player,
+        mirror = entity.mirroring
+    }
+    --if not surface.can_place_entity{new_entity_properties} then return end
+    local new_entity = entity.surface.create_entity(new_entity_properties)
+    
+    if not new_entity or not new_entity.valid then return end
+    --new_entity.mirroring = entity.mirroring
+    new_entity.copy_settings(entity)
+
+    if not is_ghost and entity.get_module_inventory() then
+        local modules = entity.get_module_inventory().get_contents()
+        for _, item in pairs(modules) do
+            local inserted_count = new_entity.insert(item)
+            if inserted_count < item.count then
+                item.count = item.count - inserted_count
+                entity.surface.spill_item_stack {
+                    position = entity.position,
+                    stack = item,
+                    enable_looted = true,
+                    force = entity.force_index,
+                    allow_belts = false
+                }
+            end
+        end
+    end
+    new_entity.last_user = entity.last_user
+    entity.destroy()
+    if raise_built then
+        script.raise_script_built{entity=new_entity}
+    end
+
+
+end
+
+function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on Maraxsis function. Fulfills rule "If entity X placed on planet Y, replace entity with entity Z"
     local entity = event.entity
     local surface = entity.surface
     local planet_object = surface.planet
@@ -26,64 +74,33 @@ function Public.on_built_entity(event) -- Based on Maraxsis function. Fulfills r
 
     if not entity.valid then return end 
 
-    
+   
 
     
     local surface = entity.surface
-    local is_ghost = entity.name == "entity-ghost"
+    
     local name = is_ghost and entity.ghost_name or entity.name
 
     local is_space = not not surface.platform
 
-    local swap_target
+    local swap_target = swap_target or nil
     --game.print(serpent.block(entity_replacements_inverted))
-    if entity_replacements_inverted[name] then
-        swap_target = entity_replacements[planet][entity_replacements_inverted[name].entity]
-    else
-        swap_target = entity_replacements[planet][name].entity
-    end
-     
-
-    local player = event.player_index and game.get_player(event.player_index)
-    local new_entity_properties = {
-        name = is_ghost and "entity-ghost" or swap_target,
-        inner_name = is_ghost and swap_target or nil,
-        tags = is_ghost and entity.tags or nil,
-        position = entity.position,
-        direction = entity.direction,
-        force = entity.force_index,
-        quality = entity.quality,
-        health = entity.health,
-        raise_built = false,
-        player = player,
-        mirror = entity.mirroring
-    }
-    --if not surface.can_place_entity{new_entity_properties} then return end
-    local new_entity = surface.create_entity(new_entity_properties)
-    
-    if not new_entity or not new_entity.valid then return end
-    --new_entity.mirroring = entity.mirroring
-    new_entity.copy_settings(entity)
-
-    if not is_ghost then
-        local modules = entity.get_module_inventory().get_contents()
-        for _, item in pairs(modules) do
-            local inserted_count = new_entity.insert(item)
-            if inserted_count < item.count then
-                item.count = item.count - inserted_count
-                surface.spill_item_stack {
-                    position = entity.position,
-                    stack = item,
-                    enable_looted = true,
-                    force = entity.force_index,
-                    allow_belts = false
-                }
-            end
+    if swap_target == nil then
+        if entity_replacements_inverted[name] then
+            swap_target = entity_replacements[planet][entity_replacements_inverted[name].entity]
+        else
+            swap_target = entity_replacements[planet][name].entity
         end
     end
+        
+    if entity_replacements[planet][entity.name].enabled == false then return end 
+        
+    
+    Public.replace_entity(entity,swap_target,true)
+    
 
-    entity.destroy()
-    script.raise_script_built{entity=new_entity}
+    
+    
     
 
 
