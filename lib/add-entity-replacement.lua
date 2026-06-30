@@ -16,7 +16,9 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
         end
         return
     end
-    
+    if PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet][entity] then
+        error("PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - Assigning an entity variant of the same entity on the same planet more than once is currently not possible.")
+    end
     PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet][entity] = {old_entity=entity,entity=new_entity,enabled=settings.startup[bound_setting].value}
 
 end
