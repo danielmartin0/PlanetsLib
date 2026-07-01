@@ -2,7 +2,7 @@
 Version: 1.19.5
 Date: 2026-06-28
   Change: 
-    - PlanetsLib will not lock rocket silos if a script from another mod as already locked them.
+    - PlanetsLib will not lock rocket silos if a script from another mod has already locked them.
 ---------------------------------------------------------------------------------------------------
 Version: 1.19.4
 Date: 2026-06-28
