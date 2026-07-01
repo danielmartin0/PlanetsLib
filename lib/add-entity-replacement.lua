@@ -69,7 +69,7 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
 
     new_entity.flags = new_entity.flags or {}
     rro.soft_insert(new_entity.flags,"not-in-made-in")
-    new_entity.hide_from_bonus_gui = true
+    rro.soft_insert(new_entity.flags, "not-in-bonus-gui")
     new_entity = rro.merge(new_entity,new_properties) 
     
     if type(planet_names) == "table" then
