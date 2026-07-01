@@ -1,6 +1,6 @@
 local order = 101
 for _,planet in pairs(data.raw["planet"]) do
-    if true or PlanetsLib.constants.planet_special_properties[planet.name] then
+    if PlanetsLib.constants.planet_special_properties[planet.name] then
         local properties = PlanetsLib.constants.planet_special_properties[planet.name] or {}
         local lift_multiplier =  properties["rocket_lift_multiplier"]
         local part_multiplier =  properties["rocket_part_multiplier"]
