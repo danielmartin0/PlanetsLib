@@ -77,13 +77,26 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
             Public.assign_entity_replacement(planet,entity.name,new_entity.name,bound_setting)
         end
     else
-        table.insert(new_entity.icons , {
+        if data.raw["planet"][planet_names].icon then
+            table.insert(new_entity.icons , {
                 icon = data.raw["planet"][planet_names].icon,
                 icon_size = data.raw["planet"][planet_names].icon_size,
                 scale = 64 / (data.raw["planet"][planet_names].icon_size or 64)* 0.25,
                 shift = {10,-10},
                 draw_background = true,
         })
+        else
+            for _,icon_entry in pairs(data.raw["planet"][planet_names].icons) do
+                table.insert(new_entity.icons , {
+                icon = icon_entry.icon,
+                icon_size = icon_entry.icon_size,
+                scale = 64 / (icon_entry.icon_size or 64)* 0.25,
+                shift = {10,-10},
+                draw_background = true,
+            })
+            end
+        end
+        
         new_entity.order = (new_entity.order or "") .. "z" .. data.raw["planet"][planet_names].order
         Public.assign_entity_replacement(planet_names,entity.name,new_entity.name,bound_setting)
     end
