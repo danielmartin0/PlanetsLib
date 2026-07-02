@@ -21,6 +21,14 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
     end
     PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet][entity] = {old_entity=entity,entity=new_entity,enabled=settings.startup[bound_setting].value}
 
+    --Check if recursive rules exist that would create a stack overflow error.
+    if not PlanetsLib.constants.inverted_entity_variants then PlanetsLib.constants.inverted_entity_variants = {} end
+    if not PlanetsLib.constants.inverted_entity_variants[planet] then PlanetsLib.constants.inverted_entity_variants[planet] = {} end
+    if not PlanetsLib.constants.inverted_entity_variants[planet][entity] then PlanetsLib.constants.inverted_entity_variants[planet][entity] = {} end
+    PlanetsLib.constants.inverted_entity_variants[planet][entity][new_entity] = true
+    assert(not (PlanetsLib.constants.inverted_entity_variants[planet][new_entity] and PlanetsLib.constants.inverted_entity_variants[planet][new_entity][entity]),
+    "PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - Recursive entity replacement ruleset created. " .. new_entity .. " <-> " .. entity)
+    
 end
 
 -- 1. Generates a deepcopy of entity, 
