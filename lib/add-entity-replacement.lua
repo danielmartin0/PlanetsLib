@@ -37,9 +37,9 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
         item_name = entity.name
     end
     local first_planet_name = (type(planet) == "table" and planet_names[1]) or planet_names
-    if not entity.fast_replaceable_group then
-        entity.fast_replaceable_group = entity.name .. "-PlanetsLib-group"
-    end
+    -- if not entity.fast_replaceable_group then
+    --     entity.fast_replaceable_group = entity.name .. "-PlanetsLib-group"
+    -- end
     local new_entity = table.deepcopy(entity)
     if not entity.factoriopedia_alternative then
         new_entity.factoriopedia_alternative = entity.name
@@ -72,22 +72,18 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
     rro.soft_insert(new_entity.flags, "not-in-bonus-gui")
     new_entity = rro.merge(new_entity,new_properties) 
     
-    if type(planet_names) == "table" then
-        for _,planet in pairs(planet_names) do
-            Public.assign_entity_replacement(planet,entity.name,new_entity.name,bound_setting)
-        end
-    else
+    local first_planet = type(planet_names) == "table" and planet_names[1] or planet_names
     if new_entity.icon or new_entity.icons then
-        if data.raw["planet"][planet_names].icon then
+        if data.raw["planet"][first_planet].icon then
             table.insert(new_entity.icons , {
-                icon = data.raw["planet"][planet_names].icon,
-                icon_size = data.raw["planet"][planet_names].icon_size,
-                scale = 64 / (data.raw["planet"][planet_names].icon_size or 64)* 0.25,
+                icon = data.raw["planet"][first_planet].icon,
+                icon_size = data.raw["planet"][first_planet].icon_size,
+                scale = 64 / (data.raw["planet"][first_planet].icon_size or 64)* 0.25,
                 shift = {10,-10},
                 draw_background = true,
         })
         else
-            for _,icon_entry in pairs(data.raw["planet"][planet_names].icons) do
+            for _,icon_entry in pairs(data.raw["planet"][first_planet].icons) do
                 table.insert(new_entity.icons , {
                 icon = icon_entry.icon,
                 icon_size = icon_entry.icon_size,
@@ -98,6 +94,13 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
             end
         end
     end
+
+    if type(planet_names) == "table" then
+        for _,planet in pairs(planet_names) do
+            Public.assign_entity_replacement(planet,entity.name,new_entity.name,bound_setting)
+        end
+    else
+    
         
         new_entity.order = (new_entity.order or "") .. "z" .. data.raw["planet"][planet_names].order
         Public.assign_entity_replacement(planet_names,entity.name,new_entity.name,bound_setting)
