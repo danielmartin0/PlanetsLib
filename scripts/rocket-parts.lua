@@ -16,7 +16,7 @@ function Public.on_built_rocket_silo(event)
     
     local entity = event.entity
     if not entity.valid then return end
-    if entity.type ~= "rocket-silo" or (entity.type == "entity-ghost" and entity.ghost_type ~= "rocket-silo") then return end
+    if entity.type ~= "rocket-silo" and (entity.type ~= "entity-ghost" or entity.ghost_type ~= "rocket-silo") then return end
     local prototype = entity.name == "entity-ghost" and entity.ghost_prototype or entity.prototype
 
     if not prototype.crafting_categories["rocket-building"] then return end
