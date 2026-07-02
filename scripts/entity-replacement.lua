@@ -9,6 +9,32 @@ for planet,planet_table in pairs(entity_replacements) do
     end
 end
 
+
+local fields_to_transfer = {
+    products_finished = 0,
+    disabled_by_script = false,
+    temperature = 0,
+    --"power_switch_state",
+    --"combinator_description",
+    
+}
+
+
+--Transfers every single entity state, such that the new_entity is the same as the old entity.
+function Public.transfer_entity_state(entity,new_entity)
+    new_entity.copy_settings(entity)
+    
+    for field_to_transfer,default_value in pairs(fields_to_transfer) do
+        --if entity[field_to_transfer] then
+        new_entity[field_to_transfer] = entity[field_to_transfer] or default_value
+        --end
+    end
+
+    for _,tooltip_field in pairs(entity.get_tooltip_fields()) do
+        new_entity.set_tooltip_field(tooltip_field)
+    end
+end
+
 function Public.replace_entity(entity,new_entity,raise_built)
     if not storage.replaced_entities then storage.replaced_entities = {} end
     if storage.replaced_entities[entity.unit_number] then return end --To stop infinite recursion
@@ -26,12 +52,14 @@ function Public.replace_entity(entity,new_entity,raise_built)
         health = entity.health,
         raise_built = false, --raise_script_built is called later
         player = raise_built and player or nil,
-        mirror = entity.mirroring
+        mirror = entity.mirroring,
+        --fast_replace = true
     }
     --if not surface.can_place_entity{new_entity_properties} then return end
     local new_entity = entity.surface.create_entity(new_entity_properties)
-    new_entity.copy_settings(entity)
     if not new_entity or not new_entity.valid then return end
+    Public.transfer_entity_state(entity,new_entity)
+    
     --if not entity or not entity.valid then return end
     --new_entity.mirroring = entity.mirroring
    
