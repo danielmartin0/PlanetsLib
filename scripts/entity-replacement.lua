@@ -77,7 +77,7 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
    
 
     
-    local surface = entity.surface
+
     
     local name = is_ghost and entity.ghost_name or entity.name
 
