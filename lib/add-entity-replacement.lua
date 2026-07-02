@@ -4,7 +4,7 @@ local Public = {}
 -- Creates "If entity placed on planet, replace entity with new_entity" rule.
 -- Mass-assignment is possible by making entity a dictionary table and new_entity nil.
 function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting)
-    
+    assert(entity ~= new_entity,"PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - entity must be different from new_entity.")
     local planet_name = (type(planet) == "table" and planet.name) or planet
     if not bound_setting then --Since entity replacements can potentially break saves, every entity replacement must be bound to a startup setting that can be disabled to aid in safe uninstallation.
         bound_setting = "PlanetsLib-enable-entity-replacements"
@@ -12,7 +12,7 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
     if not PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name] then PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name] = {} end
     if type(entity) == "table" and new_entity == nil then
         for key,value in pairs(entity) do
-            Public.assign_entity_replacement(planet_name,key,value.entity,value.bound_setting)
+            Public.assign_entity_replacement(planet_name,key,value.entity,bound_setting)
         end
         return
     end

@@ -11,7 +11,7 @@ end
 
 function Public.replace_entity(entity,new_entity,raise_built)
     if not storage.replaced_entities then storage.replaced_entities = {} end
-    --if storage.replaced_entities[entity.unit_number] then return end --To stop infinite recursion
+    if storage.replaced_entities[entity.unit_number] then return end --To stop infinite recursion
     local is_ghost = entity.name == "entity-ghost"
     local name = new_entity
     local player = entity.last_user
@@ -95,7 +95,7 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
     end
     print(swap_target)
     print(name)
-    if swap_target == nil then return end
+    if swap_target == name then return end
     if entity_replacements[planet][name].enabled == false then return end 
         
     print("Replacing entity " .. entity.name .. " with " .. swap_target)
