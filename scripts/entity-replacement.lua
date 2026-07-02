@@ -59,6 +59,7 @@ end
 
 function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on Maraxsis function. Fulfills rule "If entity X placed on planet Y, replace entity with entity Z"
     local entity = event.entity
+    if not entity.valid then return end 
     local surface = entity.surface
     local planet_object = surface.planet
     local planet 
@@ -72,7 +73,7 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
     
     if not ((entity_replacements_inverted[entity.name]) or (entity_replacements[planet] and entity_replacements[planet][entity.name]))  then return end
 
-    if not entity.valid then return end 
+    
 
    
 
