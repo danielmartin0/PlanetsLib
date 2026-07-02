@@ -24,7 +24,7 @@ function Public.replace_entity(entity,new_entity,raise_built)
         force = entity.force_index,
         quality = entity.quality,
         health = entity.health,
-        raise_built = false,
+        raise_built = false, --raise_script_built is called later
         player = raise_built and player or nil,
         mirror = entity.mirroring
     }
