@@ -10,8 +10,10 @@ for planet,planet_table in pairs(entity_replacements) do
 end
 
 function Public.replace_entity(entity,new_entity,raise_built)
+    if not storage.replaced_entities then storage.replaced_entities = {} end
+    --if storage.replaced_entities[entity.unit_number] then return end --To stop infinite recursion
     local is_ghost = entity.name == "entity-ghost"
-    local name = is_ghost and entity.ghost_name or new_entity
+    local name = new_entity
     local player = entity.last_user
     local new_entity_properties = {
         name = is_ghost and "entity-ghost" or name,
@@ -51,6 +53,7 @@ function Public.replace_entity(entity,new_entity,raise_built)
         end
     end
     new_entity.last_user = entity.last_user
+    storage.replaced_entities[new_entity.unit_number] = new_entity --Important for preventing infinite recursion
     entity.destroy()
     if raise_built == true then
         script.raise_script_built{entity=new_entity}
@@ -61,7 +64,7 @@ end
 
 function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on Maraxsis function. Fulfills rule "If entity X placed on planet Y, replace entity with entity Z"
     local entity = event.entity
-    if not entity.valid then return end 
+    --if not entity.valid then return end 
     local surface = entity.surface
     local planet_object = surface.planet
     local planet 
@@ -73,13 +76,14 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
     
     --if not entity_replacements[planet] then return end
     
-    if not ((entity_replacements_inverted[planet] and entity_replacements_inverted[planet][entity.name]) or (entity_replacements[planet] and entity_replacements[planet][entity.name]))  then return end
-    
     local is_ghost = entity.name == "entity-ghost"
     local name = is_ghost and entity.ghost_name or entity.name
 
+    if not ((entity_replacements_inverted[planet] and entity_replacements_inverted[planet][name]) or (entity_replacements[planet] and entity_replacements[planet][name]))  then return end
+    
+    print(is_ghost)
+    
     local is_space = not not surface.platform
-
     local swap_target = swap_target or nil
     --game.print(serpent.block(entity_replacements_inverted))
     if swap_target == nil then
@@ -89,10 +93,12 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
             swap_target = entity_replacements[planet][name].entity
         end
     end
-        
+    print(swap_target)
+    print(name)
+    if swap_target == nil then return end
     if entity_replacements[planet][name].enabled == false then return end 
         
-    
+    print("Replacing entity " .. entity.name .. " with " .. swap_target)
     Public.replace_entity(entity,swap_target,true)
     
 

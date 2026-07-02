@@ -33,7 +33,7 @@ end
 function Public.create_planet_entity_variant(planet_names,entity,new_properties,bound_setting,item_name)
     assert(settings.startup[bound_setting],
     "PlanetsLib.assign_entity_replacement(planet_names,entity,new_properties,bound_setting,item_name) - bound_setting must refer to a valid boolean startup setting.")
-    if item_name == nil then
+    if item_name == nil and data.raw["item"][entity.name] then
         item_name = entity.name
     end
     local first_planet_name = (type(planet) == "table" and planet_names[1]) or planet_names
@@ -44,7 +44,7 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
     if not entity.factoriopedia_alternative then
         new_entity.factoriopedia_alternative = entity.name
     end
-    if not new_entity.placeable_by then
+    if not new_entity.placeable_by and item_name then
         new_entity.placeable_by = {{item = item_name, count =1}}
     end
     new_entity.hidden_in_factoriopedia = true
@@ -59,10 +59,10 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
     
     if not new_entity.icons then
         new_entity.icons = {
-            {
+            new_entity.icon and {
                 icon = new_entity.icon,
                 icon_size = new_entity.icon_size
-            }
+            } or nil
         }
     end
     
@@ -77,6 +77,7 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
             Public.assign_entity_replacement(planet,entity.name,new_entity.name,bound_setting)
         end
     else
+    if new_entity.icon or new_entity.icons then
         if data.raw["planet"][planet_names].icon then
             table.insert(new_entity.icons , {
                 icon = data.raw["planet"][planet_names].icon,
@@ -96,6 +97,7 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
             })
             end
         end
+    end
         
         new_entity.order = (new_entity.order or "") .. "z" .. data.raw["planet"][planet_names].order
         Public.assign_entity_replacement(planet_names,entity.name,new_entity.name,bound_setting)
