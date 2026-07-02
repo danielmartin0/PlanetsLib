@@ -3,18 +3,19 @@ local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_repl
 local entity_replacements_inverted = {}
 
 for _,planet in pairs(entity_replacements) do
-    --entity_replacements_inverted[planet] = {}
+    entity_replacements_inverted[planet] = {}
     for key,value in pairs(planet) do
-        entity_replacements_inverted[value] = key
+        entity_replacements_inverted[planet][value] = key
     end
 end
 
 function Public.replace_entity(entity,new_entity,raise_built)
     local is_ghost = entity.name == "entity-ghost"
+    local name = is_ghost and entity.ghost_name or new_entity
     local player = entity.last_user
     local new_entity_properties = {
-        name = is_ghost and "entity-ghost" or new_entity,
-        inner_name = is_ghost and new_entity or nil,
+        name = is_ghost and "entity-ghost" or name,
+        inner_name = is_ghost and name or nil,
         tags = is_ghost and entity.tags or nil,
         position = entity.position,
         direction = entity.direction,
@@ -27,10 +28,11 @@ function Public.replace_entity(entity,new_entity,raise_built)
     }
     --if not surface.can_place_entity{new_entity_properties} then return end
     local new_entity = entity.surface.create_entity(new_entity_properties)
-    
-    if not new_entity or not new_entity.valid then return end
-    --new_entity.mirroring = entity.mirroring
     new_entity.copy_settings(entity)
+    if not new_entity or not new_entity.valid then return end
+    --if not entity or not entity.valid then return end
+    --new_entity.mirroring = entity.mirroring
+   
 
     if not is_ghost and entity.get_module_inventory() then
         local modules = entity.get_module_inventory().get_contents()
@@ -71,15 +73,9 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
     
     --if not entity_replacements[planet] then return end
     
-    if not ((entity_replacements_inverted[entity.name]) or (entity_replacements[planet] and entity_replacements[planet][entity.name]))  then return end
-
+    if not ((entity_replacements_inverted[entity.planet.name][entity.name]) or (entity_replacements[planet] and entity_replacements[planet][entity.name]))  then return end
     
-
-   
-
-    
-
-    
+    local is_ghost = entity.name == "entity-ghost"
     local name = is_ghost and entity.ghost_name or entity.name
 
     local is_space = not not surface.platform
@@ -94,7 +90,7 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
         end
     end
         
-    if entity_replacements[planet][entity.name].enabled == false then return end 
+    if entity_replacements[planet][name].enabled == false then return end 
         
     
     Public.replace_entity(entity,swap_target,true)

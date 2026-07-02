@@ -41,15 +41,19 @@ end)
 
 local function replace_entity(surface,old_entity,new_entity)
 	if surface then
-		--if surface.name == "muluna" then print("muluna") end
 		
 		local entities = surface.find_entities_filtered{name = old_entity}
-		if not rro.deep_equals(entities,{}) then
-			game.print({"planetslib.planetslib-entity-migration",old_entity,new_entity})
+		local entity_ghosts = surface.find_entities_filtered{name = "entity-ghost",ghost_name = old_entity}
+			
+		for _,entities in pairs({entities,entity_ghosts}) do
+			if not rro.deep_equals(entities,{}) then
+				game.print({"planetslib.planetslib-entity-migration",old_entity,new_entity})
+			end
+			for _,entity in pairs(entities) do
+				entity_replacement.replace_entity(entity,new_entity,false)
+			end
 		end
-		for _,entity in pairs(entities) do
-			entity_replacement.replace_entity(entity,new_entity,false)
-		end
+		
 	end
 	
 
