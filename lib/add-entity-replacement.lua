@@ -49,6 +49,9 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
     --     entity.fast_replaceable_group = entity.name .. "-PlanetsLib-group"
     -- end
     local new_entity = table.deepcopy(entity)
+
+    new_entity.name = entity.name .. "-PlanetsLib-" .. first_planet_name 
+
     if not entity.factoriopedia_alternative then
         new_entity.factoriopedia_alternative = entity.name
     end
@@ -56,7 +59,7 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
         new_entity.placeable_by = {{item = item_name, count =1}}
     end
     new_entity.hidden_in_factoriopedia = true
-    new_entity.name = entity.name .. "-PlanetsLib-" .. first_planet_name 
+    
     
     if not new_entity.localised_name then
         new_entity.localised_name = {"entity-name." .. entity.name}
