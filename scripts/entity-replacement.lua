@@ -118,10 +118,13 @@ function Public.replace_entity(entity,new_entity,raise_built)
     end
     new_entity.last_user = entity.last_user
     storage.replaced_entities[new_entity.unit_number] = new_entity --Important for preventing infinite recursion
+    if not storage.replaced_entites then storage.replaced_entities = {} end
+    storage.replaced_entities[entity.unit_number] = new_entity --Used to allow other mods to track which entities have been replaced with another.
     entity.destroy()
     if raise_built == true then
         script.raise_script_built{entity=new_entity}
     end
+    
 
 
 end
@@ -175,21 +178,13 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
 end
 
 
+remote.add_interface("planetslib_entity_replacement", {
+    --Used by other mods to find the replacement for an entity if PlanetsLib did a drop-in replacement.
+    get_replacement = function(entity_unit_number)
+        if not storage.replaced_entities then storage.replaced_entities = {} end
+        return storage.replaced_entities[entity_unit_number] or nil
 
---Function called to replace PlanetsLib planet-exclusive entity replacements with original versions. Keeping blueprints in a stable state feels like a safer choice than allowing people to 
-
-
-
--- function Public.blueprint_standardize(event)
---     local record = event.record
-
---     for _,entity in pairs(record.get_blueprint_entities()) do
---         if entity_replacements_inverted[entity.name] then 
---             entity.name = entity_replacements_inverted[entity.name] 
---         end
---     end
-
--- end
-
+    end
+})
 
 return Public
