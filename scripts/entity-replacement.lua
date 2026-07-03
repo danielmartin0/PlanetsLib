@@ -35,17 +35,21 @@ function Public.transfer_all_inventories(entity,new_entity)
         end
         
         if inventory and not inventory.is_empty() then
-                for _,item_stack in pairs(inventory.get_contents()) do
-                    entity.surface.spill_item_stack {
+            local items = entity.surface.spill_inventory {
                         position = entity.position,
-                        stack = item_stack,
+                        inventory = inventory,
                         enable_looted = true,
                         force = entity.force_index,
                         allow_belts = false
                     }
-                end
             
+            if entity.force then
+                for _,item in pairs(items) do
+                    item.order_deconstruction(entity.force)
+                end
             end
+            
+        end
         
     end
 end
