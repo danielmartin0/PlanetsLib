@@ -31,7 +31,10 @@ function Public.transfer_all_inventories(entity,new_entity)
         if inventory and new_inventory then
             new_inventory.transfer_from_inventory(inventory)
 
-            if not inventory.is_empty() then
+            
+        end
+        
+        if inventory and not inventory.is_empty() then
                 for _,item_stack in pairs(inventory.get_contents()) do
                     entity.surface.spill_item_stack {
                         position = entity.position,
@@ -43,9 +46,6 @@ function Public.transfer_all_inventories(entity,new_entity)
                 end
             
             end
-        end
-        
-
         
     end
 end
