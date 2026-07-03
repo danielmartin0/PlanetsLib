@@ -3,9 +3,9 @@ local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_repl
 local entity_replacements_inverted = {}
 
 for planet,planet_table in pairs(entity_replacements) do
-    entity_replacements_inverted[planet] = {}
+    --entity_replacements_inverted = {}
     for key,value in pairs(planet_table) do
-        entity_replacements_inverted[planet][value] = key
+        entity_replacements_inverted[value.entity] = key
     end
 end
 
@@ -107,7 +107,7 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
     local is_ghost = entity.name == "entity-ghost"
     local name = is_ghost and entity.ghost_name or entity.name
 
-    if not ((entity_replacements_inverted[planet] and entity_replacements_inverted[planet][name]) or (entity_replacements[planet] and entity_replacements[planet][name]))  then return end
+    if not ((entity_replacements_inverted and entity_replacements_inverted[name]) or (entity_replacements[planet] and entity_replacements[planet][name]))  then return end
     
     print(is_ghost)
     
@@ -115,8 +115,8 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
     local swap_target = swap_target or nil
     --game.print(serpent.block(entity_replacements_inverted))
     if swap_target == nil then
-        if entity_replacements_inverted[planet][name] then
-            swap_target = entity_replacements[planet][entity_replacements_inverted[planet][name].entity]
+        if entity_replacements_inverted[name] then
+            swap_target = entity_replacements[planet][entity_replacements_inverted[name].entity]
         else
             swap_target = entity_replacements[planet][name].entity
         end
