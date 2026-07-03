@@ -138,37 +138,7 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
 
 end
 
-function Public.migrate_entity_replacements()
-    if not storage.entity_replacement_migrations then storage.entity_replacement_migrations = {} end --Table to track changes in entity replacement migrations
-    local replacement_queue = {} --List of migrations to perform
-    for _,planet in pairs(entity_replacements) do
-        for entity,new_entity_table in pairs(entity_replacements) do
-            local new_entry = {}
-            if not PlanetsLib.rro.deep_equals(storage.entity_replacement_migrations[planet][entity],new_entity_table) then --Checks if new settings are different from old settings.
-                storage.entity_replacement_migrations[planet][entity] = new_entity
-                local old_entity = new_entity.old_entity
-                
-                table.insert(replacement_queue,new_entity)
 
-                
-
-            end
-        end
-    end
-
-    for _,replacement in pairs(replacement_queue) do
-        local entity_to_find --Entity to search for in surfaces.
-        local entity_to_replace --Entity to to replace found instances of entity_to_find with.
-        for _,surface in pairs(game.surfaces) do
-            
-        end
-    end
-    
-
-    
-        
-
-end
 
 --Function called to replace PlanetsLib planet-exclusive entity replacements with original versions. Keeping blueprints in a stable state feels like a safer choice than allowing people to 
 
