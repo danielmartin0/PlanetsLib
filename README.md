@@ -113,7 +113,7 @@ Known issues: Variant entities will be the same fast_replaceable_group as the en
 
 ### Making your entity compatible with PlanetsLib's entity replacement script
 
-If you have a script-augmented entity and a PlanetsLib entity replacement targets your entity, `PlanetsLib.constants.entity_variants_list` contains a list of entity variants for each entity. For scripted entity `"scripted_entity"`, A list of variant entities will be found in `PlanetsLib.constants.entity_variants_list["scripted_entity"]` if any exist. To make your script-augmented entity compatible, add entities from this list to any entity name checks in your control stage.
+If you have a script-augmented entity and a PlanetsLib entity replacement targets your entity, `PlanetsLib.constants.entity_variants_list` contains a list of entity variants for each entity. For scripted entity `"scripted_entity"`, A list of variant entities will be found in `PlanetsLib.constants.entity_variants_list["scripted_entity"]` if any exist. To make your script-augmented entity compatible, add entities from this list to any entity name checks in your control stage. If PlanetsLib replaces an entity tracked in your mod's storage, `remote.call("planetslib_entity_replacement","get_replacement",entity_unit_number) will return the LuaEntity that replaced your entity. Use this function to repair stale references.
 
 ## Planet Special Properties
 PlanetsLib allows the addition of "special properties", values which can be displayed as surface properties, but are not intended to be used as surface properties. These properties are used during data-final-fixes and in control scripts to execute certain behavior.

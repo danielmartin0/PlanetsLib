@@ -20,14 +20,20 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
         error("PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - Assigning an entity variant of the same entity on the same planet more than once is currently not possible.")
     end
     PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet][entity] = {old_entity=entity,entity=new_entity,enabled=settings.startup[bound_setting].value}
+    
+    if not PlanetsLib.constants.entity_variants_list then PlanetsLib.constants.entity_variants_list = {} end
+    
+    if not PlanetsLib.constants.entity_variants_list[entity] then  PlanetsLib.constants.entity_variants_list[entity] = {} end
 
+    table.insert(PlanetsLib.constants.entity_variants_list[entity],new_entity)
+    
     --Check if recursive rules exist that would create a stack overflow error.
     if not PlanetsLib.constants.inverted_entity_variants then PlanetsLib.constants.inverted_entity_variants = {} end
     if not PlanetsLib.constants.inverted_entity_variants[planet] then PlanetsLib.constants.inverted_entity_variants[planet] = {} end
     if not PlanetsLib.constants.inverted_entity_variants[planet][entity] then PlanetsLib.constants.inverted_entity_variants[planet][entity] = {} end
     PlanetsLib.constants.inverted_entity_variants[planet][entity][new_entity] = true
     assert(not (PlanetsLib.constants.inverted_entity_variants[planet][new_entity] and PlanetsLib.constants.inverted_entity_variants[planet][new_entity][entity]),
-    "PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - Recursive entity replacement ruleset created. " .. new_entity .. " <-> " .. entity)
+    "PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - Recursive entity replacement ruleset created on planet ".. planet ..". " .. new_entity .. " <-> " .. entity)
     
 end
 
