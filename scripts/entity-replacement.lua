@@ -20,6 +20,36 @@ local fields_to_transfer = {
 }
 
 
+
+
+--Transfers all items from all inventories to new_entity, or drops them on the ground if not possible.
+function Public.transfer_all_inventories(entity,new_entity)
+
+    for _,inventory_type in pairs(defines.inventory) do
+        local inventory = entity.get_inventory(inventory_type)
+        local new_inventory = new_entity.get_inventory(inventory_type)
+        if inventory and new_inventory then
+            new_inventory.transfer_from_inventory(inventory)
+
+            if not inventory.is_empty() then
+                for _,item_stack in pairs(inventory.get_contents()) do
+                    entity.surface.spill_item_stack {
+                        position = entity.position,
+                        stack = item_stack,
+                        enable_looted = true,
+                        force = entity.force_index,
+                        allow_belts = false
+                    }
+                end
+            
+            end
+        end
+        
+
+        
+    end
+end
+
 --Transfers every single entity state, such that the new_entity is the same as the old entity.
 function Public.transfer_entity_state(entity,new_entity)
     new_entity.copy_settings(entity)
@@ -33,6 +63,8 @@ function Public.transfer_entity_state(entity,new_entity)
     for _,tooltip_field in pairs(entity.get_tooltip_fields()) do
         new_entity.set_tooltip_field(tooltip_field)
     end
+
+    Public.transfer_all_inventories(entity,new_entity)
 end
 
 function Public.replace_entity(entity,new_entity,raise_built)
@@ -116,7 +148,7 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
     --game.print(serpent.block(entity_replacements_inverted))
     if swap_target == nil then
         if entity_replacements_inverted[name] then
-            swap_target = entity_replacements[planet][entity_replacements_inverted[name].entity]
+            swap_target = entity_replacements[planet][entity_replacements_inverted[name]].entity
         else
             swap_target = entity_replacements[planet][name].entity
         end
