@@ -6,6 +6,7 @@ Features:
     - Added `PlanetsLib.assign_entity_replacement`, a function that makes the game replace an entity with another entity when placed on a given planet.
     - Added `PlanetsLib.set_special_properties, get_special_properties, and get_special_proprety, getters and setters for a planet's "special properties"
     - Added planet special properties "rocket_lift_multipiler" and "rocket_part_multiplier", special properties that use runtime entity replacements on rocket silos to change their behavior on particular planets.
+    - Added functions to assist in making script-driven entities work with PlanetsLib's entity replacement script.
 ---------------------------------------------------------------------------------------------------
 Version: 1.19.5
 Date: 2026-06-28
