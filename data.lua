@@ -1,5 +1,5 @@
 require("prototypes.tiles")
-
+require("prototypes.events")
 local orbits = require("lib.orbits")
 PlanetsLib = {}
 PlanetsLib.current_stage = "data"

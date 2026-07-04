@@ -1,5 +1,6 @@
 local rro = require("lib.remove-replace-object")
 PlanetsLib = {}
+PlanetsLib.events = require("scripts.custom-events")
 PlanetsLib.constants = prototypes.mod_data.Planetslib.data
 PlanetsLib.objects = require("lib.remove-replace-object")
 local rocket_parts = require("scripts.rocket-parts")
