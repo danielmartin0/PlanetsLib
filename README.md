@@ -111,11 +111,23 @@ Known issues: Variant entities will be the same fast_replaceable_group as the en
 * `PlanetsLib.create_planet_entity_variant(planet_names(table of strings or string),entity(table),new_properties(table),bound_setting(startup setting name),item_name(defaults to entity name))` – Creates and adds to data.raw a variant of `entity` with a unique name, the same localized name/description, and new properties taken from new_properties. When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity. `bound_setting` is a boolean startup setting. This entity variant is only placed when this startup setting is enabled. When disabling this startup setting on an existing save, variant entities are migrated back to their original entities when appropriate. When enabling this startup setting on an existing save, variant entities are migrated from their original entities when appropriate. To aid in mod uninstallation, expose this setting to users.
 * `PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting)` – When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity. Due to current system limitations, assigning an entity replacement of the same entity onto the same planet will throw an error. Not recommended for regular use due to the lack of safety checks compared to PlanetsLib.create_planet_entity_variant().
 
+## Entity variant migrations
+
+On adding new entity replacement rules to an existing save or disabling old replacement rules, PlanetsLib will perform a runtime migration on all entities in violation of the current ruleset to comply with the new ruleset. This process includes copying the settings, wire connections, inventories, fluidbox contents, health, crafting progress, and a myriad of other settings associated with entities. This process is not perfect, so reports of incomplete migrations are welcome. 
+
+## Safely disabling an entity replacement rule
+
+Each entity replacement rule must be associated with a startup setting, defined with `bound_setting`. When this setting is enabled, entity replacements are active. When this setting is disabled, variant entities are generated in data, allowing saves with obsolete rules to load without deleting any entities. However, on loading a save, all variant entities that should not exist under the current ruleset are replaced with their original entity, reverting all replacements performed under that rule.
+
+To safely remove an entity replacement from the game, disable the associated startup setting, load the save to allow the migration to occur, then remove the mod. When updating a mod to revert an entity replacement rule, apply a conventional migration to all affected entities, or if not possible, hide and force disable the associated setting, rather than deleting code adding the replacement rule. After you are ready to make old saves break their migration, you can delete the associated code.
+
 ### Making your entity compatible with PlanetsLib's entity replacement script
 
-If you have a script-augmented entity and a PlanetsLib entity replacement targets your entity, `PlanetsLib.constants.entity_variants_list` contains a list of entity variants for each entity. For scripted entity `"scripted_entity"`, A list of variant entities will be found in `PlanetsLib.constants.entity_variants_list["scripted_entity"]` if any exist. To make your script-augmented entity compatible, add entities from this list to any entity name checks in your control stage. If PlanetsLib replaces an entity tracked in your mod's storage, `remote.call("planetslib_entity_replacement","get_replacement",entity_unit_number) will return the LuaEntity that replaced your entity. Use this function to repair stale references.
+If you have a script-augmented entity and a PlanetsLib entity replacement targets your entity, `PlanetsLib.constants.entity_variants_list` contains a list of entity variants for each entity. For scripted entity `"scripted_entity"`, A list of variant entities will be found in `PlanetsLib.constants.entity_variants_list["scripted_entity"]` if any exist. To make your script-augmented entity compatible, add entities from this list to any entity name checks in your control stage. If PlanetsLib replaces an entity tracked in your mod's storage, `remote.call("planetslib_entity_replacement","get_replacement",entity_unit_number)` will return the LuaEntity that replaced your entity. Use this function to repair stale references.
 
-* `PlanetsLib.events.on_entity_replaced`
+* Custom event: `PlanetsLib.events.on_entity_replaced(event)`
+* Runs when PlanetsLib replaces an entity. Use this event to change variables associated with script-augmented entities to refer to the new entity.
+* `event` fields:
     * `entity(LuaEntity)`: The entity about to be deleted.
     * `new_entity(LuaEntity)`: The entity that has had `entity`'s settings and inventory transferred to. 
 
@@ -128,14 +140,14 @@ PlanetsLib allows the addition of "special properties", values which can be disp
 
 ### Hardcoded Special Properties
 PlanetsLib reserves two special property values for runtime scripts set up during data-final-fixes. They are displayed as surface properties in game. If no mods define these properties, they are not displayed.
-* `rocket_lift_multiplier(float)` — Multiplies the lift of every rocket silo placed on the planet. Achieved via runtime entity replacements(See Planet-Exclusive Entity Variants).
-* `rocket_part_multiplier(float)` — Multiplies the rocket parts required of every rocket silo placed on the planet. Achieved via runtime entity replacements(See Planet-Exclusive Entity Variants).
+* `rocket_lift_multiplier(float)` — Multiplies the lift of every rocket silo placed on the planet. Achieved via runtime entity replacements generated during data-final-fixes(See Planet-Exclusive Entity Variants).
+* `rocket_part_multiplier(float)` — Multiplies the rocket parts required of every rocket silo placed on the planet. Achieved via runtime entity replacements generated during data-final-fixes(See Planet-Exclusive Entity Variants).
 
 ## Surface conditions
 
-#### New surface conditions
+#### New surface properties
 
-PlanetsLib includes a variety of surface conditions, all of which are either hidden or disabled by default. To enable a surface condition, modders must add the following line to settings-updates.lua (using 'oxygen' as an example):
+PlanetsLib includes a variety of surface properties, all of which are either hidden or disabled by default. To enable a surface property, modders must add the following line to settings-updates.lua (using 'oxygen' as an example):
 
 `data.raw["bool-setting"]["PlanetsLib-enable-oxygen"].forced_value = true`
 
