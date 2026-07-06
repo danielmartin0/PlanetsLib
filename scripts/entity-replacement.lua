@@ -17,8 +17,8 @@ local fields_to_transfer = {
     health = nil,
     protected = false,
     orientation = nil,
-    crafting_progress=0,
-    bonus_progress=0,
+    crafting_progress=nil,
+    bonus_progress=nil,
     loader_type=nil,
     rocket_parts=0,
     damage_dealt=0,
@@ -123,7 +123,12 @@ local function get_field(LuaEntity,field)
         return LuaEntity[field]
     end
     local success,result=pcall(get_field_or_error,LuaEntity,field)
-    return success and result or nil
+    if success then
+        return result
+    else
+        return nil
+    end
+    
 end
 
 --Transfers all items from all inventories to new_entity, or drops them on the ground if not possible.
@@ -163,8 +168,9 @@ function Public.transfer_entity_state(entity,new_entity)
     new_entity.copy_settings(entity)
     
     for field_to_transfer,default_value in pairs(fields_to_transfer) do
-        if get_field(entity,field_to_transfer) then
-            new_entity[field_to_transfer] = entity[field_to_transfer] or (default_value ~= nil and default_value)
+        if get_field(new_entity,field_to_transfer) then
+            --game.print(field_to_transfer)
+            new_entity[field_to_transfer] = get_field(entity,field_to_transfer) or (default_value ~= nil and default_value)
         end
     end
 
@@ -202,7 +208,10 @@ function Public.replace_entity(entity,new_entity,raise_built)
     --if not surface.can_place_entity{new_entity_properties} then return end
     local new_entity = entity.surface.create_entity(new_entity_properties)
     if not new_entity or not new_entity.valid then return end
+    
     Public.transfer_entity_state(entity,new_entity)
+    
+    
     
     --if not entity or not entity.valid then return end
     --new_entity.mirroring = entity.mirroring

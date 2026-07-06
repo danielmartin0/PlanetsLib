@@ -60,26 +60,8 @@ local function replace_entity(surface,old_entity,new_entity)
 
 end
 
-script.on_configuration_changed(function(data)
-	if cargo_pods then
-		cargo_pods.init_storage()
-	end
-
-	local mod_changed = false
-
-	for _, _ in pairs(data.mod_changes) do
-		mod_changed = true
-		break
-	end
-
-	local replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements
-	if not storage.old_replacement_rules then storage.old_replacement_rules = {} end
-	
-	--Search for changes to entity replacement rules, and replace existing entities if the entity rules changed since last load
-	for planet_name,planet_rules in pairs(replacement_rules) do
-		local surface 
-		if game.planets[planet_name] then surface = game.planets[planet_name].surface end
-		if not storage.old_replacement_rules[planet_name] then storage.old_replacement_rules[planet_name] = {} end
+local function migrate_surface(planet_name,surface,planet_rules)
+	if not storage.old_replacement_rules[planet_name] then storage.old_replacement_rules[planet_name] = {} end
 		for entity_name,entity_table in pairs(planet_rules) do
 			local new_rule = PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name][entity_name]
 			if storage.old_replacement_rules[planet_name][entity_name] then 
@@ -113,6 +95,40 @@ script.on_configuration_changed(function(data)
 				
 			end
 		end
+
+end
+
+script.on_configuration_changed(function(data)
+	if cargo_pods then
+		cargo_pods.init_storage()
+	end
+
+	local mod_changed = false
+
+	for _, _ in pairs(data.mod_changes) do
+		mod_changed = true
+		break
+	end
+
+	local replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements
+	if not storage.old_replacement_rules then storage.old_replacement_rules = {} end
+	
+	--Search for changes to entity replacement rules, and replace existing entities if the entity rules changed since last load
+	for planet_name,planet_rules in pairs(replacement_rules) do
+		local is_space_platform = planet_name == "space-platform"
+		
+		if is_space_platform then --Migrate each space platform using space platform rules
+			for _,surface in pairs(game.surfaces) do
+				if surface.platform then
+					migrate_surface(planet_name,surface,planet_rules)
+				end
+			end
+		else
+			local surface --Migrate the one planet these rules apply to.
+			if game.planets[planet_name] then surface = game.planets[planet_name].surface end
+			migrate_surface(planet_name,surface,planet_rules)
+		end
+		
 	end
 
 	if not mod_changed then

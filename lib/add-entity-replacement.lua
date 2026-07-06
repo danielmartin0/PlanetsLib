@@ -89,9 +89,11 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
     rro.soft_insert(new_entity.flags, "not-in-bonus-gui")
     new_entity = rro.merge(new_entity,new_properties) 
     
+    
+
     local first_planet = type(planet_names) == "table" and planet_names[1] or planet_names
     if new_entity.icon or new_entity.icons then
-        if data.raw["planet"][first_planet].icon then
+        if data.raw["planet"][first_planet] and data.raw["planet"][first_planet].icon then
             table.insert(new_entity.icons , {
                 icon = data.raw["planet"][first_planet].icon,
                 icon_size = data.raw["planet"][first_planet].icon_size,
@@ -99,7 +101,7 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
                 shift = {10,-10},
                 draw_background = true,
         })
-        else
+        elseif data.raw["planet"][first_planet] and data.raw["planet"][first_planet].icons then
             for _,icon_entry in pairs(data.raw["planet"][first_planet].icons) do
                 table.insert(new_entity.icons , {
                 icon = icon_entry.icon,
@@ -119,7 +121,7 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
     else
     
         
-        new_entity.order = (new_entity.order or "") .. "z" .. data.raw["planet"][planet_names].order
+        new_entity.order = (new_entity.order or "") .. "z" .. (data.raw["planet"][planet_names] and data.raw["planet"][planet_names].order or "")
         Public.assign_entity_replacement(planet_names,entity.name,new_entity.name,bound_setting)
     end
     
