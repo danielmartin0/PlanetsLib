@@ -259,7 +259,7 @@ Planetslib includes functions to generate certain kinds of achievements.
 
 `PlanetsLib.create_planet_entity_variant(planet_names,entity,new_properties,bound_setting,item_name)`
 
-Some parts of this description are simplified, ignoring edge cases this function accounts for.
+This section describes the steps taken by `create_planet_entity_variant` to help explain possible incompatibilities.
 
 On calling function in data stage:
 1. Generate a deepcopy of `entity`. This will be named `new_entity`.
