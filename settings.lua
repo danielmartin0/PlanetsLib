@@ -101,14 +101,6 @@ data:extend({
 	{
 		type = "bool-setting",
 		setting_type = "startup",
-		name = "PlanetsLib-enable-rocket-lift-multiplier",
-		forced_value = true,
-		default_value = true,
-		hidden = true,
-	},
-	{
-		type = "bool-setting",
-		setting_type = "startup",
 		name = "PlanetsLib-enforce-gas-percentage",
 		forced_value = true,
 		default_value = true,
