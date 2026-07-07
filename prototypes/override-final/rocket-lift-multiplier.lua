@@ -14,7 +14,7 @@ for _,planet in pairs(data.raw["planet"]) do
                         name = "PlanetsLib-lift-weight-multiplier",
                         type = "surface-property",
                         default_value = 1,
-                        order = (data.raw["surface-property"]["robot-energy-usage"].order or ""),
+                        order = (data.raw["surface-property"]["robot-energy-usage"].order or "z"),
                         localised_unit_key = "surface-property-unit.multiplier"
                     }}
                 end
@@ -28,7 +28,7 @@ for _,planet in pairs(data.raw["planet"]) do
                         name = "PlanetsLib-rocket-part-multiplier",
                         type = "surface-property",
                         default_value = 1,
-                        order = (data.raw["surface-property"]["robot-energy-usage"].order or ""),
+                        order = (data.raw["surface-property"]["robot-energy-usage"].order or "z"),
                         localised_unit_key = "surface-property-unit.multiplier"
                     }}
                 end
