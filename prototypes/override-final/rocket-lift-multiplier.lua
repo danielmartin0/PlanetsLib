@@ -37,7 +37,11 @@ for _,planet in pairs(data.raw["planet"]) do
 
             for _,silo in pairs(data.raw["rocket-silo"]) do
                 --local silo = data.raw["rocket-silo"]["rocket-silo"]
-                local silo_item_name = silo.name
+                local silo_item_name
+                if data.raw["item"][entity.name] then
+                    silo_item_name = entity.name
+                end
+                 
                 if not silo.PlanetsLib_do_not_generate_variants and not string.find(silo.name,"PlanetsLib") then --Don't pass over existing silo variants. Skipping this check creates an infinite loop that consumes all RAM
                     PlanetsLib.create_planet_entity_variant(
                         planet.name,

@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.20.4
+Date: 2026-07-07
+  Bugfixes:
+    - Removed assumption that rocket silos are always placeable, fixing crash on load with Muluna and Fulgora Orbital Defense.
+---------------------------------------------------------------------------------------------------
 Version: 1.20.3
 Date: 2026-07-06
   Bugfixes:
