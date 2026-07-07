@@ -236,6 +236,21 @@ function rro.get_concatenation(first,second)
     return out
 end
 
+--- Returns a concatenation of the contents of two tables.
+-- @param first table
+-- @param second table
+function rro.get_concatenation_no_deepcopy(first,second)
+    local first_l = #first
+    local second_l = #second
+    local out = first
+    local out_second = second
+    for i=1,second_l do
+        out[first_l+i] = out_second[i]
+    end
+    return out
+end
+
+
 --- Attempts to find an object in a complex object, and returns nil if any level in the search returns nil
 -- @param table table
 -- @param crawl_list table

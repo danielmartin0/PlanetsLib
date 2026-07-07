@@ -2,6 +2,13 @@ data:extend({
 	{
 		type = "bool-setting",
 		setting_type = "startup",
+		name = "PlanetsLib-enable-runtime-rocket-silo-replacements",
+		default_value = true,
+		order = "aaa",
+	},
+	{
+		type = "bool-setting",
+		setting_type = "startup",
 		name = "PlanetsLib-warn-on-hidden-prerequisites",
 		default_value = true,
 		order = "aa",
@@ -33,6 +40,20 @@ data:extend({
 		name = "PlanetsLib-enable-detailed-logs",
 		default_value = false,
 		order = "ae",
+	},
+	{
+		type = "bool-setting",
+		setting_type = "startup",
+		name = "PlanetsLib-enable-entity-replacements",
+		default_value = true,
+		order = "af",
+	},
+	{
+		type = "bool-setting",
+		setting_type = "startup",
+		name = "PlanetsLib-disable-all-entity-replacements",
+		default_value = false,
+		order = "ag",
 	},
 })
 

@@ -53,6 +53,9 @@ function Public.is_space_location_or_space_platform(planet)
 end
 -- TODO: Add checks to ensure the structure of orbit is correct.
 function Public.verify_extend_fields(config)
+	if PlanetsLib.current_stage == "data-final-fixes" then
+        error("PlanetsLib:extend() - This function can only be run before data-final-fixes. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib.")
+    end
 	if not Public.is_space_location(config) then
 		error(
 			"PlanetsLib:extend() - extend only takes a planet or space-location prototype. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
@@ -87,6 +90,9 @@ function Public.verify_extend_fields(config)
 end
 
 function Public.update(config)
+	if PlanetsLib.current_stage == "data-final-fixes" then
+        error("This function can only be run before data-final-fixes.")
+    end
 	Public.verify_update_fields(config)
 
 	orbits.ensure_all_locations_have_orbits()
@@ -268,5 +274,47 @@ function Public.set_default_import_location(item_name, planet)
 
 	error("PlanetsLib.set_default_import_location() - Item not found: " .. item_name, 2)
 end
+
+--- PlanetsLib.set_special_properties(planet,properties)
+--- Assigns special properties to a planet stored in a mod-data object.
+--- Special properties are displayed as surface properties, but they are not intended to be used as surface properties.
+--- Like vanilla's robot-energy-multiplier, these special properties influence the behavior of entities, either through data-final-fixes or through a runtime script.
+--- Can be retrieved with PlanetsLib.get_special_property(planet,(string) property?)
+--- Can not be called during data-final-fixes, to allow variables defined as special properties to be used by PlanetsLib for particular functions
+--- List of special properties that PlanetsLib will use in the future::
+--- rocket_part_multiplier: Multiplies the parts required by rocket silos by this value via entity replacements.
+--- rocket_lift_multiplier: Multiplies the lift of rockets launched from rocket silos by this value via entity replacements.
+function Public.set_special_properties(planet,properties)
+	assert(PlanetsLib.stage ~= "data-final-fixes", "PlanetsLib.set_special_properties(planet,properties) - This function must be called before data-final-fixes.")
+	local planet_name = type(planet) == "table" and planet.name or planet
+	if not PlanetsLib.constants.planet_special_properties[planet_name] then
+		PlanetsLib.constants.planet_special_properties[planet_name] = table.deepcopy(properties) 
+	else
+		PlanetsLib.rro.merge(PlanetsLib.constants.planet_special_properties[planet_name],table.deepcopy(properties))
+	end
+	return PlanetsLib.constants.planet_special_properties[planet_name]
+end
+
+--- PlanetsLib.get_special_property(planet,property)
+function Public.get_special_property(planet,property)
+	local planet_name = type(planet) == "table" and planet.name or planet
+	if property == nil then
+		return PlanetsLib.constants.planet_special_properties[planet_name]
+	end
+	local planet_name = type(planet) == "table" and planet.name or planet
+	if not PlanetsLib.constants.planet_special_properties[planet_name] then
+		PlanetsLib.constants.planet_special_properties[planet_name] = table.deepcopy(properties) 
+	else
+		PlanetsLib.rro.merge(PlanetsLib.constants.planet_special_properties[planet_name],table.deepcopy(properties))
+	end
+	return PlanetsLib.constants.planet_special_properties[planet_name]
+end
+
+--- PlanetsLib.get_special_properties(planet)
+function Public.get_special_properties(planet)
+	local planet_name = type(planet) == "table" and planet.name or planet
+	return PlanetsLib.constants.planet_special_properties[planet_name]
+end
+
 
 return Public
