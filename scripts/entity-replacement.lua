@@ -274,9 +274,11 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
     local is_space = not not surface.platform
     local swap_target = swap_target or nil
     --game.print(serpent.block(entity_replacements_inverted))
+    local is_inverted = false
     if swap_target == nil then
         if entity_replacements_inverted[name] then
-            swap_target = entity_replacements[planet][entity_replacements_inverted[name]].entity
+            swap_target = entity_replacements_inverted[name]
+            is_inverted = true
         else
             swap_target = entity_replacements[planet][name].entity
         end
@@ -284,7 +286,7 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
     print(swap_target)
     print(name)
     if swap_target == name then return end
-    if entity_replacements[planet][name].enabled == false then return end 
+    if entity_replacements and entity_replacements[planet] and entity_replacements[planet][name] and entity_replacements[planet][name].enabled == false then return end 
         
     print("Replacing entity " .. entity.name .. " with " .. swap_target)
     Public.replace_entity(entity,swap_target,true)
