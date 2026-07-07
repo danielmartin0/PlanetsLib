@@ -7,7 +7,6 @@ if mods["space-age"] then
 	require("prototypes.override-final.check-unexpected-positions")
 	require("prototypes.override-final.update-connections")
     require("prototypes.override-final.set-default-weights")
-	require("prototypes.override-final.planet-entity-variants")
 	require("prototypes.override-final.rocket-lift-multiplier")
 	local ps = require("lib.planet-str")
 
