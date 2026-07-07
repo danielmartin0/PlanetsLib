@@ -1,6 +1,9 @@
 local rro = require("lib.objects")
 local Public = {}
 
+if not PlanetsLib.constants.entity_variants_list then PlanetsLib.constants.entity_variants_list = {} end
+if not PlanetsLib.constants.inverted_entity_variants then PlanetsLib.constants.inverted_entity_variants = {} end
+
 -- Creates "If entity placed on planet, replace entity with new_entity" rule.
 -- Mass-assignment is possible by making entity a dictionary table and new_entity nil.
 function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting)
@@ -21,14 +24,14 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
     end
     PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet][entity] = {old_entity=entity,entity=new_entity,enabled=settings.startup[bound_setting].value}
     
-    if not PlanetsLib.constants.entity_variants_list then PlanetsLib.constants.entity_variants_list = {} end
+    
     
     if not PlanetsLib.constants.entity_variants_list[entity] then  PlanetsLib.constants.entity_variants_list[entity] = {} end
 
     table.insert(PlanetsLib.constants.entity_variants_list[entity],new_entity)
     
     --Check if recursive rules exist that would create a stack overflow error.
-    if not PlanetsLib.constants.inverted_entity_variants then PlanetsLib.constants.inverted_entity_variants = {} end
+    
     if not PlanetsLib.constants.inverted_entity_variants[planet] then PlanetsLib.constants.inverted_entity_variants[planet] = {} end
     if not PlanetsLib.constants.inverted_entity_variants[planet][entity] then PlanetsLib.constants.inverted_entity_variants[planet][entity] = {} end
     PlanetsLib.constants.inverted_entity_variants[planet][entity][new_entity] = true
