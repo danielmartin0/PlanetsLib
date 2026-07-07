@@ -40,6 +40,9 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
     
 end
 
+
+
+
 -- 1. Generates a deepcopy of entity, 
 -- 2. Gives the deepcopy a unique name, 
 -- 3. Gives the deepcopy the same localized name/description as entity.
@@ -47,7 +50,7 @@ end
 -- 5. Makes the deepcopy replace entity when on each "planet".
 -- 6. Adds new_entity to data.raw.
 -- 7. Returns new_entity to make it easier to reference the generated entity in subsequent code.
-function Public.create_planet_entity_variant(planet_names,entity,new_properties,bound_setting,item_name)
+local function create_planet_entity_variant(planet_names,entity,new_properties,bound_setting,item_name)
     assert(settings.startup[bound_setting],
     "PlanetsLib.assign_entity_replacement(planet_names,entity,new_properties,bound_setting,item_name) - bound_setting must refer to a valid boolean startup setting.")
     if item_name == nil and data.raw["item"][entity.name] then
@@ -132,5 +135,14 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
     return new_entity
 end
 
+function Public.create_planet_entity_variant(planet_names,entity,new_properties,bound_setting,item_name)
+    if pcall(create_planet_entity_variant,planet_names,entity,new_properties,bound_setting,item_name) then
+        
+    else
+        log("entity:"..serpent.block(entity))
+        error("PlanetsLib(): Error while generating entity variant for ".. entity.name .. " on planets " .. serpent.block(planet_names) .. "\n" .. "New properties:" .. serpent.block(new_properties) .. "\n" .. err.code)
+    end
+
+end
 
 return Public
