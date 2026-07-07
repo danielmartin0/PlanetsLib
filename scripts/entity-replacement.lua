@@ -235,8 +235,8 @@ function Public.replace_entity(entity,new_entity,raise_built)
     end
     new_entity.last_user = entity.last_user
     storage.replaced_entities[new_entity.unit_number] = new_entity --Important for preventing infinite recursion
-    if not storage.replaced_entites then storage.replaced_entities = {} end
-    storage.replaced_entities[entity.unit_number] = new_entity --Used to allow other mods to track which entities have been replaced with another.
+    --if not storage.replaced_entities then storage.replaced_entities = {} end
+    --storage.replaced_entities[entity.unit_number] = new_entity --Used to allow other mods to track which entities have been replaced with another.
     script.raise_event("PlanetsLib-on-entity-replaced", {
         entity = entity,
         new_entity = new_entity,
