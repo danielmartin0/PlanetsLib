@@ -72,6 +72,9 @@ Neither `PlanetsLib:extend` nor `PlanetsLib:update` should be called in `data-fi
 ## Moon orbit graphics
 
 Planetslib ships with a set of built in orbit sprites for moons under `__PlanetsLib__/graphics/orbits/moons`.
+You can access the orbit settings you need for these sprites by calling `Public.get_orbit_sprite(radius)`. The radiuses are fixed, planetslib will throw an error if you request one that is not on the list, and will tell you what orbits are available.
+
+NOT every possible distance will be available, the sprites need to be generated beforehand. This is added because in practice we know that you only need a default orbit that you can use to make the moon look nice. Clashes can be resolved later, and that works well enough when put into practice.
 
 ## Planet tiers
 

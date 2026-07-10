@@ -55,7 +55,7 @@ end
 function Public.verify_extend_fields(config)
 	if PlanetsLib.current_stage == "data-final-fixes" then
         error("PlanetsLib:extend() - This function can only be run before data-final-fixes. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib.")
-    end
+	end
 	if not Public.is_space_location(config) then
 		error(
 			"PlanetsLib:extend() - extend only takes a planet or space-location prototype. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
@@ -91,24 +91,24 @@ end
 
 function Public.update(config)
 	if PlanetsLib.current_stage == "data-final-fixes" then
-        error("This function can only be run before data-final-fixes.")
-    end
+		error("This function can only be run before data-final-fixes.")
+	end
 	Public.verify_update_fields(config)
 
 	orbits.ensure_all_locations_have_orbits()
 
 	for k, v in pairs(config) do
 		if k == "orbit" then
-            lib.detailed_log("--------------------------------")
-            lib.detailed_log(
-                "PlanetsLib:update called on "
-                    .. config.name
-                    .. ", changing orbit from "
-                    .. serpent.line(data.raw[config.type][config.name].orbit)
-                    .. " to "
-                    .. serpent.line(config.orbit)
-                    .. " and updating the positions of children appropriately:"
-            )
+			lib.detailed_log("--------------------------------")
+			lib.detailed_log(
+				"PlanetsLib:update called on "
+				.. config.name
+				.. ", changing orbit from "
+				.. serpent.line(data.raw[config.type][config.name].orbit)
+				.. " to "
+				.. serpent.line(config.orbit)
+				.. " and updating the positions of children appropriately:"
+			)
 
 			data.raw[config.type][config.name].orbit = v
 
@@ -130,18 +130,18 @@ function Public.update(config)
 
 			local new_x, new_y = parent_x + orbit_x, parent_y + orbit_y
 
-            lib.detailed_log(
-                "PlanetsLib: updating "
-                    .. config.name
-                    .. " from x="
-                    .. current_x
-                    .. ", y="
-                    .. current_y
-                    .. " to x="
-                    .. new_x
-                    .. ", y="
-                    .. new_y
-            )
+			lib.detailed_log(
+				"PlanetsLib: updating "
+				.. config.name
+				.. " from x="
+				.. current_x
+				.. ", y="
+				.. current_y
+				.. " to x="
+				.. new_x
+				.. ", y="
+				.. new_y
+			)
 
 			local new_distance, new_orientation = orbits.get_polar_position_from_rectangular(new_x, new_y)
 
@@ -150,14 +150,14 @@ function Public.update(config)
 
 			orbits.update_positions_of_all_children_via_orbits(data.raw[config.type][config.name])
 
-            lib.detailed_log("--------------------------------")
+			lib.detailed_log("--------------------------------")
 		elseif k == "special_properties" then
 			error("PlanetsLib:update() - special_properties is an invalid field.")
 			-- if not PlanetsLib.constants.planet_properties[config.name] then
 			-- 		PlanetsLib.constants.planet_properties[config.name] = {}
 			-- end
 			-- for field,value in pairs(v) do
-				
+
 			-- 	PlanetsLib.constants.planet_properties[config.name][field] = value
 			-- end
 		else
@@ -249,13 +249,13 @@ function Public.borrow_music(source_planet, target_planet, options)
 		then if not options.modifier_function then
 			table.insert(music.planets,target_name) --New in Factorio 2.1: Ambient sounds can be played for multiple planets, making borrow_music()'s old approach of copying tracks mostly obsolete. We will avoid making new tracks unless a modifier function is provided.
 
-		else
-			music.name = music.name .. "-" .. target_name
-			music.planet = target_name
-			
-			options.modifier_function(music) -- options.modifier gives the opportunity to apply changes to the track's parameters through a function.
-			 
-			data:extend({ music })
+			else
+				music.name = music.name .. "-" .. target_name
+				music.planet = target_name
+
+				options.modifier_function(music) -- options.modifier gives the opportunity to apply changes to the track's parameters through a function.
+
+				data:extend({ music })
 		end end
 	end
 end
@@ -288,7 +288,7 @@ function Public.set_special_properties(planet,properties)
 	assert(PlanetsLib.stage ~= "data-final-fixes", "PlanetsLib.set_special_properties(planet,properties) - This function must be called before data-final-fixes.")
 	local planet_name = type(planet) == "table" and planet.name or planet
 	if not PlanetsLib.constants.planet_special_properties[planet_name] then
-		PlanetsLib.constants.planet_special_properties[planet_name] = table.deepcopy(properties) 
+		PlanetsLib.constants.planet_special_properties[planet_name] = table.deepcopy(properties)
 	else
 		PlanetsLib.rro.merge(PlanetsLib.constants.planet_special_properties[planet_name],table.deepcopy(properties))
 	end
@@ -303,7 +303,7 @@ function Public.get_special_property(planet,property)
 	end
 	local planet_name = type(planet) == "table" and planet.name or planet
 	if not PlanetsLib.constants.planet_special_properties[planet_name] then
-		PlanetsLib.constants.planet_special_properties[planet_name] = table.deepcopy(properties) 
+		PlanetsLib.constants.planet_special_properties[planet_name] = table.deepcopy(properties)
 	else
 		PlanetsLib.rro.merge(PlanetsLib.constants.planet_special_properties[planet_name],table.deepcopy(properties))
 	end
@@ -314,6 +314,55 @@ end
 function Public.get_special_properties(planet)
 	local planet_name = type(planet) == "table" and planet.name or planet
 	return PlanetsLib.constants.planet_special_properties[planet_name]
+end
+
+local sprites = {
+	[1.5] =  {
+			type = "sprite",
+			filename = "__PlanetsLib__/graphics/moon/orbit-1.5.png",
+			size = 412,
+          	scale = 0.25
+		},
+	[1.8] = {
+			type = "sprite",
+			filename = "__PlanetsLib__/graphics/moon/orbit-1.8.png",
+			size = 470,
+			scale = 0.25,
+		},
+	[1.39] = {
+			type = "sprite",
+			filename = "__PlanetsLib__/graphics/moon/orbit-1.39.png",
+			size = 379,
+			scale = 0.25,
+		},
+	[2.65] = {
+			type = "sprite",
+			filename = "__PlanetsLib__/graphics/moon/orbit-2.65.png",
+			size = 685,
+			scale = 0.25
+		},
+	[3.95] = {
+			type = "sprite",
+			filename = "__PlanetsLib__/graphics/moon/orbit-3.95.png",
+			size = 1025,
+			scale = 0.25
+		}
+}
+
+Public.get_orbit_sprite = function(radius)
+	local orbit_data = sprites[radius]
+	if not orbit_data then
+		local keys = {}
+		for k in pairs(sprites) do
+		keys[#keys+1] = tostring(k)
+		end
+
+		table.sort(keys)
+		local available_orbits = table.concat(keys, ", ")
+
+		error("No planetslib orbit asset is registered for radius "..tostring(radius)". Available radiuses are: "..available_orbits)
+	end
+	return table.deepcopy(orbit_data)
 end
 
 
