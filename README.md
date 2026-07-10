@@ -69,9 +69,9 @@ Please note that the orbit structure does not yet dictate layering of the sprite
 
 Neither `PlanetsLib:extend` nor `PlanetsLib:update` should be called in `data-final-fixes`.
 
-## Orbit graphics
+## Moon orbit graphics
 
-Planetslib ships with a set of built in orbits under `__PlanetsLib__/graphics/orbits/moons`, that are based on what we ended up using in practice. Planetslib will not ship with a graphic for every orbit.
+Planetslib ships with a set of built in orbit sprites for moons under `__PlanetsLib__/graphics/orbits/moons`.
 
 ## Planet tiers
 
