@@ -69,6 +69,10 @@ Please note that the orbit structure does not yet dictate layering of the sprite
 
 Neither `PlanetsLib:extend` nor `PlanetsLib:update` should be called in `data-final-fixes`.
 
+## Moon orbit graphics
+
+Planetslib ships with a set of built in orbit sprites for moons under `__PlanetsLib__/graphics/orbits/moons`.
+
 ## Planet tiers
 
 The companion mod [PlanetsLib: Tiers](https://mods.factorio.com/mod/PlanetsLibTiers) defines 'tier values' for planets and space locations. Tiers have no functionality by themselves, but are a rough indicator where the planet fits in a vanilla-style game of Space Age for the purposes of other mods that wish to use this information.
