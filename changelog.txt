@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.21.0
-Date: ---
+Date: 2026-07-11
+  Bugfixes:
+    - Entity replacement system: Fixed that on an entity ghost being placed by a robot, the entity replacement is reversed. notnotmelon/maraxsis#413
   Changes:
     - Added a few preset graphics for moon orbits.
 ---------------------------------------------------------------------------------------------------
