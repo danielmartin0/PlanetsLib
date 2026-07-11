@@ -279,6 +279,9 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
         if entity_replacements_inverted[name] then
             swap_target = entity_replacements_inverted[name]
             is_inverted = true
+            if entity_replacements[planet][swap_target] then 
+                swap_target = entity_replacements[planet][swap_target].entity
+            end
         else
             swap_target = entity_replacements[planet][name].entity
         end
