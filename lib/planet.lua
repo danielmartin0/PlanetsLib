@@ -285,7 +285,7 @@ end
 --- rocket_part_multiplier: Multiplies the parts required by rocket silos by this value via entity replacements.
 --- rocket_lift_multiplier: Multiplies the lift of rockets launched from rocket silos by this value via entity replacements.
 function Public.set_special_properties(planet,properties)
-	assert(PlanetsLib.stage ~= "data-final-fixes", "PlanetsLib.set_special_properties(planet,properties) - This function must be called before data-final-fixes.")
+	assert(PlanetsLib.current_stage ~= "data-final-fixes", "PlanetsLib.set_special_properties(planet,properties) - This function must be called before data-final-fixes.")
 	local planet_name = type(planet) == "table" and planet.name or planet
 	if not PlanetsLib.constants.planet_special_properties[planet_name] then
 		PlanetsLib.constants.planet_special_properties[planet_name] = table.deepcopy(properties)

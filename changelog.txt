@@ -2,6 +2,7 @@
 Version: 1.21.3
 Date: ???
   Bugfixes:
+    - PlanetsLib.set_special_properties() now throws an error when called during data-final-fixes.
     - Entity variants generated via PlanetsLib.create_planet_entity_variant now have `PlanetsLib_do_not_generate_variants` set to true automatically, preventing rocket silos generated via this function from being targeted by planet special properties.
 ---------------------------------------------------------------------------------------------------
 Version: 1.21.2
