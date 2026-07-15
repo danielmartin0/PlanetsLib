@@ -147,6 +147,7 @@ PlanetsLib allows the addition of "special properties", values which can be disp
 
 ### Hardcoded Special Properties
 PlanetsLib reserves two special property values for runtime scripts set up during data-final-fixes. They are displayed as surface properties in game. If no mods define these properties, they are not displayed.
+
 * `rocket_lift_multiplier(float)` — Multiplies the lift of every rocket silo placed on the planet. Achieved via runtime entity replacements generated during data-final-fixes(See Planet-Exclusive Entity Variants).
 * `rocket_part_multiplier(float)` — Multiplies the rocket parts required of every rocket silo placed on the planet. Achieved via runtime entity replacements generated during data-final-fixes(See Planet-Exclusive Entity Variants).
 
