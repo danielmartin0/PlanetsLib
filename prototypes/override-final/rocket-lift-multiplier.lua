@@ -23,7 +23,7 @@ for _,planet in pairs(data.raw["planet"]) do
             end
 
             if part_multiplier then
-                if not data.raw["surface-property"]["PlanetsLib-lift-weight-multiplier"] then
+                if not data.raw["surface-property"]["PlanetsLib-rocket-part-multiplier"] then
                     data:extend{{
                         name = "PlanetsLib-rocket-part-multiplier",
                         type = "surface-property",

@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.21.2
+Date: 2026-07-15
+  Bugfixes:
+    - Fixed crash on defining "rocket part multiplier" on a planet while defining "rocket lift multiplier".
+---------------------------------------------------------------------------------------------------
 Version: 1.21.1
 Date: 2026-07-11
   Changes:
