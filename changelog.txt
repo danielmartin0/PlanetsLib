@@ -2,6 +2,7 @@
 Version: 1.21.3
 Date: ???
   Bugfixes:
+    - Rocket silo variants with different rocket part counts will also have rocket_parts_storage_cap changed by the same amount if the field is defined. Fixes crash on load with Paracelsin and Lignumis.
     - PlanetsLib.set_special_properties() now throws an error when called during data-final-fixes.
     - Entity variants generated via PlanetsLib.create_planet_entity_variant now have `PlanetsLib_do_not_generate_variants` set to true automatically, preventing rocket silos generated via this function from being targeted by planet special properties.
 ---------------------------------------------------------------------------------------------------
