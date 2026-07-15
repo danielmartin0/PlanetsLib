@@ -48,7 +48,8 @@ for _,planet in pairs(data.raw["planet"]) do
                         silo,
                         {
                             rocket_parts_required = silo.rocket_parts_required*(part_multiplier or 1),
-                            lift_weight = (silo.lift_weight or data.raw['utility-constants'].default_rocket_lift_weight or 1000000)*(lift_multiplier or 1)
+                            lift_weight = (silo.lift_weight or data.raw['utility-constants'].default_rocket_lift_weight or 1000000)*(lift_multiplier or 1),
+                            rocket_parts_storage_cap = silo.rocket_parts_storage_cap and silo.rocket_parts_storage_cap*(part_multiplier or 1) or nil,
                         },
                         "PlanetsLib-enable-runtime-rocket-silo-replacements",
                         silo_item_name
