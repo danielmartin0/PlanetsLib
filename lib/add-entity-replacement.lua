@@ -93,6 +93,7 @@ local function create_planet_entity_variant(planet_names,entity,new_properties,b
     new_entity.flags = new_entity.flags or {}
     rro.soft_insert(new_entity.flags,"not-in-made-in")
     rro.soft_insert(new_entity.flags, "not-in-bonus-gui")
+    new_entity.PlanetsLib_do_not_generate_variants = true
     new_entity = rro.merge(new_entity,new_properties) 
     
     
