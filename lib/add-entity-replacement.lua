@@ -137,11 +137,12 @@ local function create_planet_entity_variant(planet_names,entity,new_properties,b
 end
 
 function Public.create_planet_entity_variant(planet_names,entity,new_properties,bound_setting,item_name)
-    if pcall(create_planet_entity_variant,planet_names,entity,new_properties,bound_setting,item_name) then
+    local call,err = pcall(create_planet_entity_variant,planet_names,entity,new_properties,bound_setting,item_name)
+    if call then
         
     else
         log("entity:"..serpent.block(entity))
-        error("PlanetsLib(): Error while generating entity variant for ".. entity.name .. " on planets " .. serpent.block(planet_names) .. "\n" .. "New properties:" .. serpent.block(new_properties) .. "\n" .. err.code)
+        error("PlanetsLib(): Error while generating entity variant for ".. entity.name .. " on planets " .. serpent.block(planet_names) .. "\n" .. "New properties:" .. serpent.block(new_properties) .. "\n" .. (err.code or err))
     end
 
 end
