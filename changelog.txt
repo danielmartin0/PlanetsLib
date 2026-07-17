@@ -1,8 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.21.4
-Date: ???
+Date: 2026-07-17
   Bugfixes:
     - Fixed error handling when generating entity variants.
+    - Fixed crash on using PlanetsLib.assign_entity_replacement() with a list of planet names.
 ---------------------------------------------------------------------------------------------------
 Version: 1.21.3
 Date: 2026-07-15
