@@ -250,18 +250,13 @@ function Public.replace_entity(entity,new_entity,raise_built)
 
 end
 
+local get_planet = require("lib.entity-replacement-decision-tree.evaluators.planet")
+
 function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on Maraxsis function. Fulfills rule "If entity X placed on planet Y, replace entity with entity Z"
     local entity = event.entity
     --if not entity.valid then return end 
+    local planet = get_planet(entity)
     local surface = entity.surface
-    local planet_object = surface.planet
-    local planet 
-    if planet_object then
-        planet = planet_object.name
-    else
-        planet = "space-platform"
-    end
-    
     --if not entity_replacements[planet] then return end
     
     local is_ghost = entity.name == "entity-ghost"
