@@ -21,6 +21,12 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
     if not PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices[planet_name].choices then 
         PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices[planet_name].choices = {}
     end
+    if type(planet) == "table" and not planet.name then
+        for key,single_planet in pairs(planet) do
+            Public.assign_entity_replacement(single_planet,entity,new_entity,bound_setting)
+        end
+        return
+    end
     if type(entity) == "table" and new_entity == nil then
         for key,value in pairs(entity) do
             Public.assign_entity_replacement(planet_name,key,value.entity,bound_setting)
@@ -64,7 +70,7 @@ local function create_planet_entity_variant(planet_names,entity,new_properties,b
     if item_name == nil and data.raw["item"][entity.name] then
         item_name = entity.name
     end
-    local first_planet_name = (type(planet) == "table" and planet_names[1]) or planet_names
+    local first_planet_name = (type(planet_names) == "table" and planet_names[1]) or planet_names
     -- if not entity.fast_replaceable_group then
     --     entity.fast_replaceable_group = entity.name .. "-PlanetsLib-group"
     -- end
