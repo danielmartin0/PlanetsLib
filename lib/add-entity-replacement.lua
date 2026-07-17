@@ -56,7 +56,7 @@ local function create_planet_entity_variant(planet_names,entity,new_properties,b
     if item_name == nil and data.raw["item"][entity.name] then
         item_name = entity.name
     end
-    local first_planet_name = (type(planet) == "table" and planet_names[1]) or planet_names
+    local first_planet_name = (type(planet_names) == "table" and planet_names[1]) or planet_names
     -- if not entity.fast_replaceable_group then
     --     entity.fast_replaceable_group = entity.name .. "-PlanetsLib-group"
     -- end
@@ -142,7 +142,7 @@ function Public.create_planet_entity_variant(planet_names,entity,new_properties,
         
     else
         log("entity:"..serpent.block(entity))
-        error("PlanetsLib(): Error while generating entity variant for ".. entity.name .. " on planets " .. serpent.block(planet_names) .. "\n" .. "New properties:" .. serpent.block(new_properties) .. "\n" .. (err.code or err))
+        error("PlanetsLib(): Error while generating entity variant for ".. entity.name .. " on planets " .. serpent.block(planet_names) .. "\n" .. "New properties:" .. serpent.block(new_properties) .. "\n" .. serpent.block(err))
     end
 
 end
