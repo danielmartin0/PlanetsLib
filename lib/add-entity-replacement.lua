@@ -12,17 +12,25 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
     if not bound_setting then --Since entity replacements can potentially break saves, every entity replacement must be bound to a startup setting that can be disabled to aid in safe uninstallation.
         bound_setting = "PlanetsLib-enable-entity-replacements"
     end
-    if not PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name] then PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name] = {} end
+    if not PlanetsLib.constants.on_entity_placed_on_planet_replacements.evaluator then PlanetsLib.constants.on_entity_placed_on_planet_replacements.evaluator = "lib.entity-replacement-decision-tree.evaluators.planet" end
+    if not PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices then PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices = {} end
+    if not PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices[planet_name] then PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices[planet_name] = {} end
+    if not PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices[planet_name].evaluator then 
+        PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices[planet_name].evaluator = "lib.entity-replacement-decision-tree.evaluators.name"
+    end
+    if not PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices[planet_name].choices then 
+        PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices[planet_name].choices = {}
+    end
     if type(entity) == "table" and new_entity == nil then
         for key,value in pairs(entity) do
             Public.assign_entity_replacement(planet_name,key,value.entity,bound_setting)
         end
         return
     end
-    if PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet][entity] then
+    if PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices[planet_name].choices[entity] then
         error("PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - Assigning an entity variant of the same entity on the same planet more than once is currently not possible.")
     end
-    PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet][entity] = {old_entity=entity,entity=new_entity,enabled=settings.startup[bound_setting].value}
+    PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices[planet_name].choices[entity] = {old_entity=entity,entity=new_entity,enabled=settings.startup[bound_setting].value}
     
     
     

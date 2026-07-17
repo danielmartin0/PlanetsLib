@@ -2,6 +2,7 @@ local rro = require("lib.remove-replace-object")
 PlanetsLib = {}
 PlanetsLib.events = require("scripts.custom-events")
 PlanetsLib.constants = prototypes.mod_data.Planetslib.data
+rro.deep_replace_field(PlanetsLib.constants.on_entity_placed_on_planet_replacements,"evaluator",function(eval_import) return require(eval_import) end)
 PlanetsLib.objects = require("lib.remove-replace-object")
 local rocket_parts = require("scripts.rocket-parts")
 local unreachable_techs = require("scripts.unreachable-techs")
@@ -37,7 +38,7 @@ script.on_init(function()
 	if cargo_pods then
 		cargo_pods.init_storage()
 	end
-		storage.old_replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements
+		storage.old_replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices
 end)
 
 local function replace_entity(surface,old_entity,new_entity)
@@ -63,7 +64,7 @@ end
 local function migrate_surface(planet_name,surface,planet_rules,replacement_rules)
 	if not storage.old_replacement_rules[planet_name] then storage.old_replacement_rules[planet_name] = {} end
 		for entity_name,entity_table in pairs(planet_rules) do
-			local new_rule = PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name][entity_name]
+			local new_rule = PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices[planet_name][entity_name]
 			if storage.old_replacement_rules[planet_name][entity_name] then 
 				local old_rule = storage.old_replacement_rules[planet_name][entity_name]
 				
@@ -110,7 +111,7 @@ script.on_configuration_changed(function(data)
 		break
 	end
 
-	local replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements
+	local replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices
 	if not storage.old_replacement_rules then storage.old_replacement_rules = {} end
 	
 	if replacement_rules then
@@ -143,13 +144,13 @@ script.on_configuration_changed(function(data)
 	
 end)
 
-local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_replacements
+local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices
 local is_entity_replacements = not PlanetsLib.objects.deep_equals(entity_replacements,{}) --If no mods add entity replacements, disable related event triggers.
 --is_entity_replacements = true
 local on_built_filters = {} --List of entity filters derived from entity_replacements to improve performance on entities not governed by replacement rules.
 local on_built_filters_and_silos = {}
 for planet_name,replacements in pairs(entity_replacements) do
-	for entity,replacement_table in pairs(replacements) do
+	for entity,replacement_table in pairs(replacements.choices) do
 		local replacement = replacement_table.entity
 		table.insert(on_built_filters,{filter = "name", name = entity})
 		table.insert(on_built_filters,{filter = "ghost_name", name = entity})

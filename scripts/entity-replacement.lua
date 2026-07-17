@@ -1,11 +1,14 @@
 local Public = {}
-local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_replacements
+local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_replacements.choices
 local entity_replacements_inverted = {}
 
 for planet,planet_table in pairs(entity_replacements) do
     --entity_replacements_inverted = {}
-    for key,value in pairs(planet_table) do
+    for key,value in pairs(planet_table.choices) do
+       
         entity_replacements_inverted[value.entity] = key
+        
+        
     end
 end
 
@@ -250,8 +253,21 @@ function Public.replace_entity(entity,new_entity,raise_built)
 
 end
 
-local get_planet = require("lib.entity-replacement-decision-tree.evaluators.planet")
+local function get_swap_target(entity,replacement_rules)
+    if replacement_rules.evaluator then
+        local evaluation = replacement_rules.evaluator(entity)
+        local choice = replacement_rules.choices[evaluation]
+        if choice.entity then
+            return choice.entity
+        end
+        if choice and choice.evaluator and choice.choices then
+            return get_swap_target(entity,choice)
+        end
+        error("Failed to find choice from evaluation '"..evaluation.."' from choices " .. serpent.block(replacement_rules.choices))
+    end
+end
 
+local get_planet = PlanetsLib.constants.on_entity_placed_on_planet_replacements.evaluator
 function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on Maraxsis function. Fulfills rule "If entity X placed on planet Y, replace entity with entity Z"
     local entity = event.entity
     --if not entity.valid then return end 
@@ -264,7 +280,7 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
 
     if not ((entity_replacements_inverted and entity_replacements_inverted[name]) or (entity_replacements[planet] and entity_replacements[planet][name]))  then return end
     
-    print(is_ghost)
+    
     
     local is_space = not not surface.platform
     local swap_target = swap_target or nil
@@ -278,13 +294,13 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
                 swap_target = entity_replacements[planet][swap_target].entity
             end
         else
-            swap_target = entity_replacements[planet][name].entity
+            swap_target = get_swap_target(entity,entity_replacements)
         end
     end
     print(swap_target)
     print(name)
     if swap_target == name then return end
-    if entity_replacements and entity_replacements[planet] and entity_replacements[planet][name] and entity_replacements[planet][name].enabled == false then return end 
+    if entity_replacements and entity_replacements[planet] and entity_replacements[planet].choices[name] and entity_replacements[planet].choices[name].enabled == false then return end 
         
     print("Replacing entity " .. entity.name .. " with " .. swap_target)
     Public.replace_entity(entity,swap_target,true)

@@ -123,6 +123,27 @@ function rro.replace_field(list,field,name,new_name)
     end
 end
 
+---Searches a list for all items where `item[field] == name`, and replaces `name` with `new_name`.
+function rro.deep_replace_field(list,field,replacementObject) 
+    if gsub == nil then gsub = false end
+    if list then
+        for i,item in pairs(list) do -- Can also be a dictionary
+            if i == field then
+                if type(replacementObject) == "function" then
+                    list[i] = replacementObject(list[i])
+                elseif replacementObject ~= nil and not rro.contains(list,replacementObject) then
+                    list[i] = replacementObject -- Replace the object
+                else
+                    list[i] = nil -- Remove the object if no replacement is provided
+                end
+                --break -- Don't exit the loop after replacing or removing
+            elseif type(list[i]) == "table" then
+                rro.deep_replace_field(list[i],field, replacementObject)
+            end
+        end
+    end
+end
+
 
 function rro.cut_paste_items(list_from,list_to,objectToMove) 
     if list_from then
