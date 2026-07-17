@@ -12,7 +12,16 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
     if not bound_setting then --Since entity replacements can potentially break saves, every entity replacement must be bound to a startup setting that can be disabled to aid in safe uninstallation.
         bound_setting = "PlanetsLib-enable-entity-replacements"
     end
+
     if not PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name] then PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name] = {} end
+
+    if type(planet) == "table" and not planet.name then
+        for key,single_planet in pairs(planet) do
+            Public.assign_entity_replacement(single_planet,entity,new_entity,bound_setting)
+        end
+        return
+    end
+
     if type(entity) == "table" and new_entity == nil then
         for key,value in pairs(entity) do
             Public.assign_entity_replacement(planet_name,key,value.entity,bound_setting)
