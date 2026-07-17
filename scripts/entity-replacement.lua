@@ -185,7 +185,7 @@ end
 
 
 --Replaces one entity with another, called both on building a new_entity(Or a fast replacement) and on entity migrations.
-function Public.replace_entity(entity,new_entity,raise_built)
+function Public.replace_entity(entity,new_entity,raise_built,overridden_properties)
     if not storage.replaced_entities then storage.replaced_entities = {} end
     if storage.replaced_entities[entity.unit_number] then return end --To stop infinite recursion
     local is_ghost = entity.name == "entity-ghost"
@@ -205,6 +205,9 @@ function Public.replace_entity(entity,new_entity,raise_built)
         mirror = entity.mirroring,
         --fast_replace = true
     }
+    if overridden_properties then
+        new_entity_properties = PlanetsLib.rro.merge(new_entity_properties,overridden_properties)
+    end
     --if not surface.can_place_entity{new_entity_properties} then return end
     local new_entity = entity.surface.create_entity(new_entity_properties)
     if not new_entity or not new_entity.valid then return end

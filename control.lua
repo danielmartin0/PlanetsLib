@@ -6,6 +6,7 @@ PlanetsLib.objects = require("lib.remove-replace-object")
 local rocket_parts = require("scripts.rocket-parts")
 local unreachable_techs = require("scripts.unreachable-techs")
 local entity_replacement = require("scripts.entity-replacement")
+PlanetsLib.replace_entity=entity_replacement.replace_entity
 -- By convention, please register event handlers in this file rather than the scripts directory, to help avoid collisions
 
 local cargo_pods

@@ -138,6 +138,10 @@ If you have a script-augmented entity and a PlanetsLib entity replacement target
     * `entity(LuaEntity)`: The entity about to be deleted.
     * `new_entity(LuaEntity)`: The entity that has had `entity`'s settings and inventory transferred to. 
 
+## Using the entity replacer for other purposes
+
+* `PlanetsLib.replace_entity(entity(LuaEntity),new_entity(name),raise_built(optional,boolean),overridden_properties(optional,table))` — Called in control. Replaces a LuaEntity with newly created entity with name "new_entity." Any property in the new entity's `create_entity` call can be modified with `overridden_properties`.
+
 ## Planet Special Properties
 PlanetsLib allows the addition of "special properties", values which can be displayed as surface properties, but are not intended to be used as surface properties. These properties are used during data-final-fixes and in control scripts to execute certain behavior.
 
