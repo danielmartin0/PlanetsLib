@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.22.0
+Date: 2026-07-19
+  Features:
+    - Added PlanetsLib.constants.space_platform_hub_receiving_cargo_units, a global table that overrides the default list of cargo pods that vanilla space platform hubs can receive.
+---------------------------------------------------------------------------------------------------
 Version: 1.21.4
 Date: 2026-07-17
   Bugfixes:

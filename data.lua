@@ -15,6 +15,7 @@ data:extend({
 					item_names = {},
 				},
 			},
+			space_platform_hub_receiving_cargo_units = {"cargo-pod"}, --see __PlanetsLib__.prototypes.vanilla-override.cargo-hatch
 			on_entity_placed_on_planet_replacements = {
 				--["planet-name"] = {
 				-- ["entity-to-replace"] = "new-entity"
@@ -46,6 +47,7 @@ PlanetsLib.constants = data.raw["mod-data"].Planetslib.data
 require("api")
 PlanetsLib.check_global_variables()
 require("prototypes.vanilla-override.recipe-productivity-technology")
+require("prototypes.vanilla-override.cargo-hatch")
 
 require("prototypes.mod-data")
 

@@ -32,6 +32,8 @@ The primary intent of PlanetsLib is to be a library which provides opt-in functi
 * Centrifuge entity improvements
     * This entity is given an input and an output fluidbox (or two of each if the mod setting `PlanetsLib-enable-additional-centrifuge-fluidboxes` is enabled).
     * Also, the graphics of the working glow are improved so that it naturally glows different colors depending on the recipe.
+* Space platform hub improvements
+    * The list of cargo pods that can be accepted by the vanilla space platform hub can be modifying by modifying `PlanetsLib.constants.space_platform_hub_receiving_cargo_units`. The global functions `platform_upper_hatch` and `platform_lower_hatch` added by base Space Age are overridden and modified by PlanetsLib to reference mod-data tables from PlanetsLib.
 * Space tile without the ability to cover it
     * A space tile that can be used around limited surfaces floating in space, as it can not be covered in space platform tiles. Modders, enable it with the `PlanetsLib-enable-blocking-empty-space-tile` setting. The name of the tile is `planetslib-empty-space`, all localization is set to match the regular `empty-space` tile from space age.
 # Notes for contributors
