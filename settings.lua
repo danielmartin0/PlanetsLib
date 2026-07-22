@@ -121,5 +121,13 @@ data:extend({
 		forced_value = false,
 		default_value = false,
 		hidden = true,
+	},
+	{
+		type = "bool-setting",
+		setting_type = "startup",
+		name = "PlanetsLib-enable-on-rocket-part-crafted-event",
+		forced_value = false,
+		default_value = false,
+		hidden = true,
 	}
 })
