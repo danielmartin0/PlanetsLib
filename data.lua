@@ -35,7 +35,8 @@ data:extend({
 			},
 			planet_special_properties = { --Place to store arbitrary planet properties to avoid a proliferation of new mod-data objects.
 				--[planet name] = table {incl. rocket_lift_multiplier}
-			}
+			},
+			recipe_on_craft_event_handles = {},
 		},
 	},
 })

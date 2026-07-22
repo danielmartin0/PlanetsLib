@@ -188,5 +188,27 @@ if is_entity_replacements then
 	--script.on_event(defines.events.on_player_setup_blueprint,entity_replacement.blueprint_standardize)
 end
 
+--On_crafted recipe handlers, the engine behind on_rocket_part_crafted
+for recipe_name,handle_table in pairs(PlanetsLib.constants.recipe_on_craft_event_handles) do
+	local recipe = prototypes.recipe[recipe_name]
+	local event_names = handle_table.raised_events_on_craft
+	assert(recipe.on_crafted_event,"Recipe on_crafted event handlers, but does not properly raise the events.")
+	
+		script.on_event(recipe.on_crafted_event,function(event)
+			for _,event_name in pairs(event_names) do
+				script.raise_event(event_name,event)
+			end
+			
+		
+		end)
+	
+end
+
+
+
+
 
 if script.active_mods["gvv"] then require("__gvv__.gvv")() end --gvv enables debugging of storage values with a GUI
+
+
+	
