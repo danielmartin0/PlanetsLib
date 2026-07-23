@@ -13,10 +13,24 @@ function Public.assign_rocket_part_recipe(planet, recipe, lock_silo)
 	else
 		recipe_name = recipe
 	end
-	data.raw["mod-data"]["Planetslib-planet-rocket-part-recipe"].data[planet_name] = recipe_name
-	if recipe_name ~= "_other" then
-		data.raw["mod-data"]["Planetslib-planet-lock-rocket-silos"].data[planet_name] = lock_silo or true
+	local recipe_obj = data.raw["recipe"][recipe_name]
+	if recipe_obj then
+		if data.raw["planet"][planet_name] and not recipe_obj.PlanetsLib_exclusive_to then --If only one planet uses this rocket part recipe, give it a surface condition restricting it.
+			PlanetsLib.restrict_to_planet(recipe_obj, planet_name)
+			recipe_obj.PlanetsLib_rocket_part_exclusive_to = planet_name
+		else
+			if recipe_obj.PlanetsLib_rocket_part_exclusive_to then --If more than one planet is assigned to this recipe, remove the planet restriction
+				PlanetsLib.remove_surface_condition(recipe_obj, "PlanetsLib-is-"..recipe_obj.PlanetsLib_rocket_part_exclusive_to)
+			end
+			
+			--PlanetsLib.relax_surface_conditions(recipe_obj,{property = ,min=0,max=1})
+		end
 	end
+	local planets = {planet_name}
+			data.raw["mod-data"]["Planetslib-planet-lock-rocket-silos"].data[planet_name] = lock_silo or true
+		end
+	end
+	
 	
 end
 

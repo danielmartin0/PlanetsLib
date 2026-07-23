@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.22.1
+Date: 2026-07-23
+  Changes:
+    - Added additional checks to PlanetsLib.assign_rocket_part_recipe to reduce the chance of rocket part recipes being craftable in places they shouldn't be crafted. If a rocket part recipe is ever assigned exactly once to a planet, it will be automatically given a hidden surface condtition restricting it to that planet. If more than one planet assigns the same rocket part recipe to itself, this hidden restriction is removed and not reapplied.
+---------------------------------------------------------------------------------------------------
 Version: 1.22.0
 Date: 2026-07-19
   Features:
