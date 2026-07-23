@@ -27,6 +27,9 @@ function Public.assign_rocket_part_recipe(planet, recipe, lock_silo)
 		end
 	end
 	local planets = {planet_name}
+	for _,planet in pairs(planets) do
+		data.raw["mod-data"]["Planetslib-planet-rocket-part-recipe"].data[planet_name] = recipe_name
+		if recipe_name ~= "_other" then
 			data.raw["mod-data"]["Planetslib-planet-lock-rocket-silos"].data[planet_name] = lock_silo or true
 		end
 	end
