@@ -319,31 +319,31 @@ end
 local sprites = {
 	[1.5] =  {
 			type = "sprite",
-			filename = "__PlanetsLib__/graphics/moon/orbit-1.5.png",
+			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-1.5.png",
 			size = 412,
           	scale = 0.25
 		},
 	[1.8] = {
 			type = "sprite",
-			filename = "__PlanetsLib__/graphics/moon/orbit-1.8.png",
+			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-1.8.png",
 			size = 470,
 			scale = 0.25,
 		},
 	[1.39] = {
 			type = "sprite",
-			filename = "__PlanetsLib__/graphics/moon/orbit-1.39.png",
+			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-1.39.png",
 			size = 379,
 			scale = 0.25,
 		},
 	[2.65] = {
 			type = "sprite",
-			filename = "__PlanetsLib__/graphics/moon/orbit-2.65.png",
+			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-2.65.png",
 			size = 685,
 			scale = 0.25
 		},
 	[3.95] = {
 			type = "sprite",
-			filename = "__PlanetsLib__/graphics/moon/orbit-3.95.png",
+			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-3.95.png",
 			size = 1025,
 			scale = 0.25
 		}
