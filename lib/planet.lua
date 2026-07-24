@@ -317,6 +317,12 @@ function Public.get_special_properties(planet)
 end
 
 local sprites = {
+	[1.39] = {
+			type = "sprite",
+			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-1.39.png",
+			size = 379,
+			scale = 0.25,
+		},
 	[1.5] =  {
 			type = "sprite",
 			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-1.5.png",
@@ -327,12 +333,6 @@ local sprites = {
 			type = "sprite",
 			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-1.8.png",
 			size = 470,
-			scale = 0.25,
-		},
-	[1.39] = {
-			type = "sprite",
-			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-1.39.png",
-			size = 379,
 			scale = 0.25,
 		},
 	[2.65] = {
