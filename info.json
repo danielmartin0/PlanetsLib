@@ -16,6 +16,6 @@
     "! MT-lib"
   ],
   "package": {
-    "ignore": ["**/*.bat"]
+    "ignore": ["**/*.bat","**/*.py","**/*.sh","**/*.exe","**/*.ps1"]
   }
 }
