@@ -270,7 +270,7 @@ Planetslib includes functions to generate certain kinds of achievements.
 
 #### Python helper scripts
 
-PlanetsLib includes standalone Python scripts for generating graphics. We recommend using [uv](https://docs.astral.sh/uv/) to run these scripts, as it automatically handles Python and dependency installation.
+PlanetsLib's Github repo includes standalone Python scripts for generating graphics. These scripts are not included with mod portal releases of PlanetsLib to comply with Wube policies against bundling executable files with mods. We recommend using [uv](https://docs.astral.sh/uv/) to run these scripts, as it automatically handles Python and dependency installation.
 
 * `helper_scripts/generate_orbit_graphics.py` — Generates orbit sprites for planets. The script takes three arguments: `distance` (the orbital distance from the parent), `planet_name`, and `mod_name`. After generating your sprite, the script will print a block of Lua code that imports your sprite with proper scaling. Orbit sprites should be scaled at 0.25 to ensure that no pixels are visible on 4K monitors.
 
