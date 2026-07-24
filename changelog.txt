@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.22.2
+Date: 2026-07-23
+  Bugfixes:
+    - Fixed get_orbit_sprite function using incorrect folder names.
+    - Fixed get_orbit_sprite function not being publicly available, added via PlanetsLib.get_orbit_sprite(radius).
+---------------------------------------------------------------------------------------------------
 Version: 1.22.1
 Date: 2026-07-23
   Changes:
