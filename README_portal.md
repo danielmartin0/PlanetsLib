@@ -9,7 +9,7 @@ Since other mods make use of the 'orbit structure' this mod provides to the sola
 
 We aim to *never make any breaking API changes* such that the library is safe to use. We sometimes deprecate APIs by removing them from the documentation, but they stay functional.
 
-# [Documentation](https://github.com/danielmartin0/PlanetsLib.README.md)
+# [Documentation](https://github.com/danielmartin0/PlanetsLib/blob/main/README.md)
 
 # Contributors
 
