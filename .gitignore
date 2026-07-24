@@ -4,4 +4,3 @@ prepublish.js
 *.pyc
 .venv
 .idea
-*.sh
