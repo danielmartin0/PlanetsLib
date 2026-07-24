@@ -25,7 +25,10 @@ config.ld export-ignore
 .venv export-ignore
 *.bat export-ignore
 # .bat files are ignored in releases because they are forbidden on the Factorio portal. Sh files are included because they are not banned by the portal
+*.py export-ignore
 *.exe export-ignore
-*.sh
+*.bat export-ignore
+*.ps1 export-ignore
+*.sh export-ignore
 
 
