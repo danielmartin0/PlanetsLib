@@ -316,45 +316,29 @@ function Public.get_special_properties(planet)
 	return PlanetsLib.constants.planet_special_properties[planet_name]
 end
 
-local orbit_sprites = {
-	[1.39] = {
-			type = "sprite",
-			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-1.39.png",
-			size = 379,
-			scale = 0.25,
-		},
-	[1.5] =  {
-			type = "sprite",
-			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-1.5.png",
-			size = 412,
-          	scale = 0.25
-		},
-	[1.8] = {
-			type = "sprite",
-			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-1.8.png",
-			size = 470,
-			scale = 0.25,
-		},
-	[2.65] = {
-			type = "sprite",
-			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-2.65.png",
-			size = 685,
-			scale = 0.25
-		},
-	[3.95] = {
-			type = "sprite",
-			filename = "__PlanetsLib__/graphics/orbits/moons/orbit-3.95.png",
-			size = 1025,
-			scale = 0.25
-		}
-}
+local function sorted_keys(tbl)
+    local keys = {}
+
+    for k in pairs(tbl) do
+        keys[#keys + 1] = k
+    end
+
+    table.sort(keys)
+
+    return keys
+end
+
+
 local radius_scaling_limit=1.25 --How much a sprite can be acceptably scaled by
 Public.get_orbit_sprite = function(radius)
+	PlanetsLib.constants.orbit_sprites = PlanetsLib.constants.orbit_sprites
+	local orbit_sprites = PlanetsLib.constants.orbit_sprites
 	local orbit_data = orbit_sprites[radius]
 	if not orbit_data then --If specific orbit sprite does not exist for radius, interpolate from the best fit.
 		local prev_radius 
 		local picked_radius
-		for key_radius,sprite in pairs(orbit_sprites) do
+		for i,key_radius in pairs(sorted_keys( orbit_sprites)) do
+			local sprite =  orbit_sprites
 			if not prev_radius then prev_radius = key_radius  end
 			if key_radius > radius then
 				if key_radius - radius > radius - prev_radius then
