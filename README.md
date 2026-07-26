@@ -73,8 +73,8 @@ Neither `PlanetsLib:extend` nor `PlanetsLib:update` should be called in `data-fi
 
 ## Moon orbit graphics
 
-Planetslib ships with a set of built in orbit sprites for moons under `__PlanetsLib__/graphics/orbits/moons`.
-You can access the orbit settings you need for these sprites by calling `Public.get_orbit_sprite(radius)`. The radiuses are fixed, PlanetsLib will throw an error listing available orbits if an invalid radius is provided.
+Planetslib ships with a set of built in orbit sprites for moons under `__PlanetsLib__/graphics/orbits/moons`, made available as global table `PlanetsLib.constants.orbit_sprites`. Other mods can add new sprites to this table, with no care necessary for how they are sorted.
+You can access the orbit settings you need for these sprites by calling `PlanetsLib.get_orbit_sprite(radius)`. The radii are fixed. : 1.39, 1.5, 1.8, 2.65, and 3.95. While not recommended, if a radius is passed to the function that a sprite is not available for, an orbit sprite most appropriate for the provided radius will be returned with scaling appropriate for the radius. Any radius between 66% and 150% of the listed radii will be accepted. 
 
 NOT every possible distance will be available, the sprites need to be generated beforehand. This is added because in practice we know that you only need a default orbit that you can use to make the moon look nice. Clashes can be resolved later, and that works well enough when put into practice.
 
@@ -268,9 +268,23 @@ Planetslib includes functions to generate certain kinds of achievements.
 
 * `__PlanetsLib__/graphics/icons/research-progress-product.png` — an iconographic science pack icon intended for items used exclusively as ResearchProgressProducts, since mods using a common icon might help players understand the mechanic.
 
+#### Python helper scripts
+
+PlanetsLib's Github repo includes standalone Python scripts for generating graphics. These scripts are not included with mod portal releases of PlanetsLib to comply with Wube policies against bundling executable files with mods. We recommend using [uv](https://docs.astral.sh/uv/) to run these scripts, as it automatically handles Python and dependency installation.
+
+* `helper_scripts/generate_orbit_graphics.py` — Generates orbit sprites for planets. The script takes three arguments: `distance` (the orbital distance from the parent), `planet_name`, and `mod_name`. After generating your sprite, the script will print a block of Lua code that imports your sprite with proper scaling. Orbit sprites should be scaled at 0.25 to ensure that no pixels are visible on 4K monitors.
+
+    Example: `uv run helper_scripts/generate_orbit_graphics.py 1.6 muluna planet-muluna`
+
+    If the generated image were to have a higher resolution than what Factorio can support (4096x4096), then image quality will be sacrificed for it by increasing the scale. Orbits above 100 start to break as the tool can no longer generate with the default line thickness. Above 200, the orbit becomes a 1 pixel thick line, so orbits will appear thicker than they should be.
+
+* `helper_scripts/generate_visit_planet_achievement.py` — Generates images for "Visit [planet]" achievements. When provided an image of a planet, it automatically scales, crops and composes it into a ready to use achievement graphic. The script uses resource files (background, overlay, frame masks) that are bundled with PlanetsLib in the `helper_scripts/` directory.
+
+    Example: `uv run helper_scripts/generate_visit_planet_achievement.py planet-icon.png`
+
 # Contributors
 
-[thesixthroc](https://mods.factorio.com/user/thesixthroc), [MeteorSwarm](https://mods.factorio.com/user/MeteorSwarm), [Midnighttigger](https://mods.factorio.com/user/Midnighttigger), [Tserup](https://mods.factorio.com/user/Tserup), [notnotmelon](https://mods.factorio.com/user/notnotmelon), [Frontrider](https://mods.factorio.com/user/Frontrider), Zwvei, [allisonlastname](https://mods.factorio.com/user/allisonlastname), Hoochie63, [SirPuck](https://mods.factorio.com/user/SirPuck), [Osmo](https://mods.factorio.com/user/O5MO), [Thremtopod](https://mods.factorio.com/user/thremtopod).
+[thesixthroc](https://mods.factorio.com/user/thesixthroc), [MeteorSwarm](https://mods.factorio.com/user/MeteorSwarm), [Midnighttigger](https://mods.factorio.com/user/Midnighttigger), [Tserup](https://mods.factorio.com/user/Tserup), [notnotmelon](https://mods.factorio.com/user/notnotmelon), [Frontrider](https://mods.factorio.com/user/Frontrider), Zwvei, [allisonlastname](https://mods.factorio.com/user/allisonlastname), Hoochie63, [SirPuck](https://mods.factorio.com/user/SirPuck), [Osmo](https://mods.factorio.com/user/O5MO), [Thremtopod](https://mods.factorio.com/user/thremtopod), [Kryzeth](https://mods.factorio.com/user/Kryzeth).
 
 
 [![Discord](https://img.shields.io/discord/1309620686347702372?style=for-the-badge&logoColor=bf6434&label=The%20Foundry&labelColor=222222&color=bf6434)](https://foundrygg.com)

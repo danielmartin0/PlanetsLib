@@ -48,6 +48,8 @@ PlanetsLib.set_special_properties = planet.set_special_properties
 PlanetsLib.get_special_property = planet.get_special_property
 PlanetsLib.get_special_properties = planet.get_special_properties
 
+PlanetsLib.get_orbit_sprite = planet.get_orbit_sprite
+
 --- Clones music tracks from source_planet to target_planet.
 --- Does not overwrite existing music for target_planet.
 --- Options specified in `options`:
