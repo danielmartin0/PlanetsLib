@@ -3,6 +3,7 @@ PlanetsLib = {}
 PlanetsLib.events = require("scripts.custom-events")
 PlanetsLib.constants = prototypes.mod_data.Planetslib.data
 PlanetsLib.objects = require("lib.remove-replace-object")
+PlanetsLib.stage = "runtime"
 local rocket_parts = require("scripts.rocket-parts")
 local unreachable_techs = require("scripts.unreachable-techs")
 local entity_replacement = require("scripts.entity-replacement")
