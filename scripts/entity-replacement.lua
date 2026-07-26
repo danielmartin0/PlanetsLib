@@ -194,6 +194,8 @@ function Public.replace_entity(entity,new_entity,raise_built)
     local is_ghost = entity.name == "entity-ghost"
     local name = new_entity
     local player = entity.last_user
+    game.print(is_ghost)
+    
     local new_entity_properties = {
         name = is_ghost and "entity-ghost" or name,
         inner_name = is_ghost and name or nil,
@@ -208,6 +210,7 @@ function Public.replace_entity(entity,new_entity,raise_built)
         mirror = entity.mirroring,
         --fast_replace = true
     }
+    game.print(serpent.block(new_entity_properties))
     --if not surface.can_place_entity{new_entity_properties} then return end
     local new_entity = entity.surface.create_entity(new_entity_properties)
     if not new_entity or not new_entity.valid then return end
