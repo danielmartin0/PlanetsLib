@@ -1,3 +1,4 @@
+local rro = require("lib.remove-replace-object")
 local Public = {}
 local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_replacements
 local entity_replacements_inverted = {}
@@ -208,7 +209,14 @@ function Public.replace_entity(entity,new_entity,raise_built)
         mirror = entity.mirroring,
         --fast_replace = true
     }
+    --game.print(entity.ghost_type)
     --if not surface.can_place_entity{new_entity_properties} then return end
+    if is_ghost and rro.contains({"spider-vehicle","car"},entity.ghost_type) then
+        game.print("[PlanetsLib] Error: Can not currently place car or spider vehicle entity ghosts on planets with vehicle entity replacement rules. https://tinyurl.com/factorio-car-ghost")
+        log("[PlanetsLib] Error: Can not currently place car or spider vehicle entity ghosts on planets with vehicle entity replacement rules. https://tinyurl.com/factorio-car-ghost")
+        entity.destroy()
+        return 
+    end
     local new_entity = entity.surface.create_entity(new_entity_properties)
     if not new_entity or not new_entity.valid then return end
     
