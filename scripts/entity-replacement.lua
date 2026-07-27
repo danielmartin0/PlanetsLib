@@ -167,6 +167,33 @@ function Public.transfer_all_inventories(entity,new_entity)
     end
 end
 
+function Public.get_grid_contents(entity)
+    local grid = entity.grid
+    if grid then 
+        local equipment = grid.equipment 
+        local equipment_info = {}
+        for _,item in pairs(equipment) do
+            local is_ghost = item.name == "equipment-ghost" 
+            table.insert(equipment_info,{
+                name=is_ghost and item.ghost_name or item.name,
+                quality=item.quality.name,
+                position = item.position,
+                ghost = is_ghost})
+        end
+        return equipment_info
+    end
+end
+
+function Public.transfer_grid_contents(entity,new_entity)
+    local old_grid = Public.get_grid_contents(entity)
+    if old_grid then
+        for _,item in pairs(old_grid) do
+            new_entity.grid.put{name=item.name,quality = item.quality, position = item.position, ghost = item.is_ghost}
+        end
+        
+    end
+
+end
 --Transfers every single entity state, such that the new_entity is the same as the old entity. If a single property is not properly transferred, that is a bug. Exclusions include properties that are destroyed upon fast replaces.
 function Public.transfer_entity_state(entity,new_entity)
     new_entity.copy_settings(entity)
@@ -185,6 +212,7 @@ function Public.transfer_entity_state(entity,new_entity)
     Public.transfer_all_inventories(entity,new_entity)
     Public.copy_wire_connections(entity, new_entity)
     Public.transfer_fluidboxes(entity, new_entity, true)
+    Public.transfer_grid_contents(entity,new_entity)
 end
 
 
