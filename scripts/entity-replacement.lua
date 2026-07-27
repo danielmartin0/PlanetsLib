@@ -404,10 +404,21 @@ function Public.replace_entity(entity,new_entity,raise_built)
     if is_train then
         local surface = entity.surface
         local rolling_stock_info = Public.get_info_rolling_stock(entity)
-        entity.destroy()
-        local new_entity = surface.create_entity(new_entity_properties)
+        
+        local new_entity
+        if rolling_stock_info.train.front_stock or rolling_stock_info.train.back_stock then
+            entity.order_upgrade{target=new_entity_properties,force=entity.force}
+            new_entity = entity.apply_upgrade()
+        else
+            entity.destroy()
+            new_entity = surface.create_entity(new_entity_properties)
+            Public.copy_info_to_new_rolling_stock(new_entity,rolling_stock_info)
+        end
+        
+        
+        --local new_entity = surface.create_entity(new_entity_properties)
 
-        Public.copy_info_to_new_rolling_stock(new_entity,rolling_stock_info)
+        
 
         if raise_built == true then
             script.raise_script_built{entity=new_entity}
