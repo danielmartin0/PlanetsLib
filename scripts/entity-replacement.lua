@@ -194,6 +194,146 @@ function Public.transfer_grid_contents(entity,new_entity)
     end
 
 end
+
+
+--Get inventories from entity, used for rolling stock to hold inventory contents while the two rolling stock are not allowed to coexist.
+function Public.get_all_inventories_rolling_stock(entity)
+    returned_inventories = {}
+    for _,inventory_type in pairs(defines.inventory) do
+        local inventory = entity.get_inventory(inventory_type)
+        
+        if inventory then
+            returned_inventories[inventory_type] = inventory.get_contents()
+
+            
+        end
+        
+        
+        
+    end
+    return returned_inventories
+end
+
+
+
+
+--Get fields from entity, used for rolling stock to hold inventory contents while the two rolling stock are not allowed to coexist.
+function Public.get_all_fields_rolling_stock(entity)
+    local returned_fields = {}
+    for _,field in pairs(fields_to_transfer) do
+        local field_value = get_field(entity,field)
+        --local inventory = entity.get_inventory(inventory_type)
+        if field_value then
+            returned_fields[field] = inventory.get_contents()  
+        end
+    end
+    return returned_fields
+end
+
+local train_fields = {
+    manual_mode = true,
+    speed = 0,
+    schedule = nil,
+    group = nil,
+}
+
+function Public.get_train_info(entity)
+    local train = entity.train
+    local info = {}
+    info.carriages = entity.train.carriages
+    local front_stock
+    local back_stock
+    local collect_next_stock = false
+
+    for _,stock in pairs(info.carriages) do
+        if collect_next_stock then
+            front_stock = stock
+            break
+        end
+        if stock == entity then
+            collect_next_stock = true
+            last_stock = stock
+        end
+        
+    end
+    info.front_stock = front_stock
+    info.back_stock = back_stock
+    info.fields = {}
+    info.train = train
+    for field,value in pairs(train_fields) do
+        info.fields[field] = train[field]
+    end
+    return info
+end
+
+--Returns all information from entity that will be transferred to the replacement entity after this entity is deleted. Used for rolling stock.
+function Public.get_info_rolling_stock(entity)
+    local info = {}
+    info.fields = Public.get_all_fields_rolling_stock(entity)
+    info.inventories = Public.get_all_inventories_rolling_stock(entity)
+    if entity.type == "fluid-wagon" then
+        info.fluid = entity.get_fluid(1)
+    end
+    
+    info.train = Public.get_train_info(entity)
+    info.grid = Public.get_grid_contents(entity)
+    return info
+end
+
+function Public.copy_info_to_new_rolling_stock(new_entity,info)
+    for field,value in pairs(info.fields) do
+        new_entity[field] = value
+    end
+    for inventory_type,inventory_contents in pairs(info.inventories) do
+        local inventory =  new_entity.get_inventory(inventory_type)
+        if inventory then
+            for _,stack in pairs(inventory_contents) do
+                inventory.insert(stack)
+            end
+        else
+            for _,stack in pairs(inventory_contents) do
+                local items = new_entity.surface.spill_item_stack {
+                        position = entity.position,
+                        stack = stack,
+                        enable_looted = true,
+                        force = entity.force_index,
+                        allow_belts = false
+                    }
+            
+                if new_entity.force then
+                    for _,item in pairs(items) do
+                        item.order_deconstruction(entity.force)
+                    end
+                end
+            end
+        end
+        
+    end
+    if info.fluid then
+        new_entity.set_fluid(1, info.fluid)
+    end
+    if info.train then
+        if info.train.back_stock then
+            new_entity.connect_rolling_stock(defines.rail_direction.back)
+        end
+        if info.train.front_stock then
+            new_entity.connect_rolling_stock(defines.rail_direction.front)
+        end
+        if not info.train.back_stock or info.train.front_stock then
+            for field,value in pairs(info.train.fields) do
+                new_entity.train[field] = value
+            end
+            
+        end
+    end
+    if info.grid then
+        for _,item in pairs(info.grid) do
+            new_entity.grid.put{name=item.name,quality = item.quality, position = item.position, ghost = item.is_ghost}
+        end
+    end
+
+end
+
 --Transfers every single entity state, such that the new_entity is the same as the old entity. If a single property is not properly transferred, that is a bug. Exclusions include properties that are destroyed upon fast replaces.
 function Public.transfer_entity_state(entity,new_entity)
     new_entity.copy_settings(entity)
@@ -245,45 +385,61 @@ function Public.replace_entity(entity,new_entity,raise_built)
     --     entity.destroy()
     --     return 
     -- end
-    local new_entity = entity.surface.create_entity(new_entity_properties)
-    if not new_entity or not new_entity.valid then return end
-    
-    Public.transfer_entity_state(entity,new_entity)
-    
-    
-    
-    --if not entity or not entity.valid then return end
-    --new_entity.mirroring = entity.mirroring
-   
+    local is_train = entity.train
+    if is_train then
+        local surface = entity.surface
+        local rolling_stock_info = Public.get_info_rolling_stock(entity)
+        entity.destroy()
+        local new_entity = surface.create_entity(new_entity_properties)
 
-    if not is_ghost and entity.get_module_inventory() then
-        local modules = entity.get_module_inventory().get_contents()
-        for _, item in pairs(modules) do
-            local inserted_count = new_entity.insert(item)
-            if inserted_count < item.count then
-                item.count = item.count - inserted_count
-                entity.surface.spill_item_stack {
-                    position = entity.position,
-                    stack = item,
-                    enable_looted = true,
-                    force = entity.force_index,
-                    allow_belts = false
-                }
+        Public.copy_info_to_new_rolling_stock(new_entity,rolling_stock_info)
+
+        if raise_built == true then
+            script.raise_script_built{entity=new_entity}
+        end
+        script.raise_event("PlanetsLib-on-entity-replaced", {
+            entity = entity,
+            new_entity = new_entity,
+        })
+        --Public.transfer_entity_state(entity,new_entity)
+    else
+        local new_entity = entity.surface.create_entity(new_entity_properties)
+        if not new_entity or not new_entity.valid then return end
+        
+        Public.transfer_entity_state(entity,new_entity)
+        
+        if not is_ghost and entity.get_module_inventory() then
+            local modules = entity.get_module_inventory().get_contents()
+            for _, item in pairs(modules) do
+                local inserted_count = new_entity.insert(item)
+                if inserted_count < item.count then
+                    item.count = item.count - inserted_count
+                    entity.surface.spill_item_stack {
+                        position = entity.position,
+                        stack = item,
+                        enable_looted = true,
+                        force = entity.force_index,
+                        allow_belts = false
+                    }
+                end
             end
         end
+        new_entity.last_user = entity.last_user
+        storage.replaced_entities[new_entity.unit_number] = new_entity --Important for preventing infinite recursion
+        --if not storage.replaced_entities then storage.replaced_entities = {} end
+        --storage.replaced_entities[entity.unit_number] = new_entity --Used to allow other mods to track which entities have been replaced with another.
+        script.raise_event("PlanetsLib-on-entity-replaced", {
+            entity = entity,
+            new_entity = new_entity,
+        })
+        entity.destroy()
+        if raise_built == true then
+            script.raise_script_built{entity=new_entity}
+        end
     end
-    new_entity.last_user = entity.last_user
-    storage.replaced_entities[new_entity.unit_number] = new_entity --Important for preventing infinite recursion
-    --if not storage.replaced_entities then storage.replaced_entities = {} end
-    --storage.replaced_entities[entity.unit_number] = new_entity --Used to allow other mods to track which entities have been replaced with another.
-    script.raise_event("PlanetsLib-on-entity-replaced", {
-        entity = entity,
-        new_entity = new_entity,
-    })
-    entity.destroy()
-    if raise_built == true then
-        script.raise_script_built{entity=new_entity}
-    end
+
+    
+    
     
 
 

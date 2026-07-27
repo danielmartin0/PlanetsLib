@@ -3,6 +3,7 @@ Version: 1.22.7
 Date: 2026-07-27
   Bugfixes:
     - Equipment grids are now transferred between entities when migrating with the Entity Replacement System.
+    - Rolling stock can now use the Entity Replacement System.
 ---------------------------------------------------------------------------------------------------
 Version: 1.22.6
 Date: 2026-07-26
