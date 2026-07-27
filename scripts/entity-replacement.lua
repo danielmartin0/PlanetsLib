@@ -19,6 +19,7 @@ local fields_to_transfer = {
     protected = false,
     orientation = 0,
     relative_turret_orientation = nil,
+    direction = nil,
     crafting_progress=nil,
     bonus_progress=nil,
     loader_type=nil,
@@ -220,13 +221,14 @@ end
 --Get fields from entity, used for rolling stock to hold inventory contents while the two rolling stock are not allowed to coexist.
 function Public.get_all_fields_rolling_stock(entity)
     local returned_fields = {}
-    for _,field in pairs(fields_to_transfer) do
+    for field,value in pairs(fields_to_transfer) do
         local field_value = get_field(entity,field)
         --local inventory = entity.get_inventory(inventory_type)
         if field_value then
-            returned_fields[field] = inventory.get_contents()  
+            returned_fields[field] = field_value  
         end
     end
+    --game.print(serpent.block(returned_fields))
     return returned_fields
 end
 
@@ -281,9 +283,22 @@ function Public.get_info_rolling_stock(entity)
 end
 
 function Public.copy_info_to_new_rolling_stock(new_entity,info)
+    local do_rotate
+    local orientation 
     for field,value in pairs(info.fields) do
+        if field == "orientation" then
+            if value >= 0.5 then
+                do_rotate = true
+                orientation = value
+            end
+        end
         new_entity[field] = value
     end
+    if do_rotate then
+        --game.print("Train rotated, orientation = "..tostring(orientation))
+        new_entity.rotate{}
+    end
+    
     for inventory_type,inventory_contents in pairs(info.inventories) do
         local inventory =  new_entity.get_inventory(inventory_type)
         if inventory then
