@@ -205,7 +205,9 @@ local destroy_events = {
 
 for _,event_name in pairs(destroy_events) do
 	script.on_event(event_name, function(event)
-		storage.entity_info[event.entity.unit_number] = nil --Entity info table is used during recipe events to cache crafter inventories and production stat objects
+		if event.entity.unit_number then
+			storage.entity_info[event.entity.unit_number] = nil --Entity info table is used during recipe events to cache crafter inventories and production stat objects
+		end
 	end)
 end
 

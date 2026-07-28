@@ -4,4 +4,4 @@ dir=$(dirname "$scriptpath")
 cd "$dir" || exit
 
 
-git archive --prefix=PlanetsLib_1.23.0/ -o PlanetsLib_1.23.0.zip HEAD
+git archive --prefix=PlanetsLib_1.23.1/ -o PlanetsLib_1.23.1.zip HEAD
