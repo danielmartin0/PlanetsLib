@@ -1,4 +1,35 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.22.9
+Date: 2026-07-27
+  Bugfixes:
+    - Locomotive orientation is now preserved when replacing locomotives onto existing trains in the entity replacement system.
+---------------------------------------------------------------------------------------------------
+Version: 1.22.8
+Date: 2026-07-27
+  Bugfixes:
+    - Locomotive orientation is now preserved when replacing locomotives in the entity replacement system.
+---------------------------------------------------------------------------------------------------
+Version: 1.22.7
+Date: 2026-07-27
+  Bugfixes:
+    - Equipment grids are now transferred between entities when migrating with the Entity Replacement System.
+    - Rolling stock can now use the Entity Replacement System.
+---------------------------------------------------------------------------------------------------
+Version: 1.22.6
+Date: 2026-07-26
+  Bugfixes:
+    - Reverted previously added check.
+---------------------------------------------------------------------------------------------------
+Version: 1.22.5
+Date: 2026-07-26
+  Bugfixes:
+    - Added temporary check to stop car entity ghosts from being placed on planets with relevant entity replacement rules to stop Factorio bug from crashing the game.
+---------------------------------------------------------------------------------------------------
+Version: 1.22.4
+Date: 2026-07-26
+  Bugfixes:
+    - Added tag to control to fix entity replacement system.
+---------------------------------------------------------------------------------------------------
 Version: 1.22.3
 Date: 2026-07-26
   Bugfixes:
