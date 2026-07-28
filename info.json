@@ -1,9 +1,9 @@
 {
   "name": "PlanetsLib",
-  "version": "1.22.9",
+  "version": "1.23.0",
   "factorio_version": "2.1",
   "title": "PlanetsLib",
-  "author": "thesixthroc",
+  "author": "thesixthroc, MeteorSwarm",
   "description": "Code, graphics and conventions to help modders creating planets, moons and other systems. This is a community project.",
   "homepage": "https://github.com/danielmartin0/PlanetsLib",
   "dependencies": [

@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.23.0
+Date: 2026-07-28
+  Features:
+    - Added RecipePrototype::PlanetsLib_recipe_effects, a nested table containing fields that hook the recipe into raised events run by PlanetsLib.
+    - Added RecipePrototype::PlanetsLib_recipe_effects.returned_ingredients, a field that tells PlanetsLib to return ingredients back to the assembling machine's input on being crafted.
+    - Raised required Factorio version to 2.1.12 due to the inclusion of recipe on_crafted events.
+---------------------------------------------------------------------------------------------------
 Version: 1.22.9
 Date: 2026-07-27
   Bugfixes:
