@@ -34,10 +34,15 @@ if settings.startup["PlanetsLib-warn-on-hidden-prerequisites"].value then
 	end)
 end
 
+local function init_storage()
+	if not storage.entity_info then storage.entity_info = {} end --Stores info about each entity to speed up recipe effects
+end
+
 script.on_init(function()
 	if cargo_pods then
 		cargo_pods.init_storage()
 	end
+	init_storage()
 		storage.old_replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements
 end)
 
@@ -103,7 +108,7 @@ script.on_configuration_changed(function(data)
 	if cargo_pods then
 		cargo_pods.init_storage()
 	end
-
+	init_storage()
 	local mod_changed = false
 
 	for _, _ in pairs(data.mod_changes) do
@@ -189,5 +194,21 @@ if is_entity_replacements then
 	--script.on_event(defines.events.on_player_setup_blueprint,entity_replacement.blueprint_standardize)
 end
 
+require("scripts.recipe-effects")
+local destroy_events = {
+	defines.events.on_player_mined_entity,
+	defines.events.on_robot_mined_entity,
+	defines.events.on_entity_died,
+	defines.events.script_raised_destroy,
+	defines.events.on_space_platform_mined_entity
+}
+
+for _,event_name in pairs(destroy_events) do
+	script.on_event(event_name, function(event)
+		if event.entity.unit_number then
+			storage.entity_info[event.entity.unit_number] = nil --Entity info table is used during recipe events to cache crafter inventories and production stat objects
+		end
+	end)
+end
 
 if script.active_mods["gvv"] then require("__gvv__.gvv")() end --gvv enables debugging of storage values with a GUI
