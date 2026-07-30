@@ -3,10 +3,10 @@ local Public = {}
 
 if not PlanetsLib.constants.entity_variants_list then PlanetsLib.constants.entity_variants_list = {} end
 if not PlanetsLib.constants.inverted_entity_variants then PlanetsLib.constants.inverted_entity_variants = {} end
-
+if not PlanetsLib.constants.entity_variants_list_inverse then PlanetsLib.constants.entity_variants_list_inverse = {} end
 -- Creates "If entity placed on planet, replace entity with new_entity" rule.
 -- Mass-assignment is possible by making entity a dictionary table and new_entity nil.
-function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting)
+function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting,name_suffix)
     assert(entity ~= new_entity,"PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - entity must be different from new_entity.")
     local planet_name = (type(planet) == "table" and planet.name) or planet
     if not bound_setting then --Since entity replacements can potentially break saves, every entity replacement must be bound to a startup setting that can be disabled to aid in safe uninstallation.
@@ -36,15 +36,15 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
     
     
     if not PlanetsLib.constants.entity_variants_list[entity] then  PlanetsLib.constants.entity_variants_list[entity] = {} end
-
+    if not PlanetsLib.constants.entity_variants_list_inverse[new_entity] then PlanetsLib.constants.entity_variants_list_inverse[new_entity] = {} end
     table.insert(PlanetsLib.constants.entity_variants_list[entity],new_entity)
-    
+    table.insert(PlanetsLib.constants.entity_variants_list_inverse[new_entity],{entity=entity,suffix=name_suffix})
     --Check if recursive rules exist that would create a stack overflow error.
     
     if not PlanetsLib.constants.inverted_entity_variants[planet] then PlanetsLib.constants.inverted_entity_variants[planet] = {} end
-    if not PlanetsLib.constants.inverted_entity_variants[planet][entity] then PlanetsLib.constants.inverted_entity_variants[planet][entity] = {} end
-    PlanetsLib.constants.inverted_entity_variants[planet][entity][new_entity] = true
-    assert(not (PlanetsLib.constants.inverted_entity_variants[planet][new_entity] and PlanetsLib.constants.inverted_entity_variants[planet][new_entity][entity]),
+    if not PlanetsLib.constants.inverted_entity_variants[planet][new_entity] then PlanetsLib.constants.inverted_entity_variants[planet][new_entity] = {} end
+    PlanetsLib.constants.inverted_entity_variants[planet][new_entity]=entity
+    assert(not (PlanetsLib.constants.inverted_entity_variants[planet][entity] and PlanetsLib.constants.inverted_entity_variants[planet][entity]==new_entity),
     "PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - Recursive entity replacement ruleset created on planet ".. planet ..". " .. new_entity .. " <-> " .. entity)
     
 end
@@ -70,8 +70,8 @@ local function create_planet_entity_variant(planet_names,entity,new_properties,b
     --     entity.fast_replaceable_group = entity.name .. "-PlanetsLib-group"
     -- end
     local new_entity = table.deepcopy(entity)
-
-    new_entity.name = entity.name .. "-PlanetsLib-" .. first_planet_name 
+    local name_suffix = "-PlanetsLib-" .. first_planet_name 
+    new_entity.name = entity.name .. name_suffix
 
     if not entity.factoriopedia_alternative then
         new_entity.factoriopedia_alternative = entity.name
@@ -132,13 +132,13 @@ local function create_planet_entity_variant(planet_names,entity,new_properties,b
 
     if type(planet_names) == "table" then
         for _,planet in pairs(planet_names) do
-            Public.assign_entity_replacement(planet,entity.name,new_entity.name,bound_setting)
+            Public.assign_entity_replacement(planet,entity.name,new_entity.name,bound_setting,name_suffix)
         end
     else
     
         
         new_entity.order = (new_entity.order or "") .. "z" .. (data.raw["planet"][planet_names] and data.raw["planet"][planet_names].order or "")
-        Public.assign_entity_replacement(planet_names,entity.name,new_entity.name,bound_setting)
+        Public.assign_entity_replacement(planet_names,entity.name,new_entity.name,bound_setting,name_suffix)
     end
     
     data:extend{new_entity}
