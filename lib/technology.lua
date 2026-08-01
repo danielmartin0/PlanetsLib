@@ -398,7 +398,8 @@ function Public.process_technology_recipe_productivity_effects(tech)
 			)
 		end
 
-		local category_blacklist = tech.PlanetsLib_recipe_productivity_effects.category_blacklist or { "recycling" } --Excluded recipe categories
+		local category_blacklist = tech.PlanetsLib_recipe_productivity_effects.category_blacklist or
+		{ "recycling" }                                                                                        --Excluded recipe categories
 
 		for _, recipe in pairs(data.raw["recipe"]) do
 			if not recipe.results then
@@ -419,7 +420,10 @@ function Public.process_technology_recipe_productivity_effects(tech)
 					not result.ignored_by_productivity
 					or result.ignored_by_productivity < (result.amount or result.amount_max)
 				then
-					net_results[result.name] = result.type --Count multiple results with the same same name as a single result
+					if result.name and result.type then
+						--Count multiple results with the same same name as a single result
+						net_results[result.name] = result.type
+					end
 				end
 			end
 			local results_count = table_size(net_results)
