@@ -57,3 +57,14 @@ if mods["space-age"] then
 		end
 	end
 end
+
+for _,sound in pairs(data.raw["ambient-sound"]) do
+	if sound.planet then
+		if not sound.planets then
+			sound.planets = {}
+		end
+		PlanetsLib.rro.soft_insert(sound.planets,sound.planet)
+		log("Ambient sound " .. sound.name .. "using unsupported field AmbientSound::planet has been corrected. This sound should be manually fixed, as this field is no longer supported by Wube as of Factorio 2.1.13.")
+		sound.planet = nil
+	end
+end

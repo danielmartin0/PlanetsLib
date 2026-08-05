@@ -7,7 +7,7 @@
   "description": "Code, graphics and conventions to help modders creating planets, moons and other systems. This is a community project.",
   "homepage": "https://github.com/danielmartin0/PlanetsLib",
   "dependencies": [
-    "base >= 2.1.7",
+    "base >= 2.1.13",
     "? space-age >= 2.1.7",
     "? quality >= 2.1.7",
     "? recycler >= 2.1.7",
