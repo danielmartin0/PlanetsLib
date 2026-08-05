@@ -32,11 +32,17 @@
   <li><a href="../index.html">Documentation</a></li>
 </ul>
 
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
 
 
 <h2>Libraries</h2>
 <ul class="nowrap">
   <li><a href="../libraries/PlanetsLib.objects.html">PlanetsLib.objects</a></li>
+  <li><a href="../libraries/lib.optimization.html">lib.optimization</a></li>
+  <li><a href="../libraries/lib.predicates.html">lib.predicates</a></li>
   <li><strong>lib.remove-replace-object</strong></li>
   <li><a href="../libraries/lib.technology.lua.html">lib.technology.lua</a></li>
   <li><a href="../libraries/scripts.rocket-parts.lua.html">scripts.rocket-parts.lua</a></li>
@@ -53,20 +59,473 @@
 <h1>Module <code>lib.remove-replace-object</code></h1>
 <p>remove-replace-object
  Usually imported as "rro".</p>
-<p> Designed to simplify table manipulation, with preventing crashes when applying functions en masse the first priority.
- These functions should remain undocumented in PlanetsLib.
- This library has been bundled with PlanetsLib to make it easier to port features from MeteorSwarm's mods to PlanetsLib.</p>
+<p> Designed to simplify table manipulation, with preventing crashes when applying functions en masse the first priority.</p>
     <h3>Info:</h3>
     <ul>
         <li><strong>Author</strong>: MeteorSwarm</li>
     </ul>
 
 
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#rro.deep_equals">rro.deep_equals (table1, table2)</a></td>
+	<td class="summary">Checks if two objects are identical.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.remove">rro.remove (list, objectToRemove)</a></td>
+	<td class="summary">Removes object from list</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.replace">rro.replace (list, objectToRemove, replacementObject)</a></td>
+	<td class="summary">Replaces object in list with another object</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.deep_replace">rro.deep_replace (list, objectToRemove, replacementObject, gsub)</a></td>
+	<td class="summary">Similar to rro.replace, but acts recursively within subobjects.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.replace_field">rro.replace_field (list, field, name, new_name)</a></td>
+	<td class="summary">Searches a list for all items where <code>item[field] == name</code>, and replaces <code>name</code> with <code>new_name</code>.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.replace_name">rro.replace_name (list, name, new_name)</a></td>
+	<td class="summary">Searches a list for all items where <code>item.name == name</code>, and replaces <code>name</code> with <code>new_name</code>.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.contains">rro.contains (list, object)</a></td>
+	<td class="summary">Check if object exists in list.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.find_many">rro.find_many (string, list)</a></td>
+	<td class="summary">Check if string.find(string,list[i]) returns a value for any i in list</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.soft_insert">rro.soft_insert (list, objectToAdd)</a></td>
+	<td class="summary">Adds object to list if it doesn't already exist.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.merge">rro.merge (old, new)</a></td>
+	<td class="summary">Adds fields of <code>new</code> to <code>old</code>, replacing overlapping fields.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.get_concatenation">rro.get_concatenation (first, second)</a></td>
+	<td class="summary">Returns a concatenation of the contents of two tables.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.get_concatenation_no_deepcopy">rro.get_concatenation_no_deepcopy (first, second)</a></td>
+	<td class="summary">Returns a concatenation of the contents of two tables.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.safe_find">rro.safe_find (table, crawl_list)</a></td>
+	<td class="summary">Attempts to find an object in a complex object, and returns nil if any level in the search returns nil</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#rro.copy_fields">rro.copy_fields (table_to, table_from, fields, deepcopy)</a></td>
+	<td class="summary">Copies fields specified in "fields" from "table<em>from" to "table</em>to"</td>
+	</tr>
+</table>
 
 <br/>
 <br/>
 
 
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "rro.deep_equals"></a>
+    <strong>rro.deep_equals (table1, table2)</strong>
+    </dt>
+    <dd>
+    Checks if two objects are identical.  ie returns true if {"space-science-pack",1} and {"space-science-pack",1} are compared from different object references.
+ Special string "_any" always returns true if compared with anything else.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">table1</span>
+
+
+
+        </li>
+        <li><span class="parameter">table2</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.remove"></a>
+    <strong>rro.remove (list, objectToRemove)</strong>
+    </dt>
+    <dd>
+    Removes object from list
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">list</span>
+
+
+
+        </li>
+        <li><span class="parameter">objectToRemove</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.replace"></a>
+    <strong>rro.replace (list, objectToRemove, replacementObject)</strong>
+    </dt>
+    <dd>
+    Replaces object in list with another object
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">list</span>
+
+
+
+        </li>
+        <li><span class="parameter">objectToRemove</span>
+
+
+
+        </li>
+        <li><span class="parameter">replacementObject</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.deep_replace"></a>
+    <strong>rro.deep_replace (list, objectToRemove, replacementObject, gsub)</strong>
+    </dt>
+    <dd>
+    Similar to rro.replace, but acts recursively within subobjects.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">list</span>
+
+
+
+        </li>
+        <li><span class="parameter">objectToRemove</span>
+
+
+
+        </li>
+        <li><span class="parameter">replacementObject</span>
+
+
+
+        </li>
+        <li><span class="parameter">gsub</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.replace_field"></a>
+    <strong>rro.replace_field (list, field, name, new_name)</strong>
+    </dt>
+    <dd>
+    Searches a list for all items where <code>item[field] == name</code>, and replaces <code>name</code> with <code>new_name</code>.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">list</span>
+
+
+
+        </li>
+        <li><span class="parameter">field</span>
+
+
+
+        </li>
+        <li><span class="parameter">name</span>
+
+
+
+        </li>
+        <li><span class="parameter">new_name</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.replace_name"></a>
+    <strong>rro.replace_name (list, name, new_name)</strong>
+    </dt>
+    <dd>
+    Searches a list for all items where <code>item.name == name</code>, and replaces <code>name</code> with <code>new_name</code>.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">list</span>
+
+
+
+        </li>
+        <li><span class="parameter">name</span>
+
+
+
+        </li>
+        <li><span class="parameter">new_name</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.contains"></a>
+    <strong>rro.contains (list, object)</strong>
+    </dt>
+    <dd>
+    Check if object exists in list.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">list</span>
+
+
+
+        </li>
+        <li><span class="parameter">object</span>
+        local contains = false
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.find_many"></a>
+    <strong>rro.find_many (string, list)</strong>
+    </dt>
+    <dd>
+    Check if string.find(string,list[i]) returns a value for any i in list
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">string</span>
+
+
+
+        </li>
+        <li><span class="parameter">list</span>
+        local contains = false
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.soft_insert"></a>
+    <strong>rro.soft_insert (list, objectToAdd)</strong>
+    </dt>
+    <dd>
+    Adds object to list if it doesn't already exist.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">list</span>
+         table
+        </li>
+        <li><span class="parameter">objectToAdd</span>
+         object
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.merge"></a>
+    <strong>rro.merge (old, new)</strong>
+    </dt>
+    <dd>
+    Adds fields of <code>new</code> to <code>old</code>, replacing overlapping fields.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">old</span>
+         table
+        </li>
+        <li><span class="parameter">new</span>
+         table
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        old table
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.get_concatenation"></a>
+    <strong>rro.get_concatenation (first, second)</strong>
+    </dt>
+    <dd>
+    Returns a concatenation of the contents of two tables.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">first</span>
+         table
+        </li>
+        <li><span class="parameter">second</span>
+         table
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.get_concatenation_no_deepcopy"></a>
+    <strong>rro.get_concatenation_no_deepcopy (first, second)</strong>
+    </dt>
+    <dd>
+    Returns a concatenation of the contents of two tables.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">first</span>
+         table
+        </li>
+        <li><span class="parameter">second</span>
+         table
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.safe_find"></a>
+    <strong>rro.safe_find (table, crawl_list)</strong>
+    </dt>
+    <dd>
+    Attempts to find an object in a complex object, and returns nil if any level in the search returns nil
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">table</span>
+         table
+        </li>
+        <li><span class="parameter">crawl_list</span>
+         table
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "rro.copy_fields"></a>
+    <strong>rro.copy_fields (table_to, table_from, fields, deepcopy)</strong>
+    </dt>
+    <dd>
+    Copies fields specified in "fields" from "table<em>from" to "table</em>to"
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">table_to</span>
+         table
+        </li>
+        <li><span class="parameter">table_from</span>
+         table
+        </li>
+        <li><span class="parameter">fields</span>
+         table
+        </li>
+        <li><span class="parameter">deepcopy</span>
+         boolean (Default true)
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
 
 
 </div> <!-- id="content" -->

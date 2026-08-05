@@ -41,6 +41,8 @@
 <h2>Libraries</h2>
 <ul class="nowrap">
   <li><a href="../libraries/PlanetsLib.objects.html">PlanetsLib.objects</a></li>
+  <li><a href="../libraries/lib.optimization.html">lib.optimization</a></li>
+  <li><a href="../libraries/lib.predicates.html">lib.predicates</a></li>
   <li><a href="../libraries/lib.remove-replace-object.html">lib.remove-replace-object</a></li>
   <li><strong>lib.technology.lua</strong></li>
   <li><a href="../libraries/scripts.rocket-parts.lua.html">scripts.rocket-parts.lua</a></li>
@@ -66,11 +68,11 @@
 	<td class="summary">Technology name goes in.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Public.technology_icon_moon">Public.technology_icon_moon (tech_icon, icon_size)</a></td>
+	<td class="name" nowrap><a href="#Public.technology_icon_moon">Public.technology_icon_moon (tech_icon, icon_size, shadow_scale)</a></td>
 	<td class="summary">Create a moon discovery technology icon by adding a little moon icon on your technology icon, like in vanilla, but for moon type planets.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Public.technology_icon_planet">Public.technology_icon_planet (tech_icon, icon_size)</a></td>
+	<td class="name" nowrap><a href="#Public.technology_icon_planet">Public.technology_icon_planet (tech_icon, icon_size, shadow_scale)</a></td>
 	<td class="summary">Create a planet discovery technology icon by adding a little planet icon on your technology icon, like in vanilla.</td>
 	</tr>
 	<tr>
@@ -115,7 +117,7 @@
 </dd>
     <dt>
     <a name = "Public.technology_icon_moon"></a>
-    <strong>Public.technology_icon_moon (tech_icon, icon_size)</strong>
+    <strong>Public.technology_icon_moon (tech_icon, icon_size, shadow_scale)</strong>
     </dt>
     <dd>
     Create a moon discovery technology icon by adding a little moon icon on your technology icon, like in vanilla, but for moon type planets.
@@ -128,6 +130,9 @@
         </li>
         <li><span class="parameter">icon_size</span>
          integer Your icon size
+        </li>
+        <li><span class="parameter">shadow_scale</span>
+         double Scale of planet relative to shadow icon. If nil, no shadow is drawn.
         </li>
     </ul>
 
@@ -143,7 +148,7 @@
 </dd>
     <dt>
     <a name = "Public.technology_icon_planet"></a>
-    <strong>Public.technology_icon_planet (tech_icon, icon_size)</strong>
+    <strong>Public.technology_icon_planet (tech_icon, icon_size, shadow_scale)</strong>
     </dt>
     <dd>
     Create a planet discovery technology icon by adding a little planet icon on your technology icon, like in vanilla.
@@ -156,6 +161,9 @@
         </li>
         <li><span class="parameter">icon_size</span>
          integer Your icon size
+        </li>
+        <li><span class="parameter">shadow_scale</span>
+         number Scale of planet relative to shadow icon. If nil, no shadow is drawn.
         </li>
     </ul>
 
