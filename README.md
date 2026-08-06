@@ -285,7 +285,7 @@ Comes with the following additional features:
 
 ###### Filtering:
 ```lua
-    local handler = require("__PlanetsLib__.lib.event-handler")
+    local handler = require("__PlanetsLib__.lib.event-handler.event-handler")
 
 -- all built events will get this filter
 handler.add_filter(defines.events.on_built_entity,{
@@ -298,6 +298,10 @@ handler.add_lib(require("script.orbital-cannon"))
 ###### Composite events:
 
 ```lua
+    local handler = require("__PlanetsLib__.lib.event-handler.event-handler")
+    -- include the built in "on_built" and "on_removed" composite events
+    handler.add_composite_events(require("__PlanetsLib__.lib.event-handler.composite-events"))
+
 
     -- using the name of a composite event is also valid for a filter, it will apply to every included event.
     handler.add_filter("on_built",{
