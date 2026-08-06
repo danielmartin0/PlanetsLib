@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.24.0
+Date: 2026-08-
+  Features:
+    - Added an alternative to the vanilla event handler that supports filtering and composite events
+---------------------------------------------------------------------------------------------------
 Version: 1.23.5
 Date: 2026-08-05
   Bugfixes:
