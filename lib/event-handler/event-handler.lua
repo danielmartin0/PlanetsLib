@@ -1,7 +1,10 @@
-local library = require("lib")
+local library = require("__PlanetsLib__.lib.lib")
+
 
 local libraries = {}
 local filters = {}
+
+local composite_event_handlers = {}
 
 local setup_ran = false
 
@@ -30,14 +33,7 @@ local function add_lib(lib)
     table.insert(libraries, lib)
 end
 
-local event_name = function(eventid)
-    for name, id in pairs(defines.events) do
-        if id == eventid then
-            return name
-        end
-    end
-    return tostring(eventid)
-end
+
 
 local check_handler = function(id, handler, oldhandler)
     if oldhandler then
@@ -45,7 +41,7 @@ local check_handler = function(id, handler, oldhandler)
         local newinfo = debug.getinfo(handler, "S")
         log(string.format(
             "duplicate handlers within module for event %s: first defined at %s:%d, replaced by redefinition at %s:%d",
-            event_name(id), oldinfo.short_src, oldinfo.linedefined, newinfo.short_src, newinfo.linedefined))
+            library.event_name(id), oldinfo.short_src, oldinfo.linedefined, newinfo.short_src, newinfo.linedefined))
     end
 end
 
@@ -53,7 +49,6 @@ local register_events = function()
     local all_events = {}
     local on_nth_tick = {}
 
-    local composite_libraries = {}
     -- handle composite event handlers.
     for lib_name, lib in pairs(libraries) do
         local composite_lib = {
@@ -67,27 +62,23 @@ local register_events = function()
 
         local composite_events = lib.composite_events
 
-        if composite_events.on_built then
-            for index, value in ipairs(library.build_events) do
-                composite_lib.events[value] = composite_events.on_built
+        for _, event_handler in ipairs(composite_event_handlers) do
+            if composite_events[event_handler.name] then
+                for _, value in ipairs(event_handler.events) do
+                    if event_handler.handlers and event_handler.handlers[value] then
+                        composite_lib.events[value] = event_handler.handlers[value](composite_events
+                            [event_handler.name])
+                    else
+                        composite_lib.events[value] = composite_events[event_handler.name]
+                    end
+                end
+                do_add = true
             end
-            do_add = true
-        end
-
-        if composite_events.on_removed then
-            for index, value in ipairs(library.destroy_events) do
-                composite_lib.events[value] = composite_events.on_removed
-            end
-            do_add = true
         end
         if do_add then
-            table.insert(composite_libraries, composite_lib)
+            table.insert(libraries, composite_lib)
         end
         ::continue::
-    end
-
-    for index, value in ipairs(composite_libraries) do
-        table.insert(libraries, value)
     end
 
     for lib_name, lib in ipairs(libraries) do
@@ -119,9 +110,8 @@ local register_events = function()
                 handler(event)
             end
         end
-        local name = event_name(event)
-        if filters[name] then
-            script.on_event(event, action, filters[name])
+        if filters[event] then
+            script.on_event(event, action, filters[event])
         else
             script.on_event(event, action)
         end
@@ -168,16 +158,18 @@ end)
 local handler = {}
 
 local function register_filter(event, filter)
-    local name = event_name(event)
-    local event_filters = filters[name]
+    if event == nil then
+        return
+    end
+    local event_filters = filters[event]
     if not event_filters then
         event_filters = {}
-        filters[name] = event_filters
+        filters[event] = event_filters
     end
 
     -- prevent duplicate filters from being added.
     -- don't need to crash the process
-    for index, value in ipairs(event_filters) do
+    for _, value in ipairs(event_filters) do
         if value == filter then
             return
         end
@@ -185,19 +177,42 @@ local function register_filter(event, filter)
     table.insert(event_filters, filter)
 end
 
+handler.add_composite_event = function(handler)
+    table.insert(composite_event_handlers, handler)
+end
+
+handler.add_composite_events = function(handlers)
+    for _, handler in ipairs(handlers) do
+        table.insert(composite_event_handlers, handler)
+    end
+end
+
 handler.add_filter = function(event, filter)
-    if event == "on_built" then
-        for index, value in ipairs(library.build_events) do
-            register_filter(value, filter)
-        end
-    else
-        if event == "on_removed" then
-            for index, value in ipairs(library.destroy_events) do
-                register_filter(value, filter)
+    for _, value in ipairs(composite_event_handlers) do
+        if event == value.name then
+            for _, actual_event in ipairs(value.events) do
+                register_filter(actual_event, filter)
             end
-        else
-            register_filter(event.filter)
+            return
         end
+    end
+    register_filter(event.filter)
+end
+
+
+handler.add_filters = function(event, filters)
+    for _, value in ipairs(composite_event_handlers) do
+        if event == value.name then
+            for _, actual_event in ipairs(value.events) do
+                for _, filter in ipairs(filters) do
+                    register_filter(actual_event, filter)
+                end
+            end
+            return
+        end
+    end
+    for _, filter in ipairs(filters) do
+        register_filter(event, filter)
     end
 end
 

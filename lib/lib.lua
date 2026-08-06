@@ -103,6 +103,15 @@ function Public.detailed_log(message)
     end
 end
 
+function Public.event_name(eventid)
+    for name, id in pairs(defines.events) do
+        if id == eventid then
+            return name
+        end
+    end
+    return tostring(eventid)
+end
+
 Public.destroy_events = {
 	defines.events.on_player_mined_entity,
 	defines.events.on_robot_mined_entity,
