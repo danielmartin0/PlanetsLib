@@ -4,6 +4,7 @@ PlanetsLib.events = require("scripts.custom-events")
 PlanetsLib.constants = prototypes.mod_data.Planetslib.data
 PlanetsLib.objects = require("lib.remove-replace-object")
 PlanetsLib.stage = "runtime"
+local library = require("lib.lib")
 
 local rocket_parts = require("scripts.rocket-parts")
 local unreachable_techs = require("scripts.unreachable-techs")
@@ -197,7 +198,7 @@ end
 
 require("scripts.recipe-effects")
 
-for _,event_name in pairs(PlanetsLib.destroy_events) do
+for _,event_name in pairs(library.destroy_events) do
 	script.on_event(event_name, function(event)
 		if event.entity.unit_number then
 			storage.entity_info[event.entity.unit_number] = nil --Entity info table is used during recipe events to cache crafter inventories and production stat objects
