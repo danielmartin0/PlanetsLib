@@ -14,7 +14,7 @@ PlanetsLib adds a new field named `PlanetsLib_recipe_productivity_effects` to te
 
 Recipe products are ignored if they are not "productivity-capable"—if `ignored_by_productivity` is greater than or equal to `amount` (or `amount_max`)—because changing a recipe's productivity has no effect on such products. If a recipe has no productivity-capable products, it is fully ineligible; and if a recipe has multiple products, but only one product is productivity-capable (e.g. Kovarex enrichment), it is eligible _even if `allow_multiple_results` = false_.
 
-#### [`TechnologyPrototype`](https://lua-api.factorio.com/latest/prototypes/TechnologyPrototype.html) field: `PlanetsLib_recipe_productivity_effects` Properties:
+#### [[TechnologyPrototype]] field: `PlanetsLib_recipe_productivity_effects` Properties:
 *   `effects`: `array[ChangeResultProductivityModifier]`
 *   `category_blacklist` - `array[`[`RecipeCategoryID`](https://lua-api.factorio.com/latest/types/RecipeCategoryID.html)`]`
 *   `purge_other_effects`- `boolean`. Default: false. Before adding effects added by `PlanetsLib_recipe_productivity_effects`, remove all 
@@ -34,10 +34,10 @@ effects not flagged with `PlanetsLib_force_include`.
 *   `hidden` (optional)
 *   `use_icon_overlay_constant` (optional)
 
-#### New [`BaseModifier`](https://lua-api.factorio.com/latest/types/BaseModifier.html) field: `PlanetsLib_force_include`
+#### New [[BaseModifier]] field: `PlanetsLib_force_include`
 *  Makes this modifier immune to `purge_other_effects`.
 
-#### New ['RecipePrototype'](https://lua-api.factorio.com/latest/prototypes/RecipePrototype.html) field: `PlanetsLib_blacklist_technology_updates`
+#### New [[RecipePrototype]] field: `PlanetsLib_blacklist_technology_updates`
 *  Stops PlanetsLib from targeting this recipe in technology updates.
 
 #### Example
