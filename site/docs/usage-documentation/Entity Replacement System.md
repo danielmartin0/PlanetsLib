@@ -1,15 +1,3 @@
-
-## Rocket part recipes
-
-You can use the library to assign unique rocket part recipes to rocket silos placed on a specified planet to increase or decrease the difficulty of launching rockets on the planet. Rocket silos with their recipe fixed to the vanilla `rocket-part` recipe are targeted by PlanetsLib. To implement:
-
-* Use the helper function `PlanetsLib.assign_rocket_part_recipe(planet,recipe,lock_silo(default = true))` to assign a recipe to a planet, and optionally determine if the rocket silo has its recipe locked on that planet.
-    * PlanetsLib stores rocket part recipe assignments in a mod-data prototype named `Planetslib-planet-rocket-part-recipe`. Planets with their own system for assigning rocket part recipes are exempted with the assigned recipe name `_other`. Muluna and Maraxsis are currently exempted in this manner to maintain backwards compatibility with those mods.
-    * PlanetsLib stores silo recipe lock data in a mod-data prototype named `Planetslib-planet-lock-rocket-silos`. For planets with undefined lock behavior, PlanetsLib will check if a planet has multiple valid rocket silo recipes before unlocking the silo. If only one valid recipe exists, PlanetsLib will lock the silo on placement.
-    * Planets without an assigned recipe default to the vanilla `rocket-part` recipe.
-
-## Planet-Exclusive Entity Variants
-
 PlanetsLib allows you to quickly generate planet-exclusive variants of entities. On placing an entity on a planet with a planet-exclusive variant, PlanetsLib will replace the original entity with your variant. The difference between entity variants and the original entity are invisible to the user, and variants can not be seen in the Factoriopedia. Every variant must be associated with a boolean startup setting that can be disabled to ease in uninstallation. Once an entity variant has been created, any attempt to create a variant for the same entity for the same planet will throw an error. This is a limitation of the current system that may change in the future. Currently, entity variants that are the same type as their origin entity are well-tested, but changing entity types is untested.
 
 Known issues: Variant entities will be the same fast_replaceable_group as the entity they're based on. This makes it possible to place over the variant entity with the entity's item. This is an engine limitation.
@@ -65,3 +53,4 @@ On placing `entity`:
 1. On placing an `entity` on `planet`, if PlanetsLib.constants. on_entity_placed_on_planet_replacements[planet][entity] exists, this tells PlanetsLib that `entity` is intended to be replaced on `planet`.
 2. If `enabled` == true, execute the rule, replacing `entity` with `new_entity`. 
 3. Transfer settings, inventory, and other information from the old entity to the new entity.
+
