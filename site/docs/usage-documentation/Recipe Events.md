@@ -21,5 +21,5 @@ PlanetsLib includes one event that recipes can hook into using `RecipePrototype:
       returned_ingredients = {
         {type="item", name="alumina-crushed", amount=1,shared_probability = {min=0,max=0.9},ignored_by_productivity=1},
       },
-    },```
+    },
 ```
