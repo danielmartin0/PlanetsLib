@@ -57,7 +57,7 @@ function splitTextNode(node, index) {
         type: 'link',
         url: resolved.url,
         title: `${resolved.category}: ${resolved.name}`,
-        children: [{type: 'text', value: display || resolved.name}],
+        children: [{type: 'inlineCode', value: display || resolved.name}],
         data: {hProperties: {className: ['factorio-api-link', `factorio-api-${resolved.category}`]}},
       });
     } else {
