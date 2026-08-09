@@ -10,7 +10,7 @@ sidebar_label: Science & Technologies
 
 ### Recipe productivity technology helper field
 
-PlanetsLib adds a new field named `PlanetsLib_recipe_productivity_effects` to technologies, used by recipe productivity technologies. During `data-final-fixes`, technologies with this field will have their effects list appended or replaced with recipes matching either an output name or recipe category. Recipes will be excluded if they have the field `PlanetsLib_blacklist_technology_updates` set to true `true`.
+PlanetsLib adds a new field named `PlanetsLib_recipe_productivity_effects` to [[TechnologyPrototype]], used by recipe productivity technologies. During `data-final-fixes`, technologies with this field will have their effects list appended or replaced with recipes matching either an output name or recipe category. Recipes will be excluded if they have the field `PlanetsLib_blacklist_technology_updates` set to true `true`.
 
 Recipe products are ignored if they are not "productivity-capable"—if `ignored_by_productivity` is greater than or equal to `amount` (or `amount_max`)—because changing a recipe's productivity has no effect on such products. If a recipe has no productivity-capable products, it is fully ineligible; and if a recipe has multiple products, but only one product is productivity-capable (e.g. Kovarex enrichment), it is eligible _even if `allow_multiple_results` = false_.
 
@@ -22,11 +22,11 @@ effects not flagged with `PlanetsLib_force_include`.
 *   `allow_recipes_without_productivity` - `boolean`. Default: false. Captures recipes even if they have `allow_productivity` set to false.
 
 #### `ChangeResultProductivityModifier` Properties:
-*   `name` (optional) - [`ItemID`](https://lua-api.factorio.com/latest/types/ItemID.html) Required if not using `category`. Incompatible with `category`.
-*   `type` (optional) - [`ProductPrototype`](https://lua-api.factorio.com/latest/types/ProductPrototype.html) Required if using `name`.
-*   `category` (optional) - [`RecipeCategoryID`](https://lua-api.factorio.com/latest/types/RecipeCategoryID.html)  Required if not using `name`. Incompatible with `name` and `category_blacklist`.
+*   `name` (optional) - [[ItemID]] Required if not using `category`. Incompatible with `category`.
+*   `type` (optional) - [[ProductPrototype]] Required if using `name`.
+*   `category` (optional) - [[RecipeCategoryID]]  Required if not using `name`. Incompatible with `name` and `category_blacklist`.
 *   `allow_multiple_results`: `boolean`. Default: false. When false, only recipes with one (productivity-capable) result are added to the technology's effect list. If multiple results have the same name, they are counted as a single result rather than being counted individually.
-##### Inherited from [`ChangeRecipeProductivityModifier`](https://lua-api.factorio.com/latest/types/ChangeRecipeProductivityModifier.html)
+##### Inherited from [[ChangeRecipeProductivityModifier]]
 *   `change`
 *   `icons` (optional)
 *   `icon` (optional)
