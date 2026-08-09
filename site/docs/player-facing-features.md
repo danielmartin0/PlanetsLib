@@ -1,4 +1,6 @@
 
+# Player Facing Features
+
 The primary intent of PlanetsLib is to be a library which provides opt-in functionality for other mods. However, a small number of game-affecting or player-interface-affecting features have been added over time. These are listed below, player feedback on them is most welcome in [Discord](https://discord.gg/nFVqaPEk97).
 
 * Unlinking hidden prerequisites

@@ -1,4 +1,9 @@
-## Planet Special Properties
+---
+sidebar_label: Special Planet Properties
+---
+
+# Special Planet Properties
+
 PlanetsLib allows the addition of "special properties", values which can be displayed as surface properties, but are not intended to be used as surface properties. These properties are used during data-final-fixes and in control scripts to execute certain behavior.
 
 * `PlanetsLib.set_special_properties(planet(table or string),properties(table)) -> table` — Sets the special properties of a planet. Can not be called during data-final-fixes.
@@ -8,8 +13,8 @@ PlanetsLib allows the addition of "special properties", values which can be disp
 ### Hardcoded Special Properties
 PlanetsLib reserves two special property values for runtime scripts set up during data-final-fixes. They are displayed as surface properties in game. If no mods define these properties, they are not displayed.
 
-* `rocket_lift_multiplier(float)` — Multiplies the lift of every rocket silo placed on the planet. Achieved via runtime [entity replacements](./Entity%20Replacement%20System) generated during data-final-fixes(See Planet-Exclusive Entity Variants).
-* `rocket_part_multiplier(float)` — Multiplies the rocket parts required of every rocket silo placed on the planet. Achieved via the runtime [entity replacements](./Entity%20Replacement%20System).
+* `rocket_lift_multiplier(float)` — Multiplies the lift of every rocket silo placed on the planet. Achieved via runtime [entity replacements](./entity-replacement-system) generated during data-final-fixes(See Planet-Exclusive Entity Variants).
+* `rocket_part_multiplier(float)` — Multiplies the rocket parts required of every rocket silo placed on the planet. Achieved via the runtime [entity replacements](./entity-replacement-system).
 
 ## Surface conditions
 

@@ -1,5 +1,8 @@
+---
+sidebar_label: Science & Technologies
+---
 
-## Science & Technologies
+# Science & Technologies
 
 * `PlanetsLib.get_child_technologies(tech_name)` — Returns a list of the names of all technologies that have `tech_name` as a prerequisite.
 * `PlanetsLib.sort_science_pack_names(science_pack_names_table)` — Sorts the given list of science pack names (strings expected) by the `order` fields of the corresponding prototypes, or by their names if an `order` field does not exist.

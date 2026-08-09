@@ -1,3 +1,9 @@
+---
+sidebar_label: Recipe Events
+---
+
+# Recipe Events
+
 PlanetsLib includes one event that recipes can hook into using `RecipePrototype::PlanetsLib_recipe_effects`. This event adds items to the machine's ingredient inventory on craft. Additional events may be added in the future.
 
 #### `RecipePrototype` field: PlanetsLib_recipe_effects [`table`]

@@ -1,3 +1,9 @@
+---
+sidebar_label: Entity Replacement System
+---
+
+# Entity Replacement System
+
 PlanetsLib allows you to quickly generate planet-exclusive variants of entities. On placing an entity on a planet with a planet-exclusive variant, PlanetsLib will replace the original entity with your variant. The difference between entity variants and the original entity are invisible to the user, and variants can not be seen in the Factoriopedia. Every variant must be associated with a boolean startup setting that can be disabled to ease in uninstallation. Once an entity variant has been created, any attempt to create a variant for the same entity for the same planet will throw an error. This is a limitation of the current system that may change in the future. Currently, entity variants that are the same type as their origin entity are well-tested, but changing entity types is untested.
 
 Known issues: Variant entities will be the same fast_replaceable_group as the entity they're based on. This makes it possible to place over the variant entity with the entity's item. This is an engine limitation.
