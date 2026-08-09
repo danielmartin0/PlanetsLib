@@ -29,3 +29,5 @@ PlanetsLib includes one event that recipes can hook into using `RecipePrototype:
       },
     },
 ```
+
+![Returned ingredients field](/docs-images/returned-ingredients.png)

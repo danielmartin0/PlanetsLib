@@ -64,6 +64,8 @@ effects not flagged with `PlanetsLib_force_include`.
 }
 ```
 
+![Thruster fuel productivity](/docs-images/recipe-productivity-effects.png)
+
 #### Tech tree adjustments
 
 * `PlanetsLib.excise_tech_from_tech_tree(tech_name)` — Seamlessly removes a technology from the tech tree by making all its dependencies depend instead on the technology's prerequisites. In addition, `hidden = true` is set on the technology.

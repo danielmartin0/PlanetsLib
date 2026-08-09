@@ -14,3 +14,19 @@ You can access the orbit settings you need for these sprites by calling `Planets
 
 
 NOT every possible distance will be available, the sprites need to be generated beforehand. This is added because in practice we know that you only need a default orbit that you can use to make the moon look nice. Clashes can be resolved later, and that works well enough when put into practice.
+
+#### Example
+
+```lua
+--Actual code used in planet-muluna
+orbit = {
+        orientation = 0.75, 
+        distance = orbit_radius*o_parent_planet.magnitude/(nauvis.magnitude),
+        parent = {
+            type = "planet",
+            name = parent_planet,
+        },
+        sprite = PlanetsLib.get_orbit_sprite(orbit_radius*o_parent_planet.magnitude/(nauvis.magnitude))
+    },
+```
+![Muluna's moon orbit sprite](/docs-images/muluna-orbit.png)
