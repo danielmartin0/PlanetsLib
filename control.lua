@@ -4,6 +4,7 @@ PlanetsLib.events = require("scripts.custom-events")
 PlanetsLib.constants = prototypes.mod_data.Planetslib.data
 PlanetsLib.objects = require("lib.remove-replace-object")
 PlanetsLib.stage = "runtime"
+PlanetsLib.event_handler = require("__PlanetsLib__.lib.event-handler.event-handler")
 local rocket_parts = require("scripts.rocket-parts")
 local unreachable_techs = require("scripts.unreachable-techs")
 local entity_replacement = require("scripts.entity-replacement")
@@ -38,13 +39,13 @@ local function init_storage()
 	if not storage.entity_info then storage.entity_info = {} end --Stores info about each entity to speed up recipe effects
 end
 
-script.on_init(function()
+PlanetsLib.event_handler.add_lib{on_init = function()
 	if cargo_pods then
 		cargo_pods.init_storage()
 	end
 	init_storage()
 		storage.old_replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements
-end)
+end}
 
 local function replace_entity(surface,old_entity,new_entity)
 	if surface then
@@ -104,7 +105,7 @@ local function migrate_surface(planet_name,surface,planet_rules,replacement_rule
 
 end
 
-script.on_configuration_changed(function(data)
+PlanetsLib.event_handler.add_lib{on_configuration_changed=function(data)
 	if cargo_pods then
 		cargo_pods.init_storage()
 	end
@@ -147,7 +148,7 @@ script.on_configuration_changed(function(data)
 		unreachable_techs.warn_unreachable_techs()
 	end
 	
-end)
+end}
 
 local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_replacements
 local is_entity_replacements = not PlanetsLib.objects.deep_equals(entity_replacements,{}) --If no mods add entity replacements, disable related event triggers.
