@@ -4,3 +4,6 @@ prepublish.js
 *.pyc
 .venv
 .idea
+site/build
+site/node_modules
+site/.docusaurus
