@@ -2,7 +2,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 const factorioLinks = require('./plugins/factorio-links/remark-factorio-links');
-
+const default_codeblock_language = require('./plugins/lua-default-language/remark-default-lang');
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
@@ -43,7 +43,7 @@ const config: Config = {
           editUrl:
             'https://github.com/danielmartin0/PlanetsLib/tree/main/site/',
           routeBasePath: '/',
-          remarkPlugins: [[factorioLinks, {apiVersion: 'latest'}]],
+          remarkPlugins: [[factorioLinks, {apiVersion: 'latest'}],default_codeblock_language ],
         },
         theme: {
           customCss: './src/css/custom.css',
