@@ -88,6 +88,11 @@ const config: Config = {
           position: 'right',
         },
         {
+          label: 'Mod Portal',
+          href: 'https://mods.factorio.com/mod/PlanetsLib',
+          position: 'right',
+        },
+        {
           label: 'Discord',
           href: 'https://discord.gg/nFVqaPEk97',
           position: 'right',
