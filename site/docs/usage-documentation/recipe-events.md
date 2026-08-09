@@ -6,7 +6,7 @@ sidebar_label: Recipe Events
 
 PlanetsLib includes one event that recipes can hook into using `RecipePrototype::PlanetsLib_recipe_effects`. This event adds items to the machine's ingredient inventory on craft. Additional events may be added in the future.
 
-#### `RecipePrototype` field: PlanetsLib_recipe_effects [`table`]
+#### [[RecipePrototype]] field: PlanetsLib_recipe_effects [`table`]
 * `returned_ingredients` [`table(ItemProduct)`]
     * When this field is defined, ingredients are returned to the crafting machine's input. Must be defined prior to data-final-fixes.
     * Only supports the fields `name`,`type`, `amount`, `independent_probability`, and `shared_probability`.

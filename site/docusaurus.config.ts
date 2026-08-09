@@ -1,6 +1,7 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+const factorioLinks = require('./plugins/factorio-links/remark-factorio-links');
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -31,7 +32,6 @@ const config: Config = {
     locales: ['en'],
   },
   plugins: [require.resolve('docusaurus-lunr-search')],
-
   presets: [
     [
       '@docusaurus/preset-classic',
@@ -43,12 +43,13 @@ const config: Config = {
           editUrl:
             'https://github.com/danielmartin0/PlanetsLib/tree/main/site/',
           routeBasePath: '/',
+          remarkPlugins: [[factorioLinks, {apiVersion: 'latest'}]],
         },
         theme: {
           customCss: './src/css/custom.css',
         },
         blog: false,
-        pages: false
+        pages: false,
       } satisfies Preset.Options,
     ],
   ],
