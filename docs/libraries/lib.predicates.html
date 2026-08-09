@@ -41,10 +41,10 @@
 <h2>Libraries</h2>
 <ul class="nowrap">
   <li><a href="../libraries/PlanetsLib.objects.html">PlanetsLib.objects</a></li>
-  <li><a href="../libraries/lib.predicates.html">lib.predicates</a></li>
+  <li><strong>lib.predicates</strong></li>
   <li><a href="../libraries/lib.remove-replace-object.html">lib.remove-replace-object</a></li>
   <li><a href="../libraries/lib.technology.lua.html">lib.technology.lua</a></li>
-  <li><strong>scripts.rocket-parts.lua</strong></li>
+  <li><a href="../libraries/scripts.rocket-parts.lua.html">scripts.rocket-parts.lua</a></li>
 </ul>
 <h2>Manual</h2>
 <ul class="nowrap">
@@ -55,23 +55,18 @@
 
 <div id="content">
 
-<h1>Module <code>scripts.rocket-parts.lua</code></h1>
-<p>rocket-parts.lua</p>
+<h1>Module <code>lib.predicates</code></h1>
+<p>Library of functions to make more detailed filters</p>
 <p>
 
 </p>
-    <h3>Info:</h3>
-    <ul>
-        <li><strong>Author</strong>: Nicholas Gower(MeteorSwarm)</li>
-    </ul>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#Public.on_built_rocket_silo">Public.on_built_rocket_silo (event)</a></td>
-	<td class="summary">On building a rocket silo, if the silo is vanilla-like, its recipe is replaced if it was placed on a surface
- that according to "Planetslib-planet-rocket-part-recipe"(mod-data), should be replaced.</td>
+	<td class="name" nowrap><a href="#Public.compare">Public.compare (comparison, value)</a></td>
+	<td class="summary">Generates a simple comparison predicate</td>
 	</tr>
 </table>
 
@@ -83,19 +78,24 @@
 
     <dl class="function">
     <dt>
-    <a name = "Public.on_built_rocket_silo"></a>
-    <strong>Public.on_built_rocket_silo (event)</strong>
+    <a name = "Public.compare"></a>
+    <strong>Public.compare (comparison, value)</strong>
     </dt>
     <dd>
-    On building a rocket silo, if the silo is vanilla-like, its recipe is replaced if it was placed on a surface
- that according to "Planetslib-planet-rocket-part-recipe"(mod-data), should be replaced.
- Forked from NotNotMelon's <a href="https://github.com/notnotmelon/maraxsis/blob/main/scripts/project-seadragon.lua">rocket silo code</a> for Maraxsis.
+    Generates a simple comparison predicate
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">event</span>
-         table
+        <li><span class="parameter">comparison</span>
+
+
+
+        </li>
+        <li><span class="parameter">value</span>
+
+
+
         </li>
     </ul>
 
