@@ -11,6 +11,41 @@ Known issues: Variant entities will be the same fast_replaceable_group as the en
 * `PlanetsLib.create_planet_entity_variant(planet_names(table of strings or string),entity(table),new_properties(table),bound_setting(startup setting name),item_name(defaults to entity name))` – Creates and adds to data.raw a variant of `entity` with a unique name, the same localized name/description, and new properties taken from new_properties. When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity. `bound_setting` is a boolean startup setting. This entity variant is only placed when this startup setting is enabled. When disabling this startup setting on an existing save, variant entities are migrated back to their original entities when appropriate. When enabling this startup setting on an existing save, variant entities are migrated from their original entities when appropriate. To aid in mod uninstallation, expose this setting to users.
 * `PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting)` – When `entity` is placed on planet during gameplay, PlanetsLib will replace entity with new_entity. Due to current system limitations, assigning an entity replacement of the same entity onto the same planet will throw an error. Not recommended for regular use due to the lack of safety checks compared to PlanetsLib.create_planet_entity_variant(). `planet = "space-platform"` causes this function to map a replacement to all space platforms.
 
+#### Example
+
+```lua
+-- In settings.lua
+data:extend{{
+    name = "enable-chemical-plant-replacement",
+    type = "bool-setting",
+    default_value=true,
+    setting_type="startup"
+}}
+
+-- In data-updates.lua
+for _,planet in pairs(data.raw.planet) do
+    -- Create a chemical plant variant for each planet with a randomly chosen crafting speed.
+     PlanetsLib.create_planet_entity_variant(planet.name,data.raw["assembling-machine"]["chemical-plant"],{crafting_speed = math.random(1,50)},"enable-chemical-plant-replacement")
+end
+```
+
+#### Example using existing entity
+```lua
+-- In settings.lua
+data:extend{{
+    name = "enable-chemical-plant-replacement",
+    type = "bool-setting",
+    default_value=true,
+    setting_type="startup"
+}}
+
+-- In data.lua
+local replacement_entity = data.raw["assembling-machine"]["replacement-entity"] --Entity already created by other means
+     
+--Create entity replacement rule from already existing entities
+PlanetsLib.assign_entity_replacement("vulcanus","chemical-plant",replacement_entity.name,"enable-chemical-plant-replacement")
+```
+
 ## Entity variant migrations
 
 On adding new entity replacement rules to an existing save or disabling old replacement rules, PlanetsLib will perform a runtime migration on all entities in violation of the current ruleset to comply with the new ruleset. This process includes copying the settings, wire connections, inventories, fluidbox contents, health, crafting progress, and a myriad of other settings associated with entities. This process is not perfect, so reports of incomplete migrations are welcome. 
