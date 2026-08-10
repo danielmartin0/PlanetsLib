@@ -9,6 +9,7 @@ local mod_data = require("lib.mod-data")
 local recipe = require("lib.recipe")
 local achievements = require("lib.achievements")
 local entity_replacements = require("lib.add-entity-replacement")
+local spoil_categories = require("lib.spoil-categories")
 
 --== APIs ==--
 -- API documentation lives in README.md (or on the mod portal.)
@@ -49,6 +50,8 @@ PlanetsLib.get_special_property = planet.get_special_property
 PlanetsLib.get_special_properties = planet.get_special_properties
 
 PlanetsLib.get_orbit_sprite = planet.get_orbit_sprite
+
+PlanetsLib.create_spoil_category = spoil_categories.create_spoil_category
 
 --- Clones music tracks from source_planet to target_planet.
 --- Does not overwrite existing music for target_planet.
