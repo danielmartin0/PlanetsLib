@@ -1,23 +1,23 @@
 if feature_flags.spoiling then
     local items = {
         ["yumako"] = {
-            type = "rot",
+            type = "rotting",
             integrity=1
         },
         ["jellynut"] = {
-            type = "rot",
+            type = "rotting",
             integrity=1
         },
         ["fish"] = {
-            type = "rot",
+            type = "rotting",
             integrity=1
         },
         ["agricultural-science-pack"] = {
-            type = "rot",
+            type = "rotting",
             integrity=.7
         },
         ["bioflux"] = {
-            type = "rot",
+            type = "rotting",
             integrity=2
         },
         ["pentapod-egg"] = {
@@ -29,23 +29,23 @@ if feature_flags.spoiling then
             integrity=.1
         },
         ["yumako-mash"] = {
-            type = "rot",
+            type = "rotting",
             integrity=.4
         },
         ["jelly"] = {
-            type = "rot",
+            type = "rotting",
             integrity=.4
         },
         ["nutrients"] = {
-            type = "rot",
+            type = "rotting",
             integrity=.1
         },
         ["iron-bacteria"] = {
-            type = "rot",
+            type = "rotting",
             integrity=.1
         },
         ["copper-bacteria"] = {
-            type = "rot",
+            type = "rotting",
             integrity=.1
         },
     }
