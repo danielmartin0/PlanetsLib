@@ -290,6 +290,13 @@ data:extend{
             }
     }
 }
+```
+
+At runtime, the spoilage information for each item can be read from the `PlanetslibSpoilageInfo` mod data prototype. The data field only contains each registered spoilage data field, indexed by the item it belongs to.
+
+```lua
+
+local bioflux_spoilage_info = prototypes["mod-data"].PlanetslibSpoilageInfo.data.bioflux
 
 ```
 
