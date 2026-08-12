@@ -73,6 +73,7 @@ for _, sound in pairs(data.raw["ambient-sound"]) do
 	end
 end
 
+-- store spoilage data for runtime use.
 local spoilage_data = data.raw["mod-data"]["PlanetslibSpoilageInfo"].data
 
 local function extract_spoilage_info(item)
@@ -82,10 +83,10 @@ local function extract_spoilage_info(item)
 end
 
 local types = {
-	"item", "tool", "capsule", "ammo"
+	"item", "tool", "capsule","ammo"
 }
 
-for _, v in ipairs(types) do
+for _, item_type in ipairs(types) do
 	for _, value in pairs(data.raw[item_type]) do
 		extract_spoilage_info(value)
 	end
