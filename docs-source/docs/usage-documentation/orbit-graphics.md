@@ -15,6 +15,8 @@ You can access the orbit settings you need for these sprites by calling `Planets
 
 NOT every possible distance will be available, the sprites need to be generated beforehand. This is added because in practice we know that you only need a default orbit that you can use to make the moon look nice. Clashes can be resolved later, and that works well enough when put into practice.
 
+* `PlanetsLib.get_orbit_sprite(distance)` -> [[Sprite]] — Returns an orbit sprite appropriately sized for an orbit of the provided distance.
+
 #### Example
 
 ```lua
