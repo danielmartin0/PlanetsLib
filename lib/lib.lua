@@ -98,9 +98,9 @@ function Public.wrap_single_config(config_or_configs)
 end
 
 function Public.detailed_log(message)
-    if settings.startup["PlanetsLib-enable-detailed-logs"].value then
-        log(message)
-    end
+	if settings.startup["PlanetsLib-enable-detailed-logs"].value then
+		log(message)
+	end
 end
 
 function Public.event_name(eventid)

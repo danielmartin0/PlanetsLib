@@ -178,7 +178,8 @@ PlanetsLib reserves two special property values for runtime scripts set up durin
       returned_ingredients = {
         {type="item", name="alumina-crushed", amount=1,shared_probability = {min=0,max=0.9},ignored_by_productivity=1},
       },
-    },```
+    },
+```
 
 ## Surface conditions
 

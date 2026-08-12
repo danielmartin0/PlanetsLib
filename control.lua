@@ -198,15 +198,8 @@ if is_entity_replacements then
 end
 
 require("scripts.recipe-effects")
-local destroy_events = {
-	defines.events.on_player_mined_entity,
-	defines.events.on_robot_mined_entity,
-	defines.events.on_entity_died,
-	defines.events.script_raised_destroy,
-	defines.events.on_space_platform_mined_entity
-}
 
-for _,event_name in pairs(destroy_events) do
+for _,event_name in pairs(library.destroy_events) do
 	script.on_event(event_name, function(event)
 		if event.entity.unit_number then
 			storage.entity_info[event.entity.unit_number] = nil --Entity info table is used during recipe events to cache crafter inventories and production stat objects
