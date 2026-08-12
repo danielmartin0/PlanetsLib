@@ -15,8 +15,8 @@ PlanetsLib adds a new field named `PlanetsLib_recipe_productivity_effects` to [[
 Recipe products are ignored if they are not "productivity-capable"—if `ignored_by_productivity` is greater than or equal to `amount` (or `amount_max`)—because changing a recipe's productivity has no effect on such products. If a recipe has no productivity-capable products, it is fully ineligible; and if a recipe has multiple products, but only one product is productivity-capable (e.g. Kovarex enrichment), it is eligible _even if `allow_multiple_results` = false_.
 
 #### [[TechnologyPrototype]] field: `PlanetsLib_recipe_productivity_effects` Properties:
-*   `effects`: `array[ChangeResultProductivityModifier]`
-*   `category_blacklist` - `array[`[`RecipeCategoryID`](https://lua-api.factorio.com/latest/types/RecipeCategoryID.html)`]`
+*   `effects`: `table[ChangeResultProductivityModifier]`
+*   `category_blacklist` - `table[`[`RecipeCategoryID`](https://lua-api.factorio.com/latest/types/RecipeCategoryID.html)`]`
 *   `purge_other_effects`- `boolean`. Default: false. Before adding effects added by `PlanetsLib_recipe_productivity_effects`, remove all 
 effects not flagged with `PlanetsLib_force_include`.
 *   `allow_recipes_without_productivity` - `boolean`. Default: false. Captures recipes even if they have `allow_productivity` set to false.

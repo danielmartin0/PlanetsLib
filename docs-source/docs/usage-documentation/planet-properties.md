@@ -6,9 +6,9 @@ sidebar_label: Special Planet Properties
 
 PlanetsLib allows the addition of "special properties", values which can be displayed as surface properties, but are not intended to be used as surface properties. These properties are used during data-final-fixes and in control scripts to execute certain behavior.
 
-* `PlanetsLib.set_special_properties(planet(table or string),properties(table)) -> table` — Sets the special properties of a planet. Can not be called during data-final-fixes.
-* `PlanetsLib.get_special_property(planet(table or string),property(string)) -> object` — Returns the value of a single special property.
-* `PlanetsLib.get_special_properties(planet(table or string)) -> table` — Returns the entire `special_properties` table of a planet.
+* `PlanetsLib.set_special_properties(planet(table or string),properties(table))` -> `table` — Sets the special properties of a planet. Can not be called during data-final-fixes.
+* `PlanetsLib.get_special_property(planet(table or string),property(string))` -> `table` — Returns the value of a single special property.
+* `PlanetsLib.get_special_properties(planet(table or string))` -> `table` — Returns the entire `special_properties` table of a planet.
 
 ### Hardcoded Special Properties
 PlanetsLib reserves two special property values for runtime scripts set up during data-final-fixes. They are displayed as surface properties in game. If no mods define these properties, they are not displayed.
