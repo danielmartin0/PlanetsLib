@@ -7,7 +7,7 @@ require("prototypes.override-final.recipe-effects")
 if mods["space-age"] then
 	require("prototypes.override-final.check-unexpected-positions")
 	require("prototypes.override-final.update-connections")
-    require("prototypes.override-final.set-default-weights")
+	require("prototypes.override-final.set-default-weights")
 	require("prototypes.override-final.rocket-lift-multiplier")
 	local ps = require("lib.planet-str")
 
@@ -16,7 +16,7 @@ if mods["space-age"] then
 	--Set planet string for every planet based on planet name.
 	for _, planet in pairs(planets) do
 		if planet["surface_properties"] and planet["surface_properties"]["planet-str"] == nil then --Other mods can override planet strings, this is a last-resort planet string generator.
-			local truncated_name = string.sub(planet.name, 1, 8) --Planet strings can only be 8 characters or less.
+			local truncated_name = string.sub(planet.name, 1, 8)                             --Planet strings can only be 8 characters or less.
 			ps.set_planet_str(planet, truncated_name)
 		end
 		-- add a surface property that marks that the planet is freezing, entities need heating
@@ -38,7 +38,8 @@ if mods["space-age"] then
 	end
 
 	local gas_list = { "oxygen", "nitrogen", "carbon-dioxide", "argon" }
-	local enforce_percentage = settings.startup["PlanetsLib-enforce-gas-percentage"].value --Whether code should assert that combined gas contents add up to less than 100%.
+	local enforce_percentage = settings.startup["PlanetsLib-enforce-gas-percentage"]
+	.value                                                                              --Whether code should assert that combined gas contents add up to less than 100%.
 
 	for _, planet in pairs(planets) do
 		if planet.surface_properties and enforce_percentage then
@@ -51,20 +52,42 @@ if mods["space-age"] then
 			assert(
 				gas_content <= 100,
 				"Combined gas contents of planet "
-					.. planet.name
-					.. ' exceed 100%. To override this assertion, add \'data.raw["bool-setting"]["PlanetsLib-enforce-gas-percentage"].forced_value = false\' to settings-updates.lua.'
+				.. planet.name
+				..
+				' exceed 100%. To override this assertion, add \'data.raw["bool-setting"]["PlanetsLib-enforce-gas-percentage"].forced_value = false\' to settings-updates.lua.'
 			)
 		end
 	end
 end
 
-for _,sound in pairs(data.raw["ambient-sound"]) do
+for _, sound in pairs(data.raw["ambient-sound"]) do
 	if sound.planet then
 		if not sound.planets then
 			sound.planets = {}
 		end
-		PlanetsLib.rro.soft_insert(sound.planets,sound.planet)
-		log("Ambient sound " .. sound.name .. "using unsupported field AmbientSound::planet has been corrected. This sound should be manually fixed, as this field is no longer supported by Wube as of Factorio 2.1.13.")
+		PlanetsLib.rro.soft_insert(sound.planets, sound.planet)
+		log("Ambient sound " ..
+		sound.name ..
+		"using unsupported field AmbientSound::planet has been corrected. This sound should be manually fixed, as this field is no longer supported by Wube as of Factorio 2.1.13.")
 		sound.planet = nil
+	end
+end
+
+-- store spoilage data for runtime use.
+local spoilage_data = data.raw["mod-data"]["PlanetslibSpoilageInfo"].data
+
+local function extract_spoilage_info(item)
+	if item.planetslib_spoilage_meta then
+		spoilage_data[item.name] = item.planetslib_spoilage_meta
+	end
+end
+
+local types = {
+	"item", "tool", "capsule","ammo"
+}
+
+for _, item_type in ipairs(types) do
+	for _, value in pairs(data.raw[item_type]) do
+		extract_spoilage_info(value)
 	end
 end

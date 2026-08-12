@@ -267,6 +267,39 @@ effects not flagged with `PlanetsLib_force_include`.
            }
 }
 ```
+#### Item data
+
+Planetslib adds metadata to space age items that spoil to better identify what is happening with them, and also how to handle them.
+
+Adding the `planetslib_spoilage_meta` field to an item that spoils, other mods will be able to tell how to handle that spoiling effect so they won't try to freeze a hot metal plate to prevent it from cooling down. No need to implement a custom api for every other mod.
+
+
+```lua
+data:extend{
+    {
+        type="item",
+        name="my-item",
+        --...
+        planetslib_spoilage_meta = {
+                -- The type is a string, that identifies the process. This should be syncronized between mods using the same processes.
+                type ="rotting",
+                -- a float, how well this item should take to being procesed by other mods.
+                -- eg, if it is bellow 1 then it should not take well to being processed (preserved),
+                -- if above 1 then it should last longer with such process.
+                integrity = 1
+            }
+    }
+}
+```
+
+At runtime, the spoilage information for each item can be read from the `PlanetslibSpoilageInfo` mod data prototype. The data field only contains each registered spoilage data field, indexed by the item it belongs to.
+
+```lua
+
+local bioflux_spoilage_info = prototypes["mod-data"].PlanetslibSpoilageInfo.data.bioflux
+
+```
+
 #### Event handler
 
 Planetslib provides an alternative to the event handler library found in factorio's core mod, 
@@ -301,7 +334,6 @@ handler.add_lib(require("script.orbital-cannon"))
     local handler = require("__PlanetsLib__.lib.event-handler.event-handler")
     -- include the built in "on_built" and "on_removed" composite events
     handler.add_composite_events(require("__PlanetsLib__.lib.event-handler.composite-events"))
-
 
     -- using the name of a composite event is also valid for a filter, it will apply to every included event.
     handler.add_filter("on_built",{

@@ -1,5 +1,6 @@
 require("prototypes.tiles")
 require("prototypes.events")
+require("prototypes.spoilage-meta")
 local orbits = require("lib.orbits")
 PlanetsLib = {}
 PlanetsLib.current_stage = "data"
@@ -37,6 +38,14 @@ data:extend({
 				--[planet name] = table {incl. rocket_lift_multiplier}
 			}
 		},
+	},
+	-- stores spoilage information registered in the data stage, and makes it available at runtime.
+	-- the data is indexed by item name, the value is the spoilage data that was on the item
+	-- separated from other data, because this is a part of the user facing api of planetslib.
+	{
+		type = "mod-data",
+		name = "PlanetslibSpoilageInfo",
+		data = {},
 	},
 })
 
