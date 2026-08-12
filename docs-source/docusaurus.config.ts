@@ -41,7 +41,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/danielmartin0/PlanetsLib/tree/main/site/',
+            'https://github.com/danielmartin0/PlanetsLib/tree/main/docs-source/',
           routeBasePath: '/',
           remarkPlugins: [[factorioLinks, {apiVersion: 'latest'}],default_codeblock_language ],
         },
