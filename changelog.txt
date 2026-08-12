@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.24.0
-Date: -
+Date: 2026-08-12
   Features:
     - Added a modified version of the core mod's event handler. Can be imported during the control stage with "require("__PlanetsLib__.lib.event-handler.event-handler")".
 ---------------------------------------------------------------------------------------------------
