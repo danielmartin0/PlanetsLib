@@ -36,6 +36,9 @@ data:extend({
 			},
 			planet_special_properties = { --Place to store arbitrary planet properties to avoid a proliferation of new mod-data objects.
 				--[planet name] = table {incl. rocket_lift_multiplier}
+			},
+			pipette_result = { --Maps entity name to pipette result. An alternative to EntityPrototype::placeable_by that doesn't affect bot behavior.
+				--[entity-name] = "other-entity-name"
 			}
 		},
 	},

@@ -1,4 +1,3 @@
-PlanetsLib.constants.pipette_result = {} --Maps entity name to pipette result.
 for _,prototype in pairs(defines.prototypes.entity) do
     for _,entity in pairs(data.raw[prototype] or {}) do
         if entity.PlanetsLib_pipette_result then

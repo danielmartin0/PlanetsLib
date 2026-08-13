@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.25.0
+Date: ???
+  Features:
+    - Added LuaEntity::PlanetsLib_pipette_result, a version of LuaEntity::placeable_by that only affects player pipetting, not robots. In data-final-fixes, edit PlanetsLib.constants.pipette_result directly.
+---------------------------------------------------------------------------------------------------
 Version: 1.24.0
 Date: 2026-08-12
   Features:
