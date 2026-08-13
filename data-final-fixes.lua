@@ -4,6 +4,7 @@ require("prototypes.override-final.science")
 require("prototypes.override-final.technology-updates")
 require("prototypes.override-final.enhanced-tooltips")
 require("prototypes.override-final.recipe-effects")
+require("prototypes.override-final.pipette-result")
 if mods["space-age"] then
 	require("prototypes.override-final.check-unexpected-positions")
 	require("prototypes.override-final.update-connections")

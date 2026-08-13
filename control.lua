@@ -207,4 +207,28 @@ for _,event_name in pairs(library.destroy_events) do
 	end)
 end
 
+--Allows the pipette tool to summon explicitly defined entities when used on an entity without making it possible to build that entity using said item with robots.
+if not rro.deep_equals(PlanetsLib.constants.pipette_result,{}) then
+	script.on_event(
+	"pipette", function(event)
+		local player = game.players[event.player_index]
+		--player.update_selected_entity(event.cursor_position)
+		
+		--local selected_prototype_name = event.selected_prototype.name
+		if not player.selected then return end
+		local result_name = PlanetsLib.constants.pipette_result[player.selected.name]
+		local result = prototypes.entity[result_name]
+		if result then
+			player.pipette(result,player.selected.quality.name or nil, true)
+		end
+		
+		
+	end
+
+
+	)
+end
+
+
+
 if script.active_mods["gvv"] then require("__gvv__.gvv")() end --gvv enables debugging of storage values with a GUI
