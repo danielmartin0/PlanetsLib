@@ -258,8 +258,8 @@ function Public.get_train_info(entity)
         end
         
     end
-    info.front_stock = front_stock
-    info.back_stock = back_stock
+    info.front_stock = entity.get_connected_rolling_stock(defines.rail_direction.front)
+    info.back_stock = entity.get_connected_rolling_stock(defines.rail_direction.back)
     info.fields = {}
     info.train = train
     for field,value in pairs(train_fields) do
@@ -402,9 +402,18 @@ function Public.replace_entity(entity,new_entity,raise_built)
     -- end
     local is_train = entity.train
     if is_train then
+        local old_orientation = entity.orientation
+        print(entity.orientation)
         local surface = entity.surface
         local rolling_stock_info = Public.get_info_rolling_stock(entity)
-        
+        local has_front_stock 
+        local has_back_stock
+        if rolling_stock_info.train.front_stock then
+            has_front_stock = true
+        end
+        if rolling_stock_info.train.back_stock then
+            has_back_stock = true
+        end
         local new_entity
         if rolling_stock_info.train.front_stock or rolling_stock_info.train.back_stock then
             entity.order_upgrade{target=new_entity_properties,force=entity.force}
@@ -414,6 +423,12 @@ function Public.replace_entity(entity,new_entity,raise_built)
             new_entity = surface.create_entity(new_entity_properties)
             Public.copy_info_to_new_rolling_stock(new_entity,rolling_stock_info)
         end
+        --print(new_entity.orientation)
+        if new_entity.orientation ~= old_orientation then
+            game.print("Orientation mismatch between locomotive and replacement locomotive! Don't save this game. Report this issue to PlanetsLib."..serpent.block(new_entity.position))
+        end
+        --print(new_entity.orientation)
+        --print(serpent.block(new_entity.train.locomotives))
         
         
         --local new_entity = surface.create_entity(new_entity_properties)
@@ -485,7 +500,7 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
 
     if not ((entity_replacements_inverted and entity_replacements_inverted[name]) or (entity_replacements[planet] and entity_replacements[planet][name]))  then return end
     
-    print(is_ghost)
+    --print(is_ghost)
     
     local is_space = not not surface.platform
     local swap_target = swap_target or nil
@@ -502,8 +517,8 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
             swap_target = entity_replacements[planet][name].entity
         end
     end
-    print(swap_target)
-    print(name)
+    --print(swap_target)
+    --print(name)
     if swap_target == name then return end
     if entity_replacements and entity_replacements[planet] and entity_replacements[planet][name] and entity_replacements[planet][name].enabled == false then return end 
         
