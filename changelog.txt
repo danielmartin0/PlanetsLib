@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.25.1
+Date: 2026-08-14
+  Bugfixes:
+    - Locomotives replaced under the entity replacement system will now preserve orientation in all conditions.
+---------------------------------------------------------------------------------------------------
 Version: 1.25.0
 Date: 2026-08-13
   Features:
