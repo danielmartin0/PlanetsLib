@@ -39,7 +39,7 @@ if mods["space-age"] then
 
 	local gas_list = { "oxygen", "nitrogen", "carbon-dioxide", "argon" }
 	local enforce_percentage = settings.startup["PlanetsLib-enforce-gas-percentage"]
-	.value                                                                              --Whether code should assert that combined gas contents add up to less than 100%.
+		.value --Whether code should assert that combined gas contents add up to less than 100%.
 
 	for _, planet in pairs(planets) do
 		if planet.surface_properties and enforce_percentage then
@@ -67,8 +67,8 @@ for _, sound in pairs(data.raw["ambient-sound"]) do
 		end
 		PlanetsLib.rro.soft_insert(sound.planets, sound.planet)
 		log("Ambient sound " ..
-		sound.name ..
-		"using unsupported field AmbientSound::planet has been corrected. This sound should be manually fixed, as this field is no longer supported by Wube as of Factorio 2.1.13.")
+			sound.name ..
+			"using unsupported field AmbientSound::planet has been corrected. This sound should be manually fixed, as this field is no longer supported by Wube as of Factorio 2.1.13.")
 		sound.planet = nil
 	end
 end
@@ -82,12 +82,15 @@ local function extract_spoilage_info(item)
 	end
 end
 
+-- set types, because we really don't need to loop over everything
 local types = {
-	"item", "tool", "capsule","ammo"
+	"item", "tool", "capsule", "ammo"
 }
 
 for _, item_type in ipairs(types) do
-	for _, value in pairs(data.raw[item_type]) do
-		extract_spoilage_info(value)
+	if data.raw[item_type] then
+		for _, value in pairs(data.raw[item_type]) do
+			extract_spoilage_info(value)
+		end
 	end
 end
