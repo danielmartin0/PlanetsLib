@@ -8,7 +8,7 @@ require("prototypes.override-final.pipette-result")
 if mods["space-age"] then
 	require("prototypes.override-final.check-unexpected-positions")
 	require("prototypes.override-final.update-connections")
-    require("prototypes.override-final.set-default-weights")
+	require("prototypes.override-final.set-default-weights")
 	require("prototypes.override-final.rocket-lift-multiplier")
 	local ps = require("lib.planet-str")
 
@@ -52,7 +52,7 @@ if mods["space-age"] then
 			assert(
 				gas_content <= 100,
 				"Combined gas contents of planet "
-					.. planet.name
+				.. planet.name
 					.. ' exceed 100%. To override this assertion, add \'data.raw["bool-setting"]["PlanetsLib-enforce-gas-percentage"].forced_value = false\' to settings-updates.lua.'
 			)
 		end
@@ -67,5 +67,39 @@ for _,sound in pairs(data.raw["ambient-sound"]) do
 		PlanetsLib.rro.soft_insert(sound.planets,sound.planet)
 		log("Ambient sound " .. sound.name .. "using unsupported field AmbientSound::planet has been corrected. This sound should be manually fixed, as this field is no longer supported by Wube as of Factorio 2.1.13.")
 		sound.planet = nil
+	end
+end
+
+-- store spoilage information for the runtime.
+local spoilage_data = data.raw["mod-data"].Planetslib.data
+
+local function extract_spoilage_info(item)
+	if item.planetslib_spoilage_meta then
+		spoilage_data[item.name] = item.planetslib_spoilage_meta
+	end
+end
+
+
+
+-- set types, because we really don't need to loop over everything
+local types = {
+	"tool",
+	"item",
+	"capsule",
+	"ammo",
+	"gun",
+	"item-with-entity-data",
+	"module",
+	"rail-planner",
+	"space-platform-starter-pack",
+	"armor",
+	"repair-tool"
+}
+
+for _, item_type in ipairs(types) do
+	if data.raw[item_type] then
+		for _, value in pairs(data.raw[item_type]) do
+			extract_spoilage_info(value)
+		end
 	end
 end

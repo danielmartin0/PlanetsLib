@@ -1,10 +1,18 @@
 require("prototypes.tiles")
 require("prototypes.events")
 require("prototypes.custom-inputs")
+require("prototypes.spoilage-data")
 local orbits = require("lib.orbits")
+
 PlanetsLib = {}
 PlanetsLib.current_stage = "data"
 data:extend({
+	-- separate mod data from the main data, because this is a consumer facing api.
+	{
+		type = "mod-data",
+		name = "Planetslib-spoilage-data",
+		data={}
+	},
 	{
 		type = "mod-data",
 		name = "Planetslib",
