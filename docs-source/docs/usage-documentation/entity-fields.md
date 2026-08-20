@@ -43,6 +43,8 @@ How "fragile" this item is, other mods can use it as a multiplier for recipes an
 
 The data for every item is also available in the `Planetslib-spoilage-data` [[ModData]] prototype. (`prototypes['mod-data']['Planetslib-spoilage-data']`). It is indexed by the name of the item, and contains the full value of the `planetslib_spoilage_meta` field.
 
+![spoilage data visible with the global variable viewer](/docs-images/spoilage-data-gvv.png)
+
 ### Supported prototypes
 
 - [[ItemPrototype]]

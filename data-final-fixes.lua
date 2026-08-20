@@ -71,7 +71,7 @@ for _,sound in pairs(data.raw["ambient-sound"]) do
 end
 
 -- store spoilage information for the runtime.
-local spoilage_data = data.raw["mod-data"].Planetslib.data
+local spoilage_data = data.raw["mod-data"]["Planetslib-spoilage-data"].data
 
 local function extract_spoilage_info(item)
 	if item.planetslib_spoilage_meta then
