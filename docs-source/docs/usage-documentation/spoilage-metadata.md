@@ -1,11 +1,8 @@
 ---
-sidebar_label: Prototype Fields
+sidebar_label: Spoilage metadata
 ---
 
-# Prototype fields
-
-
-## Spoilage metadata
+# Spoilage metadata
 
 Planetslib provides infrastructure to have additional information on items that spoil, beyond a timer. This lets modders decide what can be done to that item, so a freezer won't preserve a hot plate of metal.
 
@@ -15,14 +12,14 @@ It is done through the `planetslib_spoilage_meta` field on item prototypes.
 
 ### Fields
 
-##### type
+#### type
 A string that identifies the process that is happening here. If you know that your process is the same as another mod, or the base game use the same string. 
 
 For example, this lets you make sure that your freezer won't work on nuclear materials, or hot metals.
 
 > The types registered for space age items are `rotting` and `hatching`. 
 
-##### integrity
+#### integrity
 
 How "fragile" this item is, other mods can use it as a multiplier for recipes and othe processes that interact with spoilage timers.
 
