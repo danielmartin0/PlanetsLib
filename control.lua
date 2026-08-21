@@ -6,6 +6,8 @@ PlanetsLib.objects = require("lib.remove-replace-object")
 PlanetsLib.stage = "runtime"
 PlanetsLib.event_handler = require("__PlanetsLib__.lib.event-handler.event-handler")
 PlanetsLib.composite_events = require("__PlanetsLib__.lib.event-handler.composite-events")
+require("scripts.on_surface_day_begins")
+
 local library = require("__PlanetsLib__.lib.lib")
 local rocket_parts = require("scripts.rocket-parts")
 local unreachable_techs = require("scripts.unreachable-techs")
@@ -39,6 +41,15 @@ end
 
 local function init_storage()
 	if not storage.entity_info then storage.entity_info = {} end --Stores info about each entity to speed up recipe effects
+	if not storage.surface_info then storage.surface_info = {} end -- Tracks info about day begin trackers on planets that use them.
+	for _,surface in pairs(game.surfaces) do
+		if not (storage.surface_info[surface.name] and storage.surface_info[surface.name].tracker) and PlanetsLib.constants.surface_fire_daynight_event[surface.name] then
+            PlanetsLib.setup_surface_daynight_cycle(surface)
+		else
+			storage.surface_info[surface.name] = nil
+			--storage.surface_info[surface.name].tracker = nil
+        end
+	end
 end
 
 PlanetsLib.event_handler.add_lib{on_init = function()

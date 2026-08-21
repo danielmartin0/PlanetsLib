@@ -39,6 +39,9 @@ data:extend({
 			},
 			pipette_result = { --Maps entity name to pipette result. An alternative to EntityPrototype::placeable_by that doesn't affect bot behavior.
 				--[entity-name] = "other-entity-name"
+			},
+			surface_fire_daynight_event = {
+				--nauvis = true
 			}
 		},
 	},
