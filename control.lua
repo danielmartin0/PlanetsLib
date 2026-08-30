@@ -229,6 +229,15 @@ if not rro.deep_equals(PlanetsLib.constants.pipette_result,{}) then
 	)
 end
 
-
+if PlanetsLib.constants.enable_on_next_day_event then
+	script.on_event(defines.events.on_next_day_started, function(event)
+		if PlanetsLib.constants.planet_special_properties(event.surface.name) and PlanetsLib.constants.planet_special_properties(event.surface.name).lattitude then
+			local surface = event.surface
+			local special_properties = surface.special_properties
+			local base_solar = special_properties["base-solar-power"]
+		end
+	
+	end)
+end
 
 if script.active_mods["gvv"] then require("__gvv__.gvv")() end --gvv enables debugging of storage values with a GUI
