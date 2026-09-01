@@ -243,7 +243,7 @@ remote.add_interface("PlanetsLib_transfer_storage",
 			if not storage.dumped_storage then
 				storage.dumped_storage = {}
 			end
-			return storage[mod_name]
+			return storage.dumped_storage[mod_name]
 		end,
 		purge = function(mod_name) 
 			if not storage.dumped_storage then
