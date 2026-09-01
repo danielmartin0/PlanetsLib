@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.26.0
+Date: 2026-08-31
+  Features:
+    - Added remote interface "PlanetsLib_transfer_storage" to assist in copying the storage table of a mod to a fork of the mod.
+---------------------------------------------------------------------------------------------------
 Version: 1.25.1
 Date: 2026-08-14
   Bugfixes:

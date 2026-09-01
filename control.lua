@@ -230,25 +230,34 @@ if not rro.deep_equals(PlanetsLib.constants.pipette_result,{}) then
 end
 
 
-
-if script.active_mods["gvv"] then 
-	require("__gvv__.gvv")() 
-	remote.add_interface("PlanetsLib_dump_storage",
+--Remote interface to help transfer storage of a mod to a fork of a mod.
+remote.add_interface("PlanetsLib_transfer_storage",
 	{
-		save = function(mod_name) 
+		save = function(mod_name,storage_data) 
 			if not storage.dumped_storage then
 				storage.dumped_storage = {}
 			end
-			storage.dumped_storage = remote.call("__" .. mod_name .. "__gvv","storage")
+			storage.dumped_storage[mod_name] = storage_data
 		end,
 		get = function(mod_name)
 			if not storage.dumped_storage then
 				storage.dumped_storage = {}
 			end
-			storage.dumped_storage = remote.call("__" .. mod_name .. "__gvv","storage")
-		end
-
+			return storage[mod_name]
+		end,
+		purge = function(mod_name) 
+			if not storage.dumped_storage then
+				storage.dumped_storage = {}
+			end
+			storage.dumped_storage[mod_name] = nil
+		end,
 	}
 )
+
+
+if script.active_mods["gvv"] then 
+	require("__gvv__.gvv")() 
+	
+
 	end --gvv enables debugging of storage values with a GUI
 
