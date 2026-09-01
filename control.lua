@@ -231,4 +231,24 @@ end
 
 
 
-if script.active_mods["gvv"] then require("__gvv__.gvv")() end --gvv enables debugging of storage values with a GUI
+if script.active_mods["gvv"] then 
+	require("__gvv__.gvv")() 
+	remote.add_interface("PlanetsLib_dump_storage",
+	{
+		save = function(mod_name) 
+			if not storage.dumped_storage then
+				storage.dumped_storage = {}
+			end
+			storage.dumped_storage = remote.call("__" .. mod_name .. "__gvv","storage")
+		end,
+		get = function(mod_name)
+			if not storage.dumped_storage then
+				storage.dumped_storage = {}
+			end
+			storage.dumped_storage = remote.call("__" .. mod_name .. "__gvv","storage")
+		end
+
+	}
+)
+	end --gvv enables debugging of storage values with a GUI
+
