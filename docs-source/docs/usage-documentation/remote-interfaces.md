@@ -15,7 +15,7 @@ If a mod author has abandoned their mod, and another developer decides to fork t
 
 These interfaces are used by the player. In your fork, add a variation of these instructions to explain to players how to transfer their data to the new mod.
 
-1. Load save with the old mod loaded. Enter command `/c __old-mod__ remote.call("PlanetsLib_transfer_storage","save","old-mod")`. Save the game.
+1. Load save with the old mod loaded. Enter command `/c __old-mod__ remote.call("PlanetsLib_transfer_storage","save","old-mod",storage)`. Save the game.
 2. Load save again with the old mod replaced with the new fork. Enter command `/c __new-mod__ storage = remote.call("PlanetsLib_transfer_storage","get","old-mod")`.
 3. Delete cached storage with `/c __new-mod__ remote.call("PlanetsLib_transfer_storage","purge","old-mod")`.
 
