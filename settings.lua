@@ -37,23 +37,30 @@ data:extend({
 	{
 		type = "bool-setting",
 		setting_type = "startup",
+		name = "PlanetsLib-enable-lab-science-pack-preview-size-change",
+		default_value = true,
+		order = "ae",
+	},
+	{
+		type = "bool-setting",
+		setting_type = "startup",
 		name = "PlanetsLib-enable-detailed-logs",
 		default_value = false,
-		order = "ae",
+		order = "af",
 	},
 	{
 		type = "bool-setting",
 		setting_type = "startup",
 		name = "PlanetsLib-enable-entity-replacements",
 		default_value = true,
-		order = "af",
+		order = "ba",
 	},
 	{
 		type = "bool-setting",
 		setting_type = "startup",
 		name = "PlanetsLib-disable-all-entity-replacements",
 		default_value = false,
-		order = "ag",
+		order = "bb",
 	},
 })
 

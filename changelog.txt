@@ -3,6 +3,7 @@ Version: 1.26.0
 Date: 2026-08-31
   Features:
     - Added remote interface "PlanetsLib_transfer_storage" to assist in copying the storage table of a mod to a fork of the mod.
+    - Added player-facing setting "Enable lab science pack preview size change", an optional feature that scales the size of science pack icons on labs in alt mode based on the number of science packs the lab supports.
 ---------------------------------------------------------------------------------------------------
 Version: 1.25.1
 Date: 2026-08-14

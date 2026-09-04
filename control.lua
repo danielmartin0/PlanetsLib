@@ -10,6 +10,8 @@ local library = require("__PlanetsLib__.lib.lib")
 local rocket_parts = require("scripts.rocket-parts")
 local unreachable_techs = require("scripts.unreachable-techs")
 local entity_replacement = require("scripts.entity-replacement")
+require("lib.authors")
+require("scripts.player-effects")
 -- By convention, please register event handlers in this file rather than the scripts directory, to help avoid collisions
 
 local cargo_pods
