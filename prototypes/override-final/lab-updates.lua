@@ -22,7 +22,7 @@ if settings.startup["PlanetsLib-enable-lab-science-pack-preview-size-change"].va
             }
             end
             --if not PlanetsLib.rro.contains(lab.icons_positioning,function(entry) return entry.inventory_index == defines.inventory.lab_input end) then
-                table.insert(lab.icons_positioning,{inventory_index = defines.inventory.lab_input, shift = {0, 1*(icon_scaling-1)}, max_icons_per_row = math.floor(6/math.sqrt(icon_scaling)), separation_multiplier = 1, scale = 0.9*size_factor*icon_scaling})
+                table.insert(lab.icons_positioning,{inventory_index = defines.inventory.lab_input, shift = {0, 0.75*size_factor*(icon_scaling-1)}, max_icons_per_row = math.floor(6/math.sqrt(icon_scaling)), separation_multiplier = 1, scale = 0.9*size_factor*icon_scaling})
             --end
             
         end
