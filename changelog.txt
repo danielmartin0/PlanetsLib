@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.26.1
+Date: 2026-09-05
+  Bugfixes:
+    - Vanilla cargo bays now accept cargo pods defined in PlanetsLib.constants.space_platform_hub_receiving_cargo_units, as do vanilla space platform hubs.
+---------------------------------------------------------------------------------------------------
 Version: 1.26.0
 Date: 2026-08-31
   Features:
