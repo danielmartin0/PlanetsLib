@@ -250,7 +250,7 @@ function Public.borrow_music(source_planet, target_planet, options)
 			if target_name and not options.modifier_function then
 				table.insert(music.planets, target_name) --New in Factorio 2.1: Ambient sounds can be played for multiple planets, making borrow_music()'s old approach of copying tracks mostly obsolete. We will avoid making new tracks unless a modifier function is provided.
 			else
-				copied_music = util.table.deepcopy(music)
+				local copied_music = util.table.deepcopy(music)
 				copied_music.name = music.name .. "-" .. target_planet.name
 
 				if target_name then
