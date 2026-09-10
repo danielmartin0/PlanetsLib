@@ -232,40 +232,54 @@ function Public.borrow_music(source_planet, target_planet, options)
 	end
 
 	local source_name = source_planet.name or source_planet
+	local target_name = target_planet.name or target_planet
+	if source_name == target_name then
+		return
+	end
 
-	local target_name = target_planet.name
 	if source_name == "space-platform" then
 		source_name = nil
 	end
-
 	if target_name == "space-platform" then
 		target_name = nil
 	end
 
 	for _, music in pairs(data.raw["ambient-sound"]) do
-		if
-			PlanetsLib.rro.contains(music.planets, source_name)
-			and (options.track_types == nil or PlanetsLib.rro.contains(options.track_types, music.track_type))
-		then 
+		if options.track_types and not PlanetsLib.rro.contains(options.track_types, music.track_type) then
+			goto continue
+		end
+
+		local do_copy = false
+		if not source_name then -- copy from space platform
+			if not music.planets and not music.surface_names and not music.play_on_all_surfaces then
+				do_copy = true
+			end
+		elseif PlanetsLib.rro.contains(music.planets, source_name) then 
 			if target_name and not options.modifier_function then
-				table.insert(music.planets, target_name) --New in Factorio 2.1: Ambient sounds can be played for multiple planets, making borrow_music()'s old approach of copying tracks mostly obsolete. We will avoid making new tracks unless a modifier function is provided.
-			else
-				local copied_music = util.table.deepcopy(music)
-				copied_music.name = music.name .. "-" .. target_planet.name
-
-				if target_name then
-					copied_music.planets = { target_name }
-				else
-					copied_music.planets = nil
-				end
-
-				if options.modifier_function then
-					options.modifier_function(copied_music) -- options.modifier gives the opportunity to apply changes to the track's parameters through a function.
-				end
-
-				data:extend({ copied_music })
+				table.insert(music.planets, target_name) -- New in Factorio 2.1: Ambient sounds can be played for multiple planets, making borrow_music()'s old approach of copying tracks mostly obsolete. We will avoid making new tracks unless a modifier function is provided.
+			else -- copy to space platform
+				do_copy = true
 			end
 		end
+
+		if do_copy then
+			local copied_music = util.table.deepcopy(music)
+			copied_music.name = music.name .. "-" .. (target_planet.name or target_planet)
+
+			if target_name then
+				copied_music.planets = { target_name }
+			else
+				copied_music.planets = nil
+				copied_music.surface_names = nil
+			end
+
+			if options.modifier_function then
+				options.modifier_function(copied_music) -- options.modifier_function gives the opportunity to apply changes to the track's parameters through a function.
+			end
+
+			data:extend({ copied_music })
+		end
+		::continue::
 	end
 end
 
