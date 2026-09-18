@@ -1,5 +1,3 @@
-local math2d = require("__core__/lualib/math2d")
-
 if settings.startup["PlanetsLib-enable-lab-science-pack-preview-size-change"].value == true then
    for _,lab in pairs(data.raw.lab) do
         local max_count = 12
@@ -10,9 +8,11 @@ if settings.startup["PlanetsLib-enable-lab-science-pack-preview-size-change"].va
         if pack_count >= max_count then
             --assert(lab.name ~= "cerys-lab")
             local icon_scaling = max_count/pack_count
-            local left_top = math2d.position.ensure_xy(lab.selection_box.left_top or lab.selection_box[1])
-            local right_bottom = math2d.position.ensure_xy(lab.selection_box.right_bottom or lab.selection_box[2])
-            local x = math.abs(left_top.x - right_bottom.x)
+            local left_top = lab.selection_box.left_top or lab.selection_box[1]
+            local right_bottom = lab.selection_box.right_bottom or lab.selection_box[2]
+            local left_top_x = left_top.x or left_top[1]
+            local right_bottom_x = right_bottom.x or right_bottom[1]
+            local x = math.abs(left_top_x - right_bottom_x)
             local size_factor = 1
             if x then
                 size_factor = math.sqrt(x / 3)
