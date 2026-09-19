@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.26.4
-Date: ???
+Date: 2026-09-19
   Optimizations:
     - Added filter to on_entity_died and similar events in PlanetsLib to prevent event from firing when asteroids, plants, simple entities, and trees are destroyed. Significantly improves performance on large saves.
 ---------------------------------------------------------------------------------------------------
