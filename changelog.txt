@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.26.3
+Date: 2026-09-19
+  Bugfixes:
+    - Fixed a crash when mods define lab prototype selection boxes with vector formats when "Enable lab science pack preview size change" is enabled.
+---------------------------------------------------------------------------------------------------
 Version: 1.26.2
 Date: 2026-09-10
   Bugfixes:
