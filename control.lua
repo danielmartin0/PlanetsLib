@@ -201,13 +201,33 @@ end
 
 require("scripts.recipe-effects")
 
+local entities_without_unit_number = {
+	"simple-entity",
+	"tree",
+	"plant",
+	"asteroid",
+	"resource",
+	"corpse",
+	"item-entity",
+}
+local destroy_filters = {
+
+}
+for _,entity_type in pairs(entities_without_unit_number) do
+	table.insert(destroy_filters,
+	{mode="and",filter = "type",type=entity_type,invert=true}
+)
+end
+
 for _,event_name in pairs(library.destroy_events) do
 	script.on_event(event_name, function(event)
+		if event.entity.unit_number then
+			storage.entity_info[event.entity.unit_number] = nil --Entity info table is used during recipe events to cache crafter inventories and production stat objects
+		end
 		
-		storage.entity_info[event.entity.unit_number] = nil --Entity info table is used during recipe events to cache crafter inventories and production stat objects
 		
 	end,
-	{{mode="and",filter = "type",type="simple-entity",invert=true},{mode="and",filter = "type",type="tree",invert=true},{mode="and",filter = "type",type="plant",invert=true},{mode="and",filter = "type",type="asteroid",invert=true}}
+	destroy_filters
 	)
 end
 
