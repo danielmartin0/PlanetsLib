@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.26.6
+Date: 2026-09-20
+  Bugfixes:
+    - Adjusted scaling of lab science pack preview icons to reduce scale with a small number of science packs.
+---------------------------------------------------------------------------------------------------
 Version: 1.26.5
 Date: 2026-09-19
   Bugfixes:
