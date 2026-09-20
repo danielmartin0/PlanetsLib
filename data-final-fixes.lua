@@ -70,3 +70,11 @@ for _,sound in pairs(data.raw["ambient-sound"]) do
 		sound.planet = nil
 	end
 end
+
+for _,item in pairs(data.raw["item"]) do
+	if item.fuel_category then
+		item.fuel_categories = item.fuel_categories or {}
+		table.insert(item.fuel_categories,item.fuel_category)
+		log("Item " .. item.name .. "using unsupported field ItemPrototype::fuel_category has been corrected. This item should be manually fixed, as this field is no longer supported by Wube as of Factorio 2.1.20.")
+	end
+end
