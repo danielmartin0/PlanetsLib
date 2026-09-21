@@ -415,7 +415,7 @@ function Public.replace_entity(entity,new_entity,raise_built)
             has_back_stock = true
         end
         local new_entity
-        if rolling_stock_info.train.front_stock or rolling_stock_info.train.back_stock then
+        if true or rolling_stock_info.train.front_stock or rolling_stock_info.train.back_stock then
             entity.order_upgrade{target=new_entity_properties,force=entity.force}
             new_entity = entity.apply_upgrade()
         else

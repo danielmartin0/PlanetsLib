@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.26.7
+Date: 2026-09-21
+  Bugfixes:
+    - Improved compatibility with other mods that do runtime replacements of rolling stock.
+---------------------------------------------------------------------------------------------------
 Version: 1.26.6
 Date: 2026-09-20
   Bugfixes:
