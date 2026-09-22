@@ -31,6 +31,14 @@ function Public.update_starmap_layers(planet)
 			}, { x = x, y = y })
 		end
 	end
+
+	if planet.orbit and planet.orbit.sprite then
+		Public.try_draw_orbit_of_planet(planet)
+
+		return { should_disable_default_orbit_sprite = true }
+	end
+	
+	return { should_disable_default_orbit_sprite = false }
 end
 
 -- Deprecated
