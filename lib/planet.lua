@@ -28,6 +28,10 @@ function Public.extend(config)
 		end
 	end
 
+	if planet.orbit.draw_orbit then
+		planet.draw_orbit = planet.orbit.draw_orbit
+	end
+
 	if planet.special_properties then
 		error("special_properties is an invalid field.")
 		-- local special_properties = planet.special_properties
