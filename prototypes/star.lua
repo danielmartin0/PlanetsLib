@@ -6,6 +6,7 @@ data:extend({
 		icon_size = 512,
 		starmap_icon = "__core__/graphics/icons/starmap-star.png",
 		starmap_icon_size = 512,
+		origin = { x = 0, y = 0 },
 		distance = 0,
 		orientation = 0,
 		magnitude = 8,

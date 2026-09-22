@@ -110,6 +110,9 @@ function Public.update(config)
 				.. " and updating the positions of children appropriately:"
 			)
 
+			-- orbits updated via PlanetsLib should clear this variable
+			-- they should not be treated as an auto-generated default
+			v._default = nil
 			data.raw[config.type][config.name].orbit = v
 
 			local current_x, current_y = orbits.get_rectangular_position_from_polar(

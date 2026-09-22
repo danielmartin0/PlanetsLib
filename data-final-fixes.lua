@@ -31,11 +31,31 @@ if mods["space-age"] then
 
 	require("prototypes.override-final.starmap")
 
+	-- Convert PlanetsLib orbit relationships to Factorio's native orbit representation.
+	-- This is done after PlanetsLib's existing position reconciliation and sprite_only
+	-- rendering have finished, while all parent prototypes still exist.
+	local orbits = require("lib.orbits")
+	local locations = {}
+
+	-- collect planet and space-location tables for orbit -> origin processing
 	for _, type in pairs({ "space-location", "planet" }) do
 		for _, location in pairs(data.raw[type]) do
-			if location.sprite_only then
-				data.raw[type][location.name] = nil
-			end
+			table.insert(locations, location)
+		end
+	end
+
+	-- order the list so parents are processed before their children
+	local ordered_locations = orbits.locations_ordered_by_orbits(locations)
+
+	-- for each location, convert from PlanetsLib orbit to new origin format
+	for _, location in ipairs(ordered_locations) do
+		orbits.apply_native_orbit(location)
+	end
+
+	-- reuse the collected locations for sprite_only cleanup
+	for _, location in ipairs(locations) do
+		if location.sprite_only then
+			data.raw[location.type][location.name] = nil
 		end
 	end
 

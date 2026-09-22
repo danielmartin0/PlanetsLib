@@ -10,7 +10,9 @@ function Public.update_starmap_layers(planet)
 	if planet.sprite_only and (planet.starmap_icon or planet.starmap_icons) then
 		local magnitude = planet.magnitude or 1
 
-		local x, y = orbits.get_rectangular_position_from_polar(planet.distance * 32, planet.orientation)
+		-- get the absolute position, including the origin offset
+		local x, y = orbits.get_absolute_position(planet)
+		x, y = x * 32, y * 32
 
 		if planet.starmap_icons then
 			for _, sprite in pairs(planet.starmap_icons) do
@@ -29,16 +31,11 @@ function Public.update_starmap_layers(planet)
 			}, { x = x, y = y })
 		end
 	end
-
-	if planet.orbit and planet.orbit.sprite then
-		Public.try_draw_orbit_of_planet(planet)
-
-		return { should_disable_default_orbit_sprite = true }
-	end
-
-	return { should_disable_default_orbit_sprite = false }
 end
 
+-- Deprecated
+-- This function is no longer needed, but kept for legacy compatibility since it was in Public.
+-- Factorio's native origin field now provides this functionality directly.
 function Public.try_draw_orbit_of_planet(planet)
 	local orbit = planet.orbit
 	local parent = orbit.parent
@@ -124,10 +121,7 @@ end
 local ordered_locations = orbits.locations_ordered_by_orbits(locations)
 
 for _, location in pairs(ordered_locations) do
-	local result = Public.update_starmap_layers(location)
-	if result.should_disable_default_orbit_sprite then
-		location.draw_orbit = false
-	end
+	Public.update_starmap_layers(location)
 end
 
 if #starmap_layers > 0 then
