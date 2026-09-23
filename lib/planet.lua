@@ -426,47 +426,7 @@ end
 
 local radius_scaling_limit=1.25 --How much a sprite can be acceptably scaled by
 Public.get_orbit_sprite = function(radius)
-	PlanetsLib.constants.orbit_sprites = PlanetsLib.constants.orbit_sprites
-	local orbit_sprites = PlanetsLib.constants.orbit_sprites
-	local orbit_data = orbit_sprites[radius]
-	if not orbit_data then --If specific orbit sprite does not exist for radius, interpolate from the best fit.
-		local prev_radius 
-		local picked_radius
-		for i,key_radius in pairs(sorted_keys( orbit_sprites)) do
-			local sprite =  orbit_sprites
-			if not prev_radius then prev_radius = key_radius  end
-			if key_radius > radius then
-				if key_radius - radius > radius - prev_radius then
-					picked_radius = prev_radius
-				else
-					picked_radius = key_radius
-				end
-				break
-			end
-			prev_radius = key_radius
-		end
-		if not picked_radius then picked_radius = prev_radius end
-		
-		local radius_ratio = radius / picked_radius   --How much the orbit sprite should be scaled by from default scaling
-		
-		if radius_ratio > radius_scaling_limit or radius_ratio < 1/radius_scaling_limit then
-			local keys = {}
-			for k in pairs(orbit_sprites) do
-			keys[#keys+1] = tostring(k)
-			end
-
-			table.sort(keys)
-			local available_orbits = table.concat(keys, ", ")
-
-			error("No registered PlanetsLib orbit asset is appropriately sized for radius "..tostring(radius) ..". Available radii are: "..available_orbits .. "." .. "\n Radii in between these listed values can be used if between 0.66-1.5x the radius of an unscaled sprite.")
-		end
-
-		orbit_data = table.deepcopy(orbit_sprites[picked_radius])
-		orbit_data.scale = orbit_data.scale * radius_ratio
-	
-		
-	end
-	return table.deepcopy(orbit_data)
+	error("PlanetsLib:get_orbit_sprite(): This function is now obsolete. Enable SpaceLocationPrototype::draw_orbit instead.")
 end
 
 
