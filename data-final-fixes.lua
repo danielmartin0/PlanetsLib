@@ -31,6 +31,10 @@ if mods["space-age"] then
 
 	require("prototypes.override-final.starmap")
 
+	-- prevent removal of star during sprite_only cleanup
+	-- this is necessary for PlanetsLib:update to work during final-fixes
+	data.raw["space-location"]["star"].sprite_only = nil
+
 	-- Convert PlanetsLib orbit relationships to Factorio's native orbit representation.
 	-- This is done after PlanetsLib's existing position reconciliation and sprite_only
 	-- rendering have finished, while all parent prototypes still exist.
