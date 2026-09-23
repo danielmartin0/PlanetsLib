@@ -167,6 +167,16 @@ local function update_final_orbit(location, orbit)
 	}
 	location.distance = orbit.distance
 	location.orientation = orbit.orientation
+	-- finally, update starmap layers with matching name
+	for _, layer in pairs(data.raw["utility-sprites"]["default"].starmap_star.layers) do
+		if layer.planetslib_orbit_name == location.name then
+			-- make sure to recalculate using the original shift (if any)
+			layer.shift = {
+				layer.planetslib_orbit_shift[1] + parent_x * 32,
+				layer.planetslib_orbit_shift[2] + parent_y * 32,
+			}
+		end
+	end
 	-- apply origin changes to all child objects
 	local locations = {}
 	for _, type in pairs({ "space-location", "planet" }) do
@@ -185,6 +195,15 @@ local function update_final_orbit(location, orbit)
 				x = child_parent_x,
 				y = child_parent_y,
 			}
+			-- update any custom orbit sprite layers attached to this child
+			for _, layer in pairs(data.raw["utility-sprites"]["default"].starmap_star.layers) do
+				if layer.planetslib_orbit_name == child.name then
+					layer.shift = {
+						layer.planetslib_orbit_shift[1] + child_parent_x * 32,
+						layer.planetslib_orbit_shift[2] + child_parent_y * 32,
+					}
+				end
+			end
 		end
 	end
 end

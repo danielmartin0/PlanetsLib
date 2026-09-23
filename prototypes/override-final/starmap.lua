@@ -75,14 +75,14 @@ function Public.try_draw_orbit_of_planet(planet)
 
 	if orbit.sprite.layers then
 		for _, layer in pairs(orbit.sprite.layers) do
-			Public.add_sprite_to_starmap(layer, { x = parent_x, y = parent_y })
+			Public.add_sprite_to_starmap(layer, { x = parent_x, y = parent_y }, planet.name)
 		end
 	else
-		Public.add_sprite_to_starmap(orbit.sprite, { x = parent_x, y = parent_y })
+		Public.add_sprite_to_starmap(orbit.sprite, { x = parent_x, y = parent_y }, planet.name)
 	end
 end
 
-function Public.add_sprite_to_starmap(sprite, extra_displacement)
+function Public.add_sprite_to_starmap(sprite, extra_displacement, orbit_name)
 	local sprite_copy = util.table.deepcopy(sprite)
 
 	local shift_x = 0
@@ -97,6 +97,11 @@ function Public.add_sprite_to_starmap(sprite, extra_displacement)
 			shift_y = shift_y + sprite_copy.shift[2]
 		end
 	end
+
+	-- attach a marker for this orbit so we can modify it later
+	sprite_copy.planetslib_orbit_name = orbit_name
+	-- also preserve the original shift, before applying displacement
+	sprite_copy.planetslib_orbit_shift = { shift_x, shift_y }
 
 	if extra_displacement then
 		if extra_displacement.x and extra_displacement.y then

@@ -11,5 +11,10 @@ data:extend({
 		orientation = 0,
 		magnitude = 8,
 		sprite_only = true,
+		-- promoting star to a permanent real, but hidden, space-location
+		hidden = true,
+		draw_orbit = false,
+		redrawn_connections_exclude = true,
+		cosmic_social_distancing_ignore = true,
 	},
 })
