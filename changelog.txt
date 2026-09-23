@@ -1,4 +1,17 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.0
+Date: 2026-09-23
+  Features:
+    - Updated PlanetsLib orbit drawing functionality to rely on base game origin-based drawing instead. Several minor changes were necessary to accommodate this change, specifically regarding tracking of auto-generated orbit tables. Locations with pre-existing origin values are ignored by PlanetsLib orbit conversion functionality. Sprite_only locations are unaffected by this change.
+    - Enabled calling PlanetsLib:update during data-final-fixes. Modifies origin fields for the location itself, and updates origin fields of any child locations based on the new parent origin.
+  Graphics:
+    - Deleted all orbit sprites from PlanetsLib.
+    - Obsoleted PlanetsLib.get_orbit_sprite(). Running this function will now return an error.
+    - Defining an orbit sprite is still possible in orbit fields, but it is no longer the standard method of drawing orbits. Use draw_orbit.
+    - PlanetsLib:extend: Orbit field now supports `draw_orbit`.
+  Changes:
+    - Made star a permanent, but hidden, space-location. Needed to allow PlanetsLib:update to work on objects using star as parent.
+---------------------------------------------------------------------------------------------------
 Version: 1.26.7
 Date: 2026-09-21
   Bugfixes:
