@@ -93,71 +93,117 @@ function Public.verify_extend_fields(config)
 	end
 end
 
-function Public.update(config)
-	if PlanetsLib.current_stage == "data-final-fixes" then
-		error("This function can only be run before data-final-fixes.")
+local function update_data_orbit(location, orbit)
+	lib.detailed_log("--------------------------------")
+	lib.detailed_log(
+		"PlanetsLib:update called on "
+		.. location.name
+		.. ", changing orbit from "
+		.. serpent.line(location.orbit)
+		.. " to "
+		.. serpent.line(orbit)
+		.. " and updating the positions of children appropriately:"
+	)
+
+	-- orbits updated via PlanetsLib should clear this variable
+	-- they should not be treated as an auto-generated default
+	orbit._default = nil
+	location.orbit = orbit
+
+	local current_x, current_y = orbits.get_rectangular_position_from_polar(
+		location.distance,
+		location.orientation
+	)
+
+	local parent_prototype = data.raw[orbit.parent.type][orbit.parent.name]
+
+	if not parent_prototype then
+		error("PlanetsLib.update: update called with invalid parent: " .. orbit.parent.name)
 	end
+
+	local parent_x, parent_y =
+		orbits.get_rectangular_position_from_polar(parent_prototype.distance, parent_prototype.orientation)
+
+	local orbit_x, orbit_y = orbits.get_rectangular_position_from_polar(orbit.distance, orbit.orientation)
+
+	local new_x, new_y = parent_x + orbit_x, parent_y + orbit_y
+
+	lib.detailed_log(
+		"PlanetsLib: updating "
+		.. location.name
+		.. " from x="
+		.. current_x
+		.. ", y="
+		.. current_y
+		.. " to x="
+		.. new_x
+		.. ", y="
+		.. new_y
+	)
+
+	local new_distance, new_orientation = orbits.get_polar_position_from_rectangular(new_x, new_y)
+
+	location.distance = new_distance
+	location.orientation = new_orientation
+
+	orbits.update_positions_of_all_children_via_orbits(location)
+
+	lib.detailed_log("--------------------------------")
+end
+
+local function update_final_orbit(location, orbit)
+	location.orbit = orbit
+
+	-- grab the new parent and its absolute x/y position
+	local parent = data.raw[orbit.parent.type][orbit.parent.name]
+	if not parent then	-- ensure parent is valid
+		error("PlanetsLib.update: update called with invalid parent: " .. orbit.parent.name)
+	end
+	local parent_x, parent_y = orbits.get_absolute_position(parent)
+	-- update the location origin using the parent x/y values
+	location.origin = {
+		x = parent_x,
+		y = parent_y,
+	}
+	location.distance = orbit.distance
+	location.orientation = orbit.orientation
+	-- apply origin changes to all child objects
+	local locations = {}
+	for _, type in pairs({ "space-location", "planet" }) do
+		for _, prototype in pairs(data.raw[type]) do
+			locations[#locations + 1] = prototype
+		end
+	end
+	-- ordered to ensure we process all parents before their children
+	local ordered_locations = orbits.locations_ordered_by_orbits(locations)
+	for _, child in ipairs(ordered_locations) do
+		if orbits.is_parent(location, child) then
+			local child_parent = data.raw[child.orbit.parent.type][child.orbit.parent.name]
+			local child_parent_x, child_parent_y = orbits.get_absolute_position(child_parent)
+			-- only update the origin; keep distance/orientation unchanged
+			child.origin = {
+				x = child_parent_x,
+				y = child_parent_y,
+			}
+		end
+	end
+end
+
+function Public.update(config)
 	Public.verify_update_fields(config)
 
 	orbits.ensure_all_locations_have_orbits()
 
+	local location = data.raw[config.type][config.name]
+
 	for k, v in pairs(config) do
 		if k == "orbit" then
-			lib.detailed_log("--------------------------------")
-			lib.detailed_log(
-				"PlanetsLib:update called on "
-				.. config.name
-				.. ", changing orbit from "
-				.. serpent.line(data.raw[config.type][config.name].orbit)
-				.. " to "
-				.. serpent.line(config.orbit)
-				.. " and updating the positions of children appropriately:"
-			)
-
-			-- orbits updated via PlanetsLib should clear this variable
-			-- they should not be treated as an auto-generated default
-			v._default = nil
-			data.raw[config.type][config.name].orbit = v
-
-			local current_x, current_y = orbits.get_rectangular_position_from_polar(
-				data.raw[config.type][config.name].distance,
-				data.raw[config.type][config.name].orientation
-			)
-
-			local parent_prototype = data.raw[v.parent.type][v.parent.name]
-
-			if not parent_prototype then
-				error("PlanetsLib.update: update called with invalid parent: " .. v.parent.name)
+			-- native origin processing during data-final-fixes
+			if PlanetsLib.current_stage == "data-final-fixes" then
+				update_final_orbit(location, v)
+			else	-- standard processing during data and data-updates
+				update_data_orbit(location, v)
 			end
-
-			local parent_x, parent_y =
-				orbits.get_rectangular_position_from_polar(parent_prototype.distance, parent_prototype.orientation)
-
-			local orbit_x, orbit_y = orbits.get_rectangular_position_from_polar(v.distance, v.orientation)
-
-			local new_x, new_y = parent_x + orbit_x, parent_y + orbit_y
-
-			lib.detailed_log(
-				"PlanetsLib: updating "
-				.. config.name
-				.. " from x="
-				.. current_x
-				.. ", y="
-				.. current_y
-				.. " to x="
-				.. new_x
-				.. ", y="
-				.. new_y
-			)
-
-			local new_distance, new_orientation = orbits.get_polar_position_from_rectangular(new_x, new_y)
-
-			data.raw[config.type][config.name].distance = new_distance
-			data.raw[config.type][config.name].orientation = new_orientation
-
-			orbits.update_positions_of_all_children_via_orbits(data.raw[config.type][config.name])
-
-			lib.detailed_log("--------------------------------")
 		elseif k == "special_properties" then
 			error("PlanetsLib:update() - special_properties is an invalid field.")
 			-- if not PlanetsLib.constants.planet_properties[config.name] then
@@ -168,7 +214,7 @@ function Public.update(config)
 			-- 	PlanetsLib.constants.planet_properties[config.name][field] = value
 			-- end
 		else
-			data.raw[config.type][config.name][k] = v
+			location[k] = v
 		end
 	end
 end
