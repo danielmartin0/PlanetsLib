@@ -138,7 +138,6 @@ for _, location in pairs(ordered_locations) do
 	if result.should_disable_default_orbit_sprite then
 		location.draw_orbit = false
 	end
-	Public.update_starmap_layers(location)
 end
 
 if #starmap_layers > 0 then
