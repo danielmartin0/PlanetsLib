@@ -129,6 +129,10 @@ end
 local ordered_locations = orbits.locations_ordered_by_orbits(locations)
 
 for _, location in pairs(ordered_locations) do
+	local result = Public.update_starmap_layers(location)
+	if result.should_disable_default_orbit_sprite then
+		location.draw_orbit = false
+	end
 	Public.update_starmap_layers(location)
 end
 
