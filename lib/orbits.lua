@@ -39,7 +39,7 @@ function Public.apply_native_orbit(location)
 	if not (orbit and orbit.parent) then return end
 
 	-- if orbit.sprite was defined, ensure base game draws an orbit
-	if orbit.sprite then location.draw_orbit = true end
+	if orbit.sprite and location.draw_orbit == nil then location.draw_orbit = true end
 
 	-- grab the parent planet/space-location from the orbit field
 	local parent = data.raw[orbit.parent.type][orbit.parent.name]
