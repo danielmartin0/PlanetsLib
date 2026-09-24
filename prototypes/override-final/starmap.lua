@@ -118,7 +118,7 @@ function Public.add_sprite_to_starmap(sprite, extra_displacement, orbit_name)
 		shift_y,
 	}
 
-	table.insert(starmap_layers, sprite_copy)
+	PlanetsLib.rro.soft_insert(starmap_layers, sprite_copy)
 end
 
 -- Now begins the algorithm:
