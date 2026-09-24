@@ -426,7 +426,7 @@ end
 
 local radius_scaling_limit=1.25 --How much a sprite can be acceptably scaled by
 Public.get_orbit_sprite = function(radius)
-	error("PlanetsLib:get_orbit_sprite(): This function is now obsolete. Enable SpaceLocationPrototype::draw_orbit instead.")
+	error("PlanetsLib.get_orbit_sprite(): This function is now obsolete. Enable SpaceLocationPrototype::draw_orbit instead.")
 end
 
 
