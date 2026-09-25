@@ -118,7 +118,7 @@ function Public.add_sprite_to_starmap(sprite, extra_displacement, orbit_name)
 		shift_y,
 	}
 
-	PlanetsLib.rro.soft_insert(starmap_layers, sprite_copy)
+	table.insert(starmap_layers, sprite_copy)
 end
 
 -- Now begins the algorithm:
@@ -138,7 +138,6 @@ for _, location in pairs(ordered_locations) do
 	if result.should_disable_default_orbit_sprite then
 		location.draw_orbit = false
 	end
-	Public.update_starmap_layers(location)
 end
 
 if #starmap_layers > 0 then
