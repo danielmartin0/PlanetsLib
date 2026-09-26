@@ -61,6 +61,9 @@ PlanetsLib.get_orbit_sprite = planet.get_orbit_sprite
 PlanetsLib.borrow_music = planet.borrow_music
 
 function PlanetsLib:extend(configOrConfigs)
+	if not configOrConfigs then
+		error("PlanetsLib:extend: data passed must not be nil.")
+	end
 	local configs = lib.wrap_single_config(util.table.deepcopy(configOrConfigs))
 
 	for _, config in ipairs(configs) do
@@ -69,6 +72,9 @@ function PlanetsLib:extend(configOrConfigs)
 end
 
 function PlanetsLib:update(configOrConfigs)
+	if not configOrConfigs then
+		error("PlanetsLib:update: data passed must not be nil.")
+	end
 	local configs = lib.wrap_single_config(util.table.deepcopy(configOrConfigs))
 
 	for _, config in ipairs(configs) do
