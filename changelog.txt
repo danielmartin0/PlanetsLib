@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.4
+Date: 2026-09-26
+  Bugfixes:
+    - Deepcopying a vanilla recipe productivity technology will no longer result in PlanetsLib applying PlanetsLib_recipe_productivity_effects to that technology unless PlanetsLib_recipe_productivity_effects.technology_name is deleted.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.3
 Date: 2026-09-26
   Changes:

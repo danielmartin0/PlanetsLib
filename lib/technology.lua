@@ -365,6 +365,10 @@ function Public.process_technology_recipe_productivity_effects(tech)
 		return
 	end
 
+	-- To stop techs that deepcopy vanilla productivity techs from wrongly getting vanilla productivity effects.
+	if tech.PlanetsLib_recipe_productivity_effects.technology_name and tech.PlanetsLib_recipe_productivity_effects.technology_name ~= tech.name then
+		return
+	end
 	if not tech.effects then
 		tech.effects = {}
 	end

@@ -17,6 +17,7 @@ if settings.startup["PlanetsLib-update-vanilla-recipe-productivity-techs"].value
         if tech then
             tech.PlanetsLib_recipe_productivity_effects = {
                 --purge_other_effects = true,
+                technology_name = tech_name,
                 effects = {
                     {
                         type = "item",
