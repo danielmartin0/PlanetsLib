@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.3
+Date: 2026-09-24
+  Changes:
+    - Ambient sound corrector now runs during every stage of data.
 Version: 2.0.2
 Date: 2026-09-24
   Bugfixes:
