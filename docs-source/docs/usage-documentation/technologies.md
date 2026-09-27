@@ -20,6 +20,7 @@ Recipe products are ignored if they are not "productivity-capable"—if `ignored
 *   `purge_other_effects`- `boolean`. Default: false. Before adding effects added by `PlanetsLib_recipe_productivity_effects`, remove all 
 effects not flagged with `PlanetsLib_force_include`.
 *   `allow_recipes_without_productivity` - `boolean`. Default: false. Captures recipes even if they have `allow_productivity` set to false.
+*   `technology_name` - `string`. If this field is defined, `PlanetsLib_recipe_productivity_effects` does not apply if this field is not equal to the technology name. Acts as a check to prevent deepcopies of vanilla recipe productivity technologies from unknowingly receiving these effects.
 
 #### `ChangeResultProductivityModifier` Properties:
 *   `name` (optional) - [[ItemID]] Required if not using `category`. Incompatible with `category`.
