@@ -1,8 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.3
-Date: 2026-09-24
+Date: 2026-09-26
   Changes:
     - Ambient sound corrector now runs during every stage of data.
+    - Added error handling for nil input in PlanetsLib:extend and PlanetsLib:update functions.
   Bugfixes:
     - Added correction script that searches item prototypes for fuel_category field and corrects them, replacing the field with fuel_categories. Allows unmaintained mods to run on Factorio 2.1.20.
 ---------------------------------------------------------------------------------------------------
