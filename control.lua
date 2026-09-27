@@ -144,6 +144,9 @@ PlanetsLib.event_handler.add_lib{on_configuration_changed=function(data)
 		end
 	end
 
+	-- local rocket_part_recipe_rules = data.raw["mod-data"]["Planetslib-planet-rocket-part-recipe"].data
+	-- local lock_rocket_part_rules = 
+
 	if not mod_changed then
 		return
 	end
@@ -178,18 +181,27 @@ end
 table.insert(on_built_filters_and_silos,{filter = "type", type = "rocket-silo"})
 table.insert(on_built_filters_and_silos,{filter = "ghost_type", type = "rocket-silo"})
 print(serpent.block(on_built_filters))
-local function on_built_entity_combined(event)
-	if is_cargo_pods then
+
+local on_built_entity_combined
+
+if is_cargo_pods and is_entity_replacements then
+	on_built_entity_combined = function(event)
 		rocket_parts.on_built_rocket_silo(event)
-	end
-	if is_entity_replacements then
 		entity_replacement.on_built_entity(event)
 	end
-	
+elseif is_cargo_pods then
+	on_built_entity_combined = function(event)
+		rocket_parts.on_built_rocket_silo(event)
+	end
+elseif is_entity_replacements then
+	on_built_entity_combined = function(event)
+		entity_replacement.on_built_entity(event)
+	end
 end
 
+
 script.on_event(defines.events.on_built_entity,on_built_entity_combined,on_built_filters_and_silos)
-if is_entity_replacements then
+if true or is_entity_replacements then
 	script.on_event(defines.events.on_robot_built_entity,on_built_entity_combined,on_built_filters_and_silos)
 	script.on_event(defines.events.script_raised_built,on_built_entity_combined,on_built_filters_and_silos) 
 	script.on_event(defines.events.script_raised_revive,on_built_entity_combined,on_built_filters_and_silos)

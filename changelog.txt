@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.5
+Date: 2026-09-26
+  Bugfixes:
+    - On_entity_placed events always fire, no matter whether or not entity replacement rules are active.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.4
 Date: 2026-09-26
   Bugfixes:
