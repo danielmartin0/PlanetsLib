@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.7
+Date: 2026-09-28
+  Changes:
+    - Ensure PlanetsLib does not override raw distance/orientation values for planets defined via PlanetsLib:extend, when the parent is star and the star has not moved. Thank you Kryzeth!
+---------------------------------------------------------------------------------------------------
 Version: 2.0.6
 Date: 2026-09-27
   Changes:
