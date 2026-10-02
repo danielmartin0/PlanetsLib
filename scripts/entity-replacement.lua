@@ -1,3 +1,4 @@
+require("__core__.lualib.util") --Adds table.deepcopy
 local rro = require("lib.remove-replace-object")
 local Public = {}
 local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_replacements
@@ -390,6 +391,7 @@ function Public.replace_entity(entity,new_entity,raise_built)
         raise_built = false, --raise_script_built is called later
         player = raise_built and player or nil,
         mirror = entity.mirroring,
+        create_build_effect_smoke = false,
         --fast_replace = true
     }
     --game.print(entity.ghost_type)
@@ -400,20 +402,22 @@ function Public.replace_entity(entity,new_entity,raise_built)
     --     entity.destroy()
     --     return 
     -- end
-    local is_train = entity.train
+    local train_types= {"locomotive","cargo-wagon","infinity-cargo-wagon","fluid-wagon","artillery-wagon"}
+    local is_train = entity.type == "entity-ghost" and rro.contains(train_types,entity.ghost_type) or rro.contains(train_types,entity.type)
+    
     if is_train then
         local old_orientation = entity.orientation
-        print(entity.orientation)
+        --print(entity.orientation)
         local surface = entity.surface
-        local rolling_stock_info = Public.get_info_rolling_stock(entity)
-        local has_front_stock 
-        local has_back_stock
-        if rolling_stock_info.train.front_stock then
-            has_front_stock = true
-        end
-        if rolling_stock_info.train.back_stock then
-            has_back_stock = true
-        end
+        --local rolling_stock_info = Public.get_info_rolling_stock(entity)
+        -- local has_front_stock 
+        -- local has_back_stock
+        -- if rolling_stock_info.train.front_stock then
+        --     has_front_stock = true
+        -- end
+        -- if rolling_stock_info.train.back_stock then
+        --     has_back_stock = true
+        -- end
         local new_entity
         if true or rolling_stock_info.train.front_stock or rolling_stock_info.train.back_stock then
             entity.order_upgrade{target=new_entity_properties,force=entity.force}
@@ -424,7 +428,7 @@ function Public.replace_entity(entity,new_entity,raise_built)
             Public.copy_info_to_new_rolling_stock(new_entity,rolling_stock_info)
         end
         --print(new_entity.orientation)
-        if new_entity.orientation ~= old_orientation then
+        if new_entity and new_entity.orientation ~= old_orientation then
             game.print("Orientation mismatch between locomotive and replacement locomotive! Don't save this game. Report this issue to PlanetsLib."..serpent.block(new_entity.position))
         end
         --print(new_entity.orientation)
@@ -435,12 +439,12 @@ function Public.replace_entity(entity,new_entity,raise_built)
 
         
 
-        if raise_built == true then
+        if new_entity and raise_built == true then
             script.raise_script_built{entity=new_entity}
         end
         script.raise_event("PlanetsLib-on-entity-replaced", {
             entity = entity,
-            new_entity = new_entity,
+            new_entity = new_entity or entity,
         })
         --Public.transfer_entity_state(entity,new_entity)
     else

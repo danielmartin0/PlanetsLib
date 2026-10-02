@@ -1,6 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.8
 Date: ???
+  Bugfixes:
+    - Entity Replacement System no longer produces duplicate smoke.
+    - Ghost rolling stock replaced by the Entity Replacement System will preserve train stops and queued fuel deliveries.
   Locale:
     - Updated German locale. Thank you stef77stef!
 ---------------------------------------------------------------------------------------------------
