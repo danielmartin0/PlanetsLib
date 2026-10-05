@@ -293,7 +293,6 @@ function Public.ensure_all_locations_have_orbits()
 					},
 					distance = location.distance,
 					orientation = location.orientation,
-					_default = true,	-- used to track if this orbit was auto-generated
 				}
 			end
 		end
