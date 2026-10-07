@@ -105,9 +105,6 @@ local function update_data_orbit(location, orbit)
 		.. " and updating the positions of children appropriately:"
 	)
 
-	-- orbits updated via PlanetsLib should clear this variable
-	-- they should not be treated as an auto-generated default
-	orbit._default = nil
 	location.orbit = orbit
 
 	local current_x, current_y = orbits.get_rectangular_position_from_polar(
