@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.9
+Date: 2026-10-07
+  Changes:
+    - Properly preserves the raw distance/orientation values for all planets/locations regardless of parent in every case
+---------------------------------------------------------------------------------------------------
 Version: 2.0.8
 Date: 2026-10-02
   Bugfixes:
