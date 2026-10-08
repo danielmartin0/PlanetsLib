@@ -2,6 +2,8 @@
 Version: 2.0.10
 Date: ????
   Changes:
+  Bugfixes:
+    - Entities with ghost equipment placed under the entity replacement system will no longer be replaced with non-ghost equipment. Thank you GreenTech-Solutions!
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.9
 Date: 2026-10-07
