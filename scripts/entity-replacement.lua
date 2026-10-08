@@ -190,7 +190,7 @@ function Public.transfer_grid_contents(entity,new_entity)
     local old_grid = Public.get_grid_contents(entity)
     if old_grid then
         for _,item in pairs(old_grid) do
-            new_entity.grid.put{name=item.name,quality = item.quality, position = item.position, ghost = item.is_ghost}
+            new_entity.grid.put{name=item.name,quality = item.quality, position = item.position, ghost = item.ghost}
         end
         
     end
@@ -344,7 +344,7 @@ function Public.copy_info_to_new_rolling_stock(new_entity,info)
     end
     if info.grid then
         for _,item in pairs(info.grid) do
-            new_entity.grid.put{name=item.name,quality = item.quality, position = item.position, ghost = item.is_ghost}
+            new_entity.grid.put{name=item.name,quality = item.quality, position = item.position, ghost = item.ghost}
         end
     end
 
