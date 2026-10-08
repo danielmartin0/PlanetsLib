@@ -79,6 +79,14 @@ function Public.check_global_variables()
         end
     end
 
+    for _,container in pairs(data.raw["proxy-container"]) do
+        if container.circuit_connector and type(container.circuit_connector[1]) ~= "table" then
+            container.circuit_connector = {container.circuit_connector}
+            container.localised_description = {"",container.localised_description or "",{"technology-description.circuit-connector-corrected"}}
+        end
+        
+    end
+
 
 
 end
