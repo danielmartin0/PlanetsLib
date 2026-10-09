@@ -1,3 +1,4 @@
+if not mods["space-age"] then return end
 local procession_graphic_catalogue_types = require("__base__/prototypes/planet/procession-graphic-catalogue-types")
 local sounds = require("__space-age__.prototypes.entity.sounds")
 
