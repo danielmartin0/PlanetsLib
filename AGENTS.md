@@ -75,6 +75,8 @@ lib/                        Data-stage library modules ("lib.*")
   technology.lua            Science-pack sorting, tech-tree excision, icons
   recipe.lua  achievements.lua  planet-str.lua  predicates.lua  lib.lua
   add-entity-replacement.lua
+  dual-item-icon.lua        Composite icon helpers (dual_icon, dual_icon_reversed)
+  images.lua                Icon/image effects (blur_technology_icon)
   remove-replace-object.lua (alias: lib.objects / rro)   Table-manipulation helpers
   global-variable-checks.lua
   event-handler/            Modified copy of the core event handler (composite events)

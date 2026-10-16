@@ -9,6 +9,8 @@ local mod_data = require("lib.mod-data")
 local recipe = require("lib.recipe")
 local achievements = require("lib.achievements")
 local entity_replacements = require("lib.add-entity-replacement")
+local dual_item_icon = require("lib.dual-item-icon")
+local images = require("lib.images")
 
 --== APIs ==--
 -- API documentation lives in README.md (or on the mod portal.)
@@ -27,6 +29,10 @@ PlanetsLib.cargo_drops_technology_base = technology.cargo_drops_technology_base
 PlanetsLib.crushing_recipe_icons = recipe.crushing_recipe_icons
 PlanetsLib.asteroid_crushing_recipe_icons = recipe.asteroid_crushing_recipe_icons
 PlanetsLib.advanced_crushing_recipe_icons = recipe.advanced_crushing_recipe_icons
+
+PlanetsLib.dual_icon = dual_item_icon.dual_icon
+PlanetsLib.dual_icon_reversed = dual_item_icon.dual_icon_reversed
+PlanetsLib.blur_technology_icon = images.blur_technology_icon
 
 PlanetsLib.assign_rocket_part_recipe = mod_data.assign_rocket_part_recipe
 PlanetsLib.add_item_name_to_planet_cargo_drops_whitelist = mod_data.add_item_name_to_planet_cargo_drops_whitelist
