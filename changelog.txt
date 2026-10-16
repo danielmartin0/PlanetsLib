@@ -2,7 +2,7 @@
 Version: 2.0.10
 Date: ????
   Features:
-    - Added icon helpers PlanetsLib.dual_icon, PlanetsLib.dual_icon_reversed, and PlanetsLib.blur_technology_icon. Ported from "Muluna, Moon of Nauvis". Thank you MeteorSwarm!
+    - Added icon helpers PlanetsLib.dual_icon, PlanetsLib.dual_icon_reversed, PlanetsLib.blur_technology_icon, and PlanetsLib.melting_icon. Ported from "Muluna, Moon of Nauvis". Thank you MeteorSwarm!
   Changes:
   Bugfixes:
     - Entities with ghost equipment placed under the entity replacement system will no longer be replaced with non-ghost equipment. Thank you GreenTech-Solutions!

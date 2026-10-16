@@ -29,6 +29,7 @@ PlanetsLib.cargo_drops_technology_base = technology.cargo_drops_technology_base
 PlanetsLib.crushing_recipe_icons = recipe.crushing_recipe_icons
 PlanetsLib.asteroid_crushing_recipe_icons = recipe.asteroid_crushing_recipe_icons
 PlanetsLib.advanced_crushing_recipe_icons = recipe.advanced_crushing_recipe_icons
+PlanetsLib.melting_icon = recipe.melting_icon
 
 PlanetsLib.dual_icon = dual_item_icon.dual_icon
 PlanetsLib.dual_icon_reversed = dual_item_icon.dual_icon_reversed

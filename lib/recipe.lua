@@ -1,4 +1,6 @@
 
+local icon_entry = require("lib.icon-entry")
+
 local Public = {}
 
 --- Returns an asteroid crushing icon resembling a basic asteroid crushing icon from vanilla Space Age, using a copper-colored crushing icon. Used by "Muluna, Moon of Nauvis" and "Crushing Industry." 
@@ -104,6 +106,30 @@ function Public.advanced_crushing_recipe_icons(asteroid_icon,product_1,product_2
         },
     }
     
+
+end
+
+
+--- Returns a "melting" recipe icon, resembling the vanilla Space Age recipes that melt an ore
+--- together with calcite into a molten metal: the catalyst and the ore are shown small at the
+--- top, with the molten product drawn large across the front.
+--- Each argument is a prototype name (string); the prototype type is detected automatically and a
+--- single icon is taken from the prototype's `icon`/`icons` field (see `PlanetsLib.dual_icon`).
+--- Used by "Muluna, Moon of Nauvis".
+--- @param metal string Name of the molten product (drawn largest, in front).
+--- @param ore string Name of the ore being melted.
+--- @param catalyst string optional Name of the catalyst. Defaults to "calcite".
+--- @return table(IconData)
+function Public.melting_icon(metal,ore,catalyst)
+    catalyst = catalyst or "calcite"
+    local type_metal,proto_metal = icon_entry.get_prototype(metal)
+    local type_ore,proto_ore = icon_entry.get_prototype(ore)
+    local type_catalyst,proto_catalyst = icon_entry.get_prototype(catalyst)
+return {
+    icon_entry.build_icon_entry(proto_catalyst,type_catalyst,catalyst,0.25,{8,-8},nil,true),
+    icon_entry.build_icon_entry(proto_ore,type_ore,ore,0.25,{-8,-8},nil,true),
+    icon_entry.build_icon_entry(proto_metal,type_metal,metal,0.45,{-2,3},nil,true),
+}
 
 end
 

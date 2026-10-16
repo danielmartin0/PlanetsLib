@@ -28,6 +28,22 @@ data.raw.recipe["my-recipe"].icons = PlanetsLib.dual_icon("my-item", "water", "s
 data.raw.recipe["my-other-recipe"].icons = PlanetsLib.dual_icon_reversed("rocket-fuel", "aluminum-crushed")
 ```
 
+## Melting recipe icons
+
+`PlanetsLib.melting_icon(metal, ore, catalyst)` builds an icon in the style of the vanilla Space Age recipes that melt an ore together with calcite into a molten metal: the catalyst and the ore are shown small at the top, with the molten product drawn large across the front. It is useful for mods that add their own melting recipes.
+
+* `metal` — `string` — prototype name of the molten product; drawn largest.
+* `ore` — `string` — prototype name of the ore being melted.
+* `catalyst` — `string` — optional prototype name of the catalyst. Defaults to `"calcite"`.
+
+Like `PlanetsLib.dual_icon`, each argument is a prototype **name** (not a table or an icon path). The prototype type is detected automatically and the icon is taken from the prototype's `icon`/`icons` field; if a name cannot be resolved, a placeholder is substituted and a message is logged.
+
+```lua
+-- calcite + alumina -> molten aluminum:
+data.raw.recipe["aluminum-ore-melting"].icons =
+    PlanetsLib.melting_icon("molten-aluminum", "alumina")
+```
+
 ## Blurring technology icons
 
 * `PlanetsLib.blur_technology_icon(icons, blurriness)` — Returns an array of [[IconData]] that appears blurred, by layering many nearly-transparent, slightly offset duplicates of every entry using a `multiplicative-with-alpha` blend mode. The original icons are not modified.
