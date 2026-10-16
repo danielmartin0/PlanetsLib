@@ -2,7 +2,7 @@
 * text=auto
 
 # files that should not get included in a release zip
-README.md export-ignore
+AGENTS.md export-ignore
 README_images export-ignore
 .vscode export-ignore
 .git export-ignore
@@ -31,5 +31,6 @@ config.ld export-ignore
 *.bat export-ignore
 *.ps1 export-ignore
 *.sh export-ignore
+
 
 
