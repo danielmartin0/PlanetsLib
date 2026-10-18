@@ -23,6 +23,8 @@ The naming scheme deliberately matches the prototypes used by [Muluna, Moon of N
 
 Because the prototypes are shared, the planet's `recipe` cannot be baked into the prototype. It is assigned at runtime when the digger is placed, and then locked. As a consequence, all ground diggers accept the crafting categories of every recipe registered with this feature, but each individual machine only ever crafts the recipe of the planet it was placed on.
 
+Diggers are also restricted to planets that enabled the feature: PlanetsLib adds a hidden surface property to each participating planet, and every digger prototype requires it. A digger blueprint therefore cannot be built on a planet that hasn't called this function.
+
 ### Eligible mining drills
 
 By default, every mining drill that meets all of the following criteria gets a ground digger variant:

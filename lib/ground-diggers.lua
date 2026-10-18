@@ -15,6 +15,11 @@ local lib = require("lib.lib")
 
 local Public = {}
 
+-- Hidden surface property marking every planet that enabled ground diggers. Each shared
+-- digger prototype gets a surface condition on it, so diggers can only exist on
+-- participating planets even though the prototypes themselves are shared.
+local SURFACE_PROPERTY_NAME = "PlanetsLib-has-ground-diggers"
+
 --== Helpers ==--
 
 ---Normalizes a list/array of names into a dictionary keyed by name.
@@ -102,6 +107,25 @@ function Public.ground_digger_name(drill_name)
 	return drill_name .. "-ground-digger"
 end
 
+---Creates the hidden shared surface property used to restrict diggers to participating planets.
+local function ensure_ground_digger_surface_property()
+	if data.raw["surface-property"][SURFACE_PROPERTY_NAME] then
+		return
+	end
+	data:extend({
+		{
+			name = SURFACE_PROPERTY_NAME,
+			type = "surface-property",
+			hidden = true,
+			hidden_in_factoriopedia = true,
+			default_value = 0,
+			order = "zzz",
+			localised_name = { "surface-property-name.planet-str" },
+			localised_unit_key = "surface-property-name.planet-str",
+		},
+	})
+end
+
 --== Public API ==--
 
 --- PlanetsLib.enable_ground_diggers(planet, recipe, options)
@@ -164,6 +188,16 @@ function Public.create_ground_digger(drill, digger_name, item_name, categories)
 	digger.localised_name = { "entity-name.PlanetsLib-ground-digger", original_localised_name }
 	digger.localised_description = { "entity-description.PlanetsLib-ground-digger" }
 	digger.hidden_in_factoriopedia = false
+
+	-- Keep the drill's own surface conditions, then additionally restrict the digger to
+	-- planets that enabled ground diggers.
+	local conditions = drill.surface_conditions and util.table.deepcopy(drill.surface_conditions) or {}
+	table.insert(conditions, {
+		property = SURFACE_PROPERTY_NAME,
+		min = 1,
+		max = 1,
+	})
+	digger.surface_conditions = conditions
 
 	-- Fields that only make sense on mining drills.
 	digger.mining_speed = nil
@@ -271,6 +305,11 @@ function Public.generate_ground_diggers()
 				.. tostring(planet_name)
 				.. ". See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
 		)
+
+		-- Mark the planet as participating so the shared digger prototypes can be built here.
+		ensure_ground_digger_surface_property()
+		planet.surface_properties = planet.surface_properties or {}
+		planet.surface_properties[SURFACE_PROPERTY_NAME] = 1
 
 		local recipe_name = config.recipe
 		assert(

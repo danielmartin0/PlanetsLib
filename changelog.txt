@@ -2,7 +2,7 @@
 Version: 2.1.0
 Date: ????
   Features:
-    - Added PlanetsLib.enable_ground_diggers(planet, recipe, options), allowing planets to convert mining drills placed without nearby resources into machines that craft a chosen recipe. All planets share one digger prototype per drill, named "<drill>-ground-digger" to match "Muluna, Moon of Nauvis". Thank you MeteorSwarm!
+    - Added PlanetsLib.enable_ground_diggers(planet, recipe, options), allowing planets to convert mining drills placed without nearby resources into machines that craft a chosen recipe. All planets share one digger prototype per drill, named "<drill>-ground-digger" to match "Muluna, Moon of Nauvis", restricted to participating planets via a hidden surface property. Thank you MeteorSwarm!
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.10
 Date: 2026-10-16
