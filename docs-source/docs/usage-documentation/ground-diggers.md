@@ -29,10 +29,11 @@ Diggers are also restricted to planets that enabled the feature: PlanetsLib adds
 
 By default, every mining drill that meets all of the following criteria gets a ground digger variant:
 
-* It has an `electric` energy source.
 * It does not output fluids (pumpjacks are mining drills).
 * It has a square selection box.
 * It is placeable by an item.
+
+Any energy source is allowed, so non-electric drills (for example, burner mining drills) are eligible by default. A digger keeps the energy source of the drill it is copied from; diggers with an electric energy source default to no drain (`0 MW`), matching mining drills.
 
 Ground digger variants are assembling machines that share the drill's appearance, health, and other properties.
 

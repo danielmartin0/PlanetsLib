@@ -69,8 +69,9 @@ local function contains_quality_or_resource_name(name)
 end
 
 ---Whether a mining drill can be converted into a ground digger.
--- Diggers are assembling machines, so the drill must be electric, square, placeable,
--- and must not output fluids (pumpjacks are mining drills).
+-- Diggers are assembling machines, so the drill must be square and placeable, and must
+-- not output fluids (pumpjacks are mining drills). Any energy source is allowed, so
+-- non-electric drills are eligible too.
 -- @param drill table
 -- @param item_lookup table Dictionary of entity name -> placing item name.
 -- @return boolean
