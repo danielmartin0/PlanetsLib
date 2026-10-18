@@ -128,16 +128,5 @@ data:extend({
 		forced_value = false,
 		default_value = false,
 		hidden = true,
-	},
-	-- Updated versions of Muluna set this to true in settings-updates.lua. Older versions
-	-- ship their own ground diggers using the same "<drill>-ground-digger" prototype
-	-- names, so PlanetsLib must not generate shared ground diggers while they are present.
-	{
-		type = "bool-setting",
-		setting_type = "startup",
-		name = "PlanetsLib-muluna-ground-diggers-compatible",
-		forced_value = false,
-		default_value = false,
-		hidden = true,
 	}
 })

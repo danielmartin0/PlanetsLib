@@ -27,16 +27,6 @@ Diggers are also restricted to planets that enabled the feature: PlanetsLib adds
 
 Placement also respects the mining drill's own surface conditions. If the drill cannot be placed on the planet (for example, a chemical burner drill on an oxygen-less planet), it will not be converted into a ground digger there.
 
-### Muluna compatibility
-
-Older versions of [Muluna, Moon of Nauvis](https://mods.factorio.com/mod/planet-muluna) ship their own ground digger implementation using the same `<drill>-ground-digger` prototype names. To avoid conflicting with it, PlanetsLib does not generate or handle shared ground diggers while an unsupported Muluna version is installed. Updated versions of Muluna opt in by forcing the hidden `PlanetsLib-muluna-ground-diggers-compatible` startup setting to `true` in `settings-updates.lua`:
-
-```lua
-data.raw["bool-setting"]["PlanetsLib-muluna-ground-diggers-compatible"].forced_value = true
-```
-
-While an unsupported Muluna version is installed, ground diggers are disabled for every planet, not just Muluna, because the shared prototype names cannot be generated safely.
-
 ### Eligible mining drills
 
 By default, every mining drill that meets all of the following criteria gets a ground digger variant:

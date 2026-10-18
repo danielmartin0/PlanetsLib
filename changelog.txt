@@ -8,7 +8,6 @@ Date: ????
     - Mining drills that can be used as ground diggers now mention the ground digger variant in their Factoriopedia description.
   Bugfixes:
     - Ground diggers are no longer placed on planets where the mining drill they are copied from cannot be placed. For example, burner mining drills are banned from Muluna, so burner ground diggers are now banned there too.
-    - Ground diggers are disabled while an outdated version of "Muluna, Moon of Nauvis" is installed, because it ships its own ground digger system using the same prototype names. Updated Muluna versions opt in via the hidden PlanetsLib-muluna-ground-diggers-compatible setting.
   Locale:
     - Blanked the vanilla mining drill build warning "can only be built on resources" (cant-build-reason.no-resource-for-drill), which is misleading where ground diggers replace drills placed without resources. Ported from "Muluna, Moon of Nauvis".
     - Added ground digger name translations ported from "Muluna, Moon of Nauvis". Also corrected the Czech locale directory name from "cz" to "cs" so Czech translations load.
