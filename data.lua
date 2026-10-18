@@ -40,6 +40,9 @@ data:extend({
 			pipette_result = { --Maps entity name to pipette result. An alternative to EntityPrototype::placeable_by that doesn't affect bot behavior.
 				--[entity-name] = "other-entity-name"
 			},
+			ground_diggers = { --Planets that convert mining drills placed without nearby resources into recipe-crafting machines.
+				--[planet-name] = {recipe = "recipe-name", diggers = {["item-name"] = {drill = "entity-name", digger = "digger-entity-name"}}}
+			},
 			items_corrected_fuel_category = {
 
 			}

@@ -1,0 +1,151 @@
+local Public = {}
+
+-- Forked from Maraxsis, which was ported from Muluna.
+-- "PlanetsLib-build", "PlanetsLib-build-ghost" and "PlanetsLib-super-forced-build"
+-- are custom inputs that are linked to the build/rotate game controls.
+
+local function get_cursor_info(player)
+	local cursor_stack = player.cursor_stack
+	local cursor_stack_valid = cursor_stack and cursor_stack.valid_for_read and cursor_stack.count > 0
+	if cursor_stack_valid then
+		return cursor_stack.name, cursor_stack.quality, true
+	end
+	local cursor_ghost = player.cursor_ghost
+	if not cursor_ghost then
+		return nil
+	end
+	local name = cursor_ghost.name
+	if type(name) == "table" then
+		name = name.name
+	end
+	return name, cursor_ghost.quality, false
+end
+
+function Public.construct_ground_digger(event)
+	local player = game.get_player(event.player_index)
+	if not player or not player.valid then
+		return
+	end
+	local surface = player.surface
+	local planet = surface.planet
+	if not planet then
+		return
+	end
+	local config = PlanetsLib.constants.ground_diggers[planet.name]
+	if not config or not config.diggers then
+		return
+	end
+
+	local name, quality, cursor_stack_valid = get_cursor_info(player)
+	if not name then
+		return
+	end
+	local info = config.diggers[name]
+	if not info then
+		return
+	end
+	local drill_name = info.drill
+	local digger_name = info.digger
+
+	local position = event.cursor_position
+	if not position then
+		return
+	end
+
+	if surface.entity_prototype_collides(digger_name, position, false) then
+		return
+	end
+
+	if surface.get_tile(position).hidden_tile then
+		player.create_local_flying_text({
+			text = { "cant-build-reason.cant-build-on-tile", surface.get_tile(position).prototype.localised_name },
+			surface = surface,
+			create_at_cursor = true,
+			speed = 0.01,
+		})
+		return -- If tile is unnatural, like concrete, then don't place the digger.
+	end
+
+	local is_ghost = (not cursor_stack_valid)
+		or event.input_name == "PlanetsLib-build-ghost"
+		or event.input_name == "PlanetsLib-super-forced-build"
+
+	local player_position = (player.character or player).position
+	local distance = math.sqrt((position.x - player_position.x) ^ 2 + (position.y - player_position.y) ^ 2)
+	if player.character and (distance >= player.character.build_distance) and not is_ghost then
+		return -- If unreachable, then don't place.
+	end
+
+	local drill_prototype = prototypes.entity[drill_name]
+	if not drill_prototype then
+		return
+	end
+
+	local radius = drill_prototype.get_mining_drill_radius(quality)
+	local neighboring_resources = surface.find_entities_filtered({
+		-- Search for resources to see if a regular mining drill would be placed.
+		area = {
+			{ position.x - radius, position.y - radius },
+			{ position.x + radius, position.y + radius },
+		},
+		type = { "resource" },
+	})
+	if #neighboring_resources ~= 0 then
+		return -- If neighboring resources exist, then place a regular mining drill instead.
+	end
+
+	-- If the mining drill is not square, this code can't cleanly handle the collision box.
+	local width = drill_prototype.tile_width
+	local height = drill_prototype.tile_height
+	if width ~= height then
+		return
+	end
+
+	local margin = 1.5
+	local rounded_position = {
+		x = math.ceil(position.x + 0.5),
+		y = math.ceil(position.y + 0.5),
+	}
+	local colliding_entities = surface.find_entities_filtered({
+		area = {
+			{
+				rounded_position.x - width / 2 + margin,
+				rounded_position.y - height / 2 + margin,
+			},
+			{
+				rounded_position.x + width / 2 - margin,
+				rounded_position.y + height / 2 - margin,
+			},
+		},
+		to_be_deconstructed = false,
+	})
+	for i = #colliding_entities, 1, -1 do
+		if colliding_entities[i].type == "corpse" then
+			table.remove(colliding_entities, i)
+		end
+	end
+	if #colliding_entities ~= 0 then
+		return
+	end
+
+	local digger = surface.create_entity({
+		name = is_ghost and "entity-ghost" or digger_name,
+		inner_name = is_ghost and digger_name or nil,
+		position = position,
+		force = player.force,
+		player = player,
+		quality = quality,
+		direction = event.cursor_direction,
+		raise_built = true,
+	})
+	if not digger then
+		return
+	end
+
+	if not is_ghost then
+		player.cursor_stack.count = player.cursor_stack.count - 1
+		player.force.get_entity_build_count_statistics(surface).on_flow(name, 1)
+	end
+end
+
+return Public

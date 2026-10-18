@@ -6,6 +6,7 @@ require("prototypes.override-final.enhanced-tooltips")
 require("prototypes.override-final.recipe-effects")
 require("prototypes.override-final.pipette-result")
 require("prototypes.override-final.lab-updates")
+require("prototypes.override-final.ground-diggers")
 if mods["space-age"] then
 	require("prototypes.override-final.check-unexpected-positions")
 	require("prototypes.override-final.update-connections")

@@ -11,6 +11,7 @@ local achievements = require("lib.achievements")
 local entity_replacements = require("lib.add-entity-replacement")
 local dual_item_icon = require("lib.dual-item-icon")
 local images = require("lib.images")
+local ground_diggers = require("lib.ground-diggers")
 
 --== APIs ==--
 -- API documentation lives in README.md (or on the mod portal.)
@@ -51,6 +52,7 @@ PlanetsLib.visit_planet_achievement = achievements.visit_planet_achievement
 
 PlanetsLib.create_planet_entity_variant = entity_replacements.create_planet_entity_variant
 PlanetsLib.assign_entity_replacement = entity_replacements.assign_entity_replacement
+PlanetsLib.enable_ground_diggers = ground_diggers.enable_ground_diggers
 PlanetsLib.set_special_properties = planet.set_special_properties
 PlanetsLib.get_special_property = planet.get_special_property
 PlanetsLib.get_special_properties = planet.get_special_properties
@@ -100,6 +102,8 @@ PlanetsLib.technology_effect_cargo_drops = technology.technology_effect_cargo_dr
 PlanetsLib.surface_conditions = surface_conditions
 PlanetsLib.restrict_to_planet = surface_conditions.restrict_to_planet
 PlanetsLib.planet_str = planet_str
+
+PlanetsLib.generate_ground_diggers = ground_diggers.generate_ground_diggers
 
 PlanetsLib.objects = require("lib.remove-replace-object") --Table manipulation library
 PlanetsLib.rro = PlanetsLib.objects --Alias for PlanetsLib.objects

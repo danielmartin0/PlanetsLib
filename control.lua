@@ -266,6 +266,16 @@ if not rro.deep_equals(PlanetsLib.constants.pipette_result,{}) then
 end
 
 
+-- Ground diggers: intercept the build controls so that a mining drill placed without
+-- nearby resources is converted into a digging machine instead of failing to build.
+local ground_diggers = require("scripts.ground-diggers")
+if not rro.deep_equals(PlanetsLib.constants.ground_diggers, {}) then
+	script.on_event("PlanetsLib-build", ground_diggers.construct_ground_digger)
+	script.on_event("PlanetsLib-build-ghost", ground_diggers.construct_ground_digger)
+	script.on_event("PlanetsLib-super-forced-build", ground_diggers.construct_ground_digger)
+end
+
+
 --Remote interface to help transfer storage of a mod to a fork of a mod.
 remote.add_interface("PlanetsLib_transfer_storage",
 	{
