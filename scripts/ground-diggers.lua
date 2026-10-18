@@ -58,6 +58,24 @@ function Public.on_entity_built(event)
 	entity.recipe_locked = true
 end
 
+---Whether a prototype's surface conditions are met on a surface.
+-- Ground diggers inherit the drill's surface conditions when they are generated, but a mod
+-- may change the drill's conditions later (for example, Muluna bans chemical burner
+-- machines on its oxygen-less surface in data-final-fixes). The custom build input
+-- bypasses the engine's normal build check, so check the drill itself before converting it.
+-- @param surface LuaSurface
+-- @param prototype LuaEntityPrototype
+-- @return boolean
+local function surface_conditions_met(surface, prototype)
+	for _, condition in pairs(prototype.surface_conditions or {}) do
+		local value = surface.get_property(condition.property)
+		if (condition.min and value < condition.min) or (condition.max and value > condition.max) then
+			return false
+		end
+	end
+	return true
+end
+
 function Public.construct_ground_digger(event)
 	local player = game.get_player(event.player_index)
 	if not player or not player.valid then
@@ -115,6 +133,9 @@ function Public.construct_ground_digger(event)
 
 	local drill_prototype = prototypes.entity[drill_name]
 	if not drill_prototype then
+		return
+	end
+	if not surface_conditions_met(surface, drill_prototype) then
 		return
 	end
 	local digger_prototype = prototypes.entity[digger_name]

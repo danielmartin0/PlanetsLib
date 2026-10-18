@@ -25,6 +25,8 @@ Because the prototypes are shared, the planet's `recipe` cannot be baked into th
 
 Diggers are also restricted to planets that enabled the feature: PlanetsLib adds a hidden surface property to each participating planet, and every digger prototype requires it. A digger blueprint therefore cannot be built on a planet that hasn't called this function.
 
+Placement also respects the mining drill's own surface conditions. If the drill cannot be placed on the planet (for example, a chemical burner drill on an oxygen-less planet), it will not be converted into a ground digger there.
+
 ### Eligible mining drills
 
 By default, every mining drill that meets all of the following criteria gets a ground digger variant:
