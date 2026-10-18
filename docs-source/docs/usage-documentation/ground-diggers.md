@@ -40,6 +40,10 @@ Ground digger variants are assembling machines that share the drill's appearance
 
 The configured recipe must exist and should be unlockable by the player (for example, through a technology). PlanetsLib does not unlock it automatically. Ground diggers also benefit from mining drill productivity research, which is applied to the recipe automatically.
 
+### Build warning
+
+Because ground diggers can replace a mining drill placed without nearby resources, the vanilla warning shown in that situation is misleading. PlanetsLib blanks the `cant-build-reason.no-resource-for-drill` locale key so the warning is not shown.
+
 ## Example
 
 ```lua
