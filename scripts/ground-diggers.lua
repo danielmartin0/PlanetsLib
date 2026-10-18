@@ -117,6 +117,10 @@ function Public.construct_ground_digger(event)
 	if not drill_prototype then
 		return
 	end
+	local digger_prototype = prototypes.entity[digger_name]
+	if not digger_prototype then
+		return
+	end
 
 	local radius = drill_prototype.get_mining_drill_radius(quality)
 	local neighboring_resources = surface.find_entities_filtered({
@@ -155,6 +159,10 @@ function Public.construct_ground_digger(event)
 			},
 		},
 		to_be_deconstructed = false,
+		-- Only count entities that share a collision layer with the digger. Some planets
+		-- cover their surface with non-colliding visuals (e.g. Maraxsis' water shader),
+		-- which would otherwise block every placement.
+		collision_mask = digger_prototype.collision_mask.layers,
 	})
 	for i = #colliding_entities, 1, -1 do
 		if colliding_entities[i].type == "corpse" then
