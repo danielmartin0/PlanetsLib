@@ -92,6 +92,7 @@ locale/<lang>/              Localisation (.cfg). Add keys to existing files.
 graphics/                   Shared icons/entities (entity/, icons/)
 helper_scripts/             Standalone Python asset generators + source PNGs (NOT shipped; see below)
 tests/                      Factorio test-scenario scripts (minimal)
+test-mods/                  Development test mods written while testing a feature (NOT shipped)
 docs-source/                Docusaurus documentation site — the canonical user-facing docs
 docs/                       Built docs output (committed by update_documentation.sh)
 helper scripts              archive.sh, update_documentation.sh, config.ld (legacy LDoc config)
@@ -154,6 +155,9 @@ Factorio with the mod enabled (see `.vscode/launch.json`, which uses a Factorio 
 - **Testing is mandatory before a PR**: the contributor notes require changes to be tested, ideally with
   multiple planet mods installed. `tests/` contains only minimal Factorio scenario scaffolding
   (`tests/index.lua` requires an (empty) test file); don't assume it runs automatically.
+- **Development test mods**: any test mod you write while developing a feature must be saved to
+  `test-mods/<mod-name>/` (see `test-mods/README.md`). This keeps tests reproducible for reviewers
+  while excluding them from release builds.
 - **Docs**: `docs-source/` is the canonical documentation (Docusaurus). Build/serve it with
   `cd docs-source && npm install && npm start` (or `npm run build`).
   `./update_documentation.sh` rebuilds the committed `docs/` output (`rm -rf ../docs && mv build ../docs`)
@@ -161,7 +165,8 @@ Factorio with the mod enabled (see `.vscode/launch.json`, which uses a Factorio 
 - **Release**: `./archive.sh` creates a versioned zip (`git archive`) and regenerates the docs. Bump the
   version in `info.json` (and match the zip prefix in `archive.sh`).
 - **Packaging ignore**: `info.json`'s `package.ignore` and `.gitattributes` `export-ignore` exclude
-  `*.py`, `*.bat`, `*.sh`, `*.exe`, `*.ps1` from the release. Python helper scripts must never ship.
+  `*.py`, `*.bat`, `*.sh`, `*.exe`, `*.ps1`, and `test-mods/` from the release. Python helper scripts
+  and development test mods must never ship.
 
 ### Gotchas / known inconsistencies
 

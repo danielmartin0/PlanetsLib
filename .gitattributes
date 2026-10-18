@@ -18,6 +18,7 @@ archive.sh export-ignore
 update_documentation.sh export-ignore
 docs export-ignore
 docs-source export-ignore
+test-mods export-ignore
 docs_templates export-ignore
 config.ld export-ignore
 *.html export-ignore

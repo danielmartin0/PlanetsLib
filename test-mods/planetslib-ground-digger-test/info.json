@@ -1,0 +1,8 @@
+{
+  "name": "planetslib-ground-digger-test",
+  "version": "0.0.1",
+  "factorio_version": "2.1",
+  "title": "PlanetsLib Ground Digger Test",
+  "author": "test",
+  "dependencies": ["base", "PlanetsLib", "? space-age"]
+}
