@@ -296,8 +296,7 @@ local function add_factoriopedia_description(drill, digger_name)
 	local description = drill.factoriopedia_description or { "entity-description." .. drill.name }
 	drill.factoriopedia_description = {
 		"",
-		description,
-		"\n",
+		{"?",{"",description,"\n"},""},
 		{ "factoriopedia-description.PlanetsLib-ground-digger", digger_name },
 	}
 end
