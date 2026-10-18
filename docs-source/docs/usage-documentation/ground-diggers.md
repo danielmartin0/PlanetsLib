@@ -37,7 +37,7 @@ By default, every mining drill that meets all of the following criteria gets a g
 
 Any energy source is allowed, so non-electric drills (for example, burner mining drills) are eligible by default. A digger keeps the energy source of the drill it is copied from; diggers with an electric energy source default to no drain (`0 MW`), matching mining drills.
 
-Ground digger variants are assembling machines that share the drill's appearance, health, and other properties.
+Ground digger variants are assembling machines that share the drill's appearance, health, and other properties. Mining drills that can be used as ground diggers mention this in their Factoriopedia description, linking to the generated digger variant.
 
 ### Recipe requirements
 

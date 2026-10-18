@@ -283,6 +283,25 @@ local function apply_mining_productivity(recipes)
 	end
 end
 
+-- Tracks drills that already received the Factoriopedia note, so repeated
+-- generate_ground_diggers() calls do not duplicate it.
+local described_drills = {}
+
+---Adds a Factoriopedia note to a mining drill pointing at its ground digger variant.
+local function add_factoriopedia_description(drill, digger_name)
+	if described_drills[drill.name] then
+		return
+	end
+	described_drills[drill.name] = true
+	local description = drill.factoriopedia_description or { "entity-description." .. drill.name }
+	drill.factoriopedia_description = {
+		"",
+		description,
+		"\n",
+		{ "factoriopedia-description.PlanetsLib-ground-digger", digger_name },
+	}
+end
+
 ---Generates all ground digger variants configured by mods.
 ---Called automatically during data-final-fixes. May also be called by a mod during
 ---data-final-fixes after defining a recipe late.
@@ -348,15 +367,16 @@ function Public.generate_ground_diggers()
 		for item_name, info in pairs(config.diggers or {}) do
 			if not processed[info.digger] then
 				processed[info.digger] = true
+				local drill = data.raw["mining-drill"][info.drill]
 				local existing = data.raw["assembling-machine"][info.digger]
 				if existing then
 					existing.crafting_categories = util.table.deepcopy(categories_list)
 				else
-					local drill = data.raw["mining-drill"][info.drill]
 					data:extend({
 						Public.create_ground_digger(drill, info.digger, item_name, categories_list),
 					})
 				end
+				add_factoriopedia_description(drill, info.digger)
 				lib.detailed_log(
 					"[PlanetsLib] Generated ground digger " .. info.digger .. " for " .. info.drill
 				)

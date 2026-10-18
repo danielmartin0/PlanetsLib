@@ -5,11 +5,12 @@ Date: ????
     - Added PlanetsLib.enable_ground_diggers(planet, recipe, options), allowing planets to convert mining drills placed without nearby resources into machines that craft a chosen recipe. All planets share one digger prototype per drill, named "<drill>-ground-digger" to match "Muluna, Moon of Nauvis", restricted to participating planets via a hidden surface property. Thank you MeteorSwarm!
   Changes:
     - Ground diggers are no longer limited to electric mining drills: any eligible drill can be converted, and each digger keeps the energy source of the drill it is copied from. Electric ground diggers default to no drain, matching mining drills.
+    - Mining drills that can be used as ground diggers now mention the ground digger variant in their Factoriopedia description.
   Bugfixes:
     - Ground diggers are no longer placed on planets where the mining drill they are copied from cannot be placed. For example, burner mining drills are banned from Muluna, so burner ground diggers are now banned there too.
   Locale:
     - Blanked the vanilla mining drill build warning "can only be built on resources" (cant-build-reason.no-resource-for-drill), which is misleading where ground diggers replace drills placed without resources. Ported from "Muluna, Moon of Nauvis".
-    - Added ground digger name and drill digging-result tooltip translations ported from "Muluna, Moon of Nauvis". Also corrected the Czech locale directory name from "cz" to "cs" so Czech translations load.
+    - Added ground digger name translations ported from "Muluna, Moon of Nauvis". Also corrected the Czech locale directory name from "cz" to "cs" so Czech translations load.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.10
 Date: 2026-10-16
