@@ -2,6 +2,11 @@
 --- Allows a planet to convert mining drills placed without nearby resources
 --- into "ground digger" machines that craft a recipe over time.
 --- Ported from "Muluna, Moon of Nauvis" (which was itself forked from Maraxsis).
+---
+--- All planets share a single ground digger prototype per mining drill, using the
+--- naming scheme "<drill>-ground-digger". This matches the prototypes used by Muluna,
+--- so saves that placed those entities keep working. The recipe is assigned at runtime,
+--- since a shared prototype cannot hard-code a per-planet recipe.
 -- @module lib.ground-diggers
 
 local util = require("util")
@@ -89,6 +94,14 @@ function Public.is_eligible_drill(drill, item_lookup)
 	return true
 end
 
+---The shared ground digger prototype name for a mining drill.
+-- Deliberately matches Muluna's naming scheme for backwards compatibility.
+-- @param drill_name string
+-- @return string
+function Public.ground_digger_name(drill_name)
+	return drill_name .. "-ground-digger"
+end
+
 --== Public API ==--
 
 --- PlanetsLib.enable_ground_diggers(planet, recipe, options)
@@ -122,8 +135,7 @@ function Public.enable_ground_diggers(planet, recipe, options)
 	config.recipe = recipe
 	config.drills = normalize_name_set(options.drills)
 	config.blacklist = normalize_name_set(options.blacklist)
-	config.diggers = {}
-	config.generated = false
+	config.diggers = nil
 
 	-- If the automatic final-fixes pass has already run, generate the new planet immediately.
 	if PlanetsLib.current_stage == "data-final-fixes" then
@@ -131,9 +143,13 @@ function Public.enable_ground_diggers(planet, recipe, options)
 	end
 end
 
----Builds the ground digger entity for a single drill.
+---Builds the shared ground digger entity for a single drill.
+-- @param drill table The mining drill prototype to copy.
+-- @param digger_name string Name of the generated prototype.
+-- @param item_name string The item that places the drill (and so the digger).
+-- @param categories table The crafting categories the digger accepts.
 -- @return table The generated assembling-machine prototype (not yet extended).
-function Public.create_ground_digger(drill, digger_name, item_name, planet_name, recipe_name, categories, product_name)
+function Public.create_ground_digger(drill, digger_name, item_name, categories)
 	local digger = util.table.deepcopy(drill)
 	local original_localised_name = digger.localised_name or { "entity-name." .. drill.name }
 
@@ -141,7 +157,6 @@ function Public.create_ground_digger(drill, digger_name, item_name, planet_name,
 	digger.type = "assembling-machine"
 	digger.crafting_categories = util.table.deepcopy(categories)
 	digger.crafting_speed = digger.mining_speed or digger.crafting_speed or 1
-	digger.fixed_recipe = recipe_name
 	digger.placeable_by = { item = item_name, count = 1 }
 	digger.fast_replaceable_group = (drill.fast_replaceable_group or drill.name) .. "-ground-digger"
 	digger.next_upgrade = nil
@@ -161,98 +176,15 @@ function Public.create_ground_digger(drill, digger_name, item_name, planet_name,
 	rro.soft_insert(digger.flags, "not-in-made-in")
 	rro.soft_insert(digger.flags, "not-in-bonus-gui")
 
-	-- Overlay the digging result's icon so the digger is visually distinct in upgrade planners.
-	local product = product_name and data.raw["item"][product_name]
-	if product then
-		local icon, icon_size
-		if product.icons and product.icons[1] then
-			icon = product.icons[1].icon
-			icon_size = product.icons[1].icon_size
-		elseif product.icon then
-			icon = product.icon
-			icon_size = product.icon_size
-		end
-		if icon then
-			local overlay = {
-				icon = icon,
-				icon_size = icon_size,
-				scale = 0.25,
-				shift = { 10, -10 },
-				draw_background = true,
-			}
-			if digger.icons then
-				table.insert(digger.icons, overlay)
-			elseif digger.icon then
-				digger.icons = {
-					{ icon = digger.icon, icon_size = digger.icon_size },
-					overlay,
-				}
-			end
-			digger.icon = nil
-			digger.icon_size = nil
-		end
-	end
-
-	if product_name then
-		digger.custom_tooltip_fields = digger.custom_tooltip_fields or {}
-		rro.soft_insert(digger.custom_tooltip_fields, {
-			name = { "tooltip.PlanetsLib-ground-digger-result", "[planet=" .. planet_name .. "]" },
-			value = "[item=" .. product_name .. "]",
-		})
-	end
-
-	if not data.raw["planet"][planet_name].surface_properties then
-		data.raw["planet"][planet_name].surface_properties = {}
-	end
-	PlanetsLib.restrict_to_planet(digger, planet_name)
-
 	return digger
 end
 
----Generates the ground digger variants configured for a single planet.
-function Public.generate_for_planet(planet_name)
+-- Resolves which drills a planet can convert, populating config.diggers as a map of
+-- placing item name -> {drill = entity name, digger = shared digger entity name}.
+local function resolve_planet_diggers(planet_name, item_lookup)
 	local config = PlanetsLib.constants.ground_diggers[planet_name]
-	if not config or config.generated then
+	if not config then
 		return
-	end
-
-	local planet = data.raw["planet"][planet_name]
-	assert(
-		planet,
-		"PlanetsLib.enable_ground_diggers() - Planet not found: "
-			.. tostring(planet_name)
-			.. ". See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
-	)
-
-	local recipe_name = config.recipe
-	assert(
-		recipe_name,
-		"PlanetsLib.enable_ground_diggers() - No recipe assigned to planet '" .. planet_name .. "'."
-	)
-	local recipe = data.raw["recipe"][recipe_name]
-	assert(
-		recipe,
-		"PlanetsLib.enable_ground_diggers() - Recipe not found: "
-			.. recipe_name
-			.. ". See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
-	)
-	local categories = recipe.categories and util.table.deepcopy(recipe.categories) or { "crafting" }
-
-	local product_name = recipe.main_product
-	if not product_name and recipe.results then
-		for _, result in pairs(recipe.results) do
-			if result.type == "item" or result.type == nil then
-				product_name = result.name
-				break
-			end
-		end
-	end
-
-	local item_lookup = {}
-	for item_name, item in pairs(data.raw["item"] or {}) do
-		if item.place_result then
-			item_lookup[item.place_result] = item_name
-		end
 	end
 
 	local drill_names = {}
@@ -273,8 +205,7 @@ function Public.generate_for_planet(planet_name)
 		end
 	end
 
-	config.diggers = config.diggers or {}
-
+	config.diggers = {}
 	for drill_name in pairs(drill_names) do
 		local drill = data.raw["mining-drill"][drill_name]
 		if not drill then
@@ -288,33 +219,12 @@ function Public.generate_for_planet(planet_name)
 		end
 		if Public.is_eligible_drill(drill, item_lookup) then
 			local item_name = item_lookup[drill_name]
-			local digger_name = drill_name .. "-ground-digger-" .. planet_name
-			config.diggers[item_name] = { drill = drill_name, digger = digger_name }
-			if not data.raw["assembling-machine"][digger_name] then
-				data:extend({
-					Public.create_ground_digger(
-						drill,
-						digger_name,
-						item_name,
-						planet_name,
-						recipe_name,
-						categories,
-						product_name
-					),
-				})
-			end
-			lib.detailed_log(
-				"[PlanetsLib] Generated ground digger "
-					.. digger_name
-					.. " for "
-					.. drill_name
-					.. " on "
-					.. planet_name
-			)
+			config.diggers[item_name] = {
+				drill = drill_name,
+				digger = Public.ground_digger_name(drill_name),
+			}
 		end
 	end
-
-	config.generated = true
 end
 
 ---Applies mining drill productivity technologies to the given ground digger recipes,
@@ -342,14 +252,78 @@ end
 ---Called automatically during data-final-fixes. May also be called by a mod during
 ---data-final-fixes after defining a recipe late.
 function Public.generate_ground_diggers()
-	local recipes = {}
-	for planet_name in pairs(PlanetsLib.constants.ground_diggers) do
-		Public.generate_for_planet(planet_name)
-		local config = PlanetsLib.constants.ground_diggers[planet_name]
-		if config.recipe then
-			recipes[config.recipe] = true
+	local planets = PlanetsLib.constants.ground_diggers
+
+	local item_lookup = {}
+	for item_name, item in pairs(data.raw["item"] or {}) do
+		if item.place_result then
+			item_lookup[item.place_result] = item_name
 		end
 	end
+
+	-- Pass 1: validate each planet, resolve its eligible drills, and collect recipes.
+	local recipes = {}
+	for planet_name, config in pairs(planets) do
+		local planet = data.raw["planet"][planet_name]
+		assert(
+			planet,
+			"PlanetsLib.enable_ground_diggers() - Planet not found: "
+				.. tostring(planet_name)
+				.. ". See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
+		)
+
+		local recipe_name = config.recipe
+		assert(
+			recipe_name,
+			"PlanetsLib.enable_ground_diggers() - No recipe assigned to planet '" .. planet_name .. "'."
+		)
+		assert(
+			data.raw["recipe"][recipe_name],
+			"PlanetsLib.enable_ground_diggers() - Recipe not found: "
+				.. recipe_name
+				.. ". See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
+		)
+		recipes[recipe_name] = true
+
+		resolve_planet_diggers(planet_name, item_lookup)
+	end
+
+	-- All ground diggers share one prototype per drill, so they must accept every
+	-- configured recipe's category. Recipes are assigned per planet at runtime.
+	local categories = {}
+	for recipe_name in pairs(recipes) do
+		local recipe = data.raw["recipe"][recipe_name]
+		for _, category in pairs(recipe.categories or { "crafting" }) do
+			categories[category] = true
+		end
+	end
+	local categories_list = {}
+	for category in pairs(categories) do
+		table.insert(categories_list, category)
+	end
+
+	-- Pass 2: create (or refresh) the shared prototype for each drill.
+	local processed = {}
+	for _, config in pairs(planets) do
+		for item_name, info in pairs(config.diggers or {}) do
+			if not processed[info.digger] then
+				processed[info.digger] = true
+				local existing = data.raw["assembling-machine"][info.digger]
+				if existing then
+					existing.crafting_categories = util.table.deepcopy(categories_list)
+				else
+					local drill = data.raw["mining-drill"][info.drill]
+					data:extend({
+						Public.create_ground_digger(drill, info.digger, item_name, categories_list),
+					})
+				end
+				lib.detailed_log(
+					"[PlanetsLib] Generated ground digger " .. info.digger .. " for " .. info.drill
+				)
+			end
+		end
+	end
+
 	apply_mining_productivity(recipes)
 end
 

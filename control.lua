@@ -180,6 +180,20 @@ end
 
 table.insert(on_built_filters_and_silos,{filter = "type", type = "rocket-silo"})
 table.insert(on_built_filters_and_silos,{filter = "ghost_type", type = "rocket-silo"})
+
+-- Ground diggers share one prototype per drill across all planets, so the recipe is
+-- assigned when a digger is built. Build events are filtered down to digger names.
+local ground_diggers = require("scripts.ground-diggers")
+local ground_digger_names = {}
+for _,config in pairs(PlanetsLib.constants.ground_diggers) do
+	for _,info in pairs(config.diggers or {}) do
+		if not ground_digger_names[info.digger] then
+			ground_digger_names[info.digger] = true
+			table.insert(on_built_filters_and_silos,{filter = "name", name = info.digger})
+		end
+	end
+end
+
 print(serpent.block(on_built_filters))
 
 local on_built_entity_combined
@@ -196,6 +210,17 @@ elseif is_cargo_pods then
 elseif is_entity_replacements then
 	on_built_entity_combined = function(event)
 		entity_replacement.on_built_entity(event)
+	end
+end
+
+-- Assign ground diggers their planet's recipe whenever one is built.
+if next(ground_digger_names) then
+	local previous_on_built_entity_combined = on_built_entity_combined
+	on_built_entity_combined = function(event)
+		if previous_on_built_entity_combined then
+			previous_on_built_entity_combined(event)
+		end
+		ground_diggers.on_entity_built(event)
 	end
 end
 
@@ -268,7 +293,6 @@ end
 
 -- Ground diggers: intercept the build controls so that a mining drill placed without
 -- nearby resources is converted into a digging machine instead of failing to build.
-local ground_diggers = require("scripts.ground-diggers")
 if not rro.deep_equals(PlanetsLib.constants.ground_diggers, {}) then
 	script.on_event("PlanetsLib-build", ground_diggers.construct_ground_digger)
 	script.on_event("PlanetsLib-build-ghost", ground_diggers.construct_ground_digger)

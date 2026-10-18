@@ -3,6 +3,19 @@ local Public = {}
 -- Forked from Maraxsis, which was ported from Muluna.
 -- "PlanetsLib-build", "PlanetsLib-build-ghost" and "PlanetsLib-super-forced-build"
 -- are custom inputs that are linked to the build/rotate game controls.
+--
+-- Ground diggers share one prototype per mining drill across all planets, so the
+-- planet's recipe cannot be baked into the prototype. It is assigned when the digger
+-- is built (see on_entity_built). Ghosts cannot store a script-set recipe, so they are
+-- converted into recipe-bearing diggers when they are later built.
+
+-- Set of ground digger prototype names, used to recognise digger builds.
+local digger_names = {}
+for _, config in pairs(PlanetsLib.constants.ground_diggers) do
+	for _, info in pairs(config.diggers or {}) do
+		digger_names[info.digger] = true
+	end
+end
 
 local function get_cursor_info(player)
 	local cursor_stack = player.cursor_stack
@@ -19,6 +32,30 @@ local function get_cursor_info(player)
 		name = name.name
 	end
 	return name, cursor_ghost.quality, false
+end
+
+---Assigns a built ground digger the recipe of the planet it was built on.
+---Registered for the entity build events, so that diggers built from ghosts or
+---blueprints receive their recipe too.
+function Public.on_entity_built(event)
+	local entity = event.entity or event.created_entity
+	if not (entity and entity.valid) then
+		return
+	end
+	if not digger_names[entity.name] then
+		return
+	end
+	local surface = entity.surface
+	local planet = surface and surface.planet
+	if not planet then
+		return
+	end
+	local config = PlanetsLib.constants.ground_diggers[planet.name]
+	if not config or not config.recipe then
+		return
+	end
+	entity.set_recipe(config.recipe, "normal")
+	entity.recipe_locked = true
 end
 
 function Public.construct_ground_digger(event)

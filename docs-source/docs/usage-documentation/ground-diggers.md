@@ -15,6 +15,14 @@ When a player tries to place a supported mining drill on a planet with ground di
 * `drills` (table) — Only generate diggers for these mining drill entity names. Accepts either an array of names or a dictionary of name to `true`. Defaults to every eligible mining drill.
 * `blacklist` (table) — Never generate diggers for these mining drill entity names. Accepts the same formats as `drills`.
 
+## Shared prototypes
+
+Every planet that uses this feature shares the **same** ground digger prototypes. There is one prototype per eligible mining drill, named `<drill>-ground-digger` (for example, placing an `electric-mining-drill` produces an `electric-mining-drill-ground-digger`).
+
+The naming scheme deliberately matches the prototypes used by [Muluna, Moon of Nauvis](https://mods.factorio.com/mod/planet-muluna), so saves that placed those entities keep working.
+
+Because the prototypes are shared, the planet's `recipe` cannot be baked into the prototype. It is assigned at runtime when the digger is placed, and then locked. As a consequence, all ground diggers accept the crafting categories of every recipe registered with this feature, but each individual machine only ever crafts the recipe of the planet it was placed on.
+
 ### Eligible mining drills
 
 By default, every mining drill that meets all of the following criteria gets a ground digger variant:
@@ -24,11 +32,11 @@ By default, every mining drill that meets all of the following criteria gets a g
 * It has a square selection box.
 * It is placeable by an item.
 
-Ground digger variants are assembling machines that share the drill's appearance, health, and other properties. They are restricted to `planet` via a surface condition, and they are locked to the configured recipe.
+Ground digger variants are assembling machines that share the drill's appearance, health, and other properties.
 
 ### Recipe requirements
 
-The configured recipe must exist and should be unlockable by the player (for example, through a technology). Its `categories` are copied to the generated diggers, so a recipe with no categories is treated as a `crafting` recipe. Ground diggers also benefit from mining drill productivity research, which is applied to the recipe automatically.
+The configured recipe must exist and should be unlockable by the player (for example, through a technology). PlanetsLib does not unlock it automatically. Ground diggers also benefit from mining drill productivity research, which is applied to the recipe automatically.
 
 ## Example
 
