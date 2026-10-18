@@ -21,6 +21,10 @@ Every planet that uses this feature shares the **same** ground digger prototypes
 
 The naming scheme deliberately matches the prototypes used by [Muluna, Moon of Nauvis](https://mods.factorio.com/mod/planet-muluna), so saves that placed those entities keep working.
 
+### Muluna compatibility
+
+PlanetsLib requires `planet-muluna` newer than 2.7.40. Versions up to 2.7.40 include their own ground digger implementation that uses the same `<drill>-ground-digger` prototype names, so PlanetsLib refuses to load when one of those versions is active. Update `planet-muluna` to continue using this feature.
+
 Because the prototypes are shared, the planet's `recipe` cannot be baked into the prototype. It is assigned at runtime when the digger is placed, and then locked. As a consequence, all ground diggers accept the crafting categories of every recipe registered with this feature, but each individual machine only ever crafts the recipe of the planet it was placed on.
 
 Diggers are also restricted to planets that enabled the feature: PlanetsLib adds a hidden surface property to each participating planet, and every digger prototype requires it. A digger blueprint therefore cannot be built on a planet that hasn't called this function.

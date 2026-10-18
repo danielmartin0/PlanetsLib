@@ -6,6 +6,7 @@ Date: ????
   Changes:
     - Ground diggers are no longer limited to electric mining drills: any eligible drill can be converted, and each digger keeps the energy source of the drill it is copied from. Electric ground diggers default to no drain, matching mining drills.
     - Mining drills that can be used as ground diggers now mention the ground digger variant in their Factoriopedia description.
+    - PlanetsLib now refuses to load with planet-muluna 2.7.40 or older. Those versions have their own ground digger implementation that conflicts with PlanetsLib's shared ground diggers.
   Bugfixes:
     - Ground diggers are no longer placed on planets where the mining drill they are copied from cannot be placed. For example, burner mining drills are banned from Muluna, so burner ground diggers are now banned there too.
   Locale:

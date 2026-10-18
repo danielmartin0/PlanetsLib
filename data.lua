@@ -56,6 +56,18 @@ PlanetsLib.constants = data.raw["mod-data"].Planetslib.data
 
 require("api")
 PlanetsLib.check_global_variables()
+
+-- Muluna 2.7.40 and older ship their own ground digger prototypes with the same names,
+-- which conflict with PlanetsLib's shared prototypes. Fail early with a clear message.
+local muluna_version = mods["planet-muluna"]
+if muluna_version and helpers.compare_versions(muluna_version, "2.7.40") <= 0 then
+	error(
+		"PlanetsLib is not compatible with planet-muluna " .. muluna_version
+		.. ". Please update planet-muluna to a version newer than 2.7.40. "
+		.. "Older Muluna versions have their own ground digger implementation that conflicts with PlanetsLib's shared ground diggers."
+	)
+end
+
 require("prototypes.vanilla-override.recipe-productivity-technology")
 require("prototypes.vanilla-override.cargo-hatch")
 
