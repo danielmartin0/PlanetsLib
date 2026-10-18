@@ -204,8 +204,11 @@ function Public.create_ground_digger(drill, digger_name, item_name, categories)
 	digger.resource_categories = nil
 	digger.resource_drain_rate_percent = nil
 	digger.resource_searching_radius = nil
-	digger.vector_to_place_result = nil
 
+	-- Replicates the default drain of mining drills. Assembling machines automatically apply some drain to machines with undefined drain levels.
+	if digger.energy_source.type == "electric" and not digger.energy_source.drain then
+		digger.energy_source.drain = "0MW"
+	end
 	digger.flags = digger.flags or {}
 	rro.soft_insert(digger.flags, "not-in-made-in")
 	rro.soft_insert(digger.flags, "not-in-bonus-gui")
