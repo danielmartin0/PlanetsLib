@@ -20,6 +20,24 @@ local Public = {}
 -- participating planets even though the prototypes themselves are shared.
 local SURFACE_PROPERTY_NAME = "PlanetsLib-has-ground-diggers"
 
+-- Older versions of Muluna ship their own "<drill>-ground-digger" prototypes. Updated
+-- versions opt in via this hidden setting, so PlanetsLib can take over the shared names.
+local MULUNA_COMPATIBILITY_SETTING = "PlanetsLib-muluna-ground-diggers-compatible"
+
+---Whether the installed Muluna version supports PlanetsLib's shared ground diggers.
+-- Older versions generate their own diggers with the same prototype names, so PlanetsLib
+-- must leave the feature to Muluna until it opts in.
+-- @return boolean
+local function muluna_is_compatible()
+	if not mods["planet-muluna"] then
+		return true
+	end
+	local setting = settings.startup[MULUNA_COMPATIBILITY_SETTING]
+	return setting ~= nil and setting.value
+end
+
+local warned_about_muluna = false
+
 --== Helpers ==--
 
 ---Normalizes a list/array of names into a dictionary keyed by name.
@@ -305,6 +323,16 @@ end
 ---Called automatically during data-final-fixes. May also be called by a mod during
 ---data-final-fixes after defining a recipe late.
 function Public.generate_ground_diggers()
+	if not muluna_is_compatible() then
+		if not warned_about_muluna then
+			warned_about_muluna = true
+			log(
+				"[PlanetsLib] Ground diggers are disabled because the installed version of Muluna does not support PlanetsLib's shared ground digger system. Update Muluna to enable them."
+			)
+		end
+		return
+	end
+
 	local planets = PlanetsLib.constants.ground_diggers
 
 	local item_lookup = {}

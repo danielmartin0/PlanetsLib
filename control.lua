@@ -181,15 +181,24 @@ end
 table.insert(on_built_filters_and_silos,{filter = "type", type = "rocket-silo"})
 table.insert(on_built_filters_and_silos,{filter = "ghost_type", type = "rocket-silo"})
 
+-- Older Muluna versions ship their own ground diggers using the same prototype names.
+-- Until Muluna opts in via the hidden compatibility setting, PlanetsLib leaves ground
+-- diggers to Muluna and does not register its own handlers.
+local ground_diggers_compatible_setting = settings.startup["PlanetsLib-muluna-ground-diggers-compatible"]
+local ground_diggers_enabled = not script.active_mods["planet-muluna"]
+	or (ground_diggers_compatible_setting ~= nil and ground_diggers_compatible_setting.value)
+
 -- Ground diggers share one prototype per drill across all planets, so the recipe is
 -- assigned when a digger is built. Build events are filtered down to digger names.
 local ground_diggers = require("scripts.ground-diggers")
 local ground_digger_names = {}
-for _,config in pairs(PlanetsLib.constants.ground_diggers) do
-	for _,info in pairs(config.diggers or {}) do
-		if not ground_digger_names[info.digger] then
-			ground_digger_names[info.digger] = true
-			table.insert(on_built_filters_and_silos,{filter = "name", name = info.digger})
+if ground_diggers_enabled then
+	for _,config in pairs(PlanetsLib.constants.ground_diggers) do
+		for _,info in pairs(config.diggers or {}) do
+			if not ground_digger_names[info.digger] then
+				ground_digger_names[info.digger] = true
+				table.insert(on_built_filters_and_silos,{filter = "name", name = info.digger})
+			end
 		end
 	end
 end
@@ -293,7 +302,7 @@ end
 
 -- Ground diggers: intercept the build controls so that a mining drill placed without
 -- nearby resources is converted into a digging machine instead of failing to build.
-if not rro.deep_equals(PlanetsLib.constants.ground_diggers, {}) then
+if ground_diggers_enabled and not rro.deep_equals(PlanetsLib.constants.ground_diggers, {}) then
 	script.on_event("PlanetsLib-build", ground_diggers.construct_ground_digger)
 	script.on_event("PlanetsLib-build-ghost", ground_diggers.construct_ground_digger)
 	script.on_event("PlanetsLib-super-forced-build", ground_diggers.construct_ground_digger)
