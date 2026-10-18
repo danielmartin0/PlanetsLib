@@ -81,9 +81,6 @@ function Public.is_eligible_drill(drill, item_lookup)
 	if drill.PlanetsLib_do_not_generate_variants then
 		return false
 	end
-	if not (drill.energy_source and drill.energy_source.type == "electric") then
-		return false
-	end
 	if drill.output_fluid_box then
 		return false
 	end
