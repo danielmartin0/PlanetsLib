@@ -6,3 +6,6 @@ prepublish.js
 .idea
 site/node_modules
 site/.docusaurus
+opencode.json
+prompts/factorio-docs.txt
+prompts/lua-docs.txt
