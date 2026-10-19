@@ -1,0 +1,4 @@
+-- Example data-final-fixes fixture (intentionally empty).
+--
+-- Add data-final-fixes-stage PlanetsLib API checks here (inside pcall),
+-- recording results with require("lib.results").record(...). See example.lua.

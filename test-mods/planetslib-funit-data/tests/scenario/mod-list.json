@@ -1,0 +1,8 @@
+{
+	"mods": [
+		{ "name": "base", "enabled": true },
+		{ "name": "funit", "enabled": true },
+		{ "name": "PlanetsLib", "enabled": true },
+		{ "name": "planetslib-funit-data", "enabled": true }
+	]
+}

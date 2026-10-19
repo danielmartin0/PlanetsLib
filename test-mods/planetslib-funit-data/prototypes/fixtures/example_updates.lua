@@ -1,0 +1,4 @@
+-- Example data-updates fixture (intentionally empty).
+--
+-- Add data-updates-stage PlanetsLib API checks here (inside pcall), recording
+-- results with require("lib.results").record(...). See example.lua.

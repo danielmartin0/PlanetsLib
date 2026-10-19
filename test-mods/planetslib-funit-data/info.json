@@ -1,0 +1,9 @@
+{
+	"name": "planetslib-funit-data",
+	"version": "0.0.1",
+	"factorio_version": "2.1",
+	"title": "PlanetsLib FUnit Data Fixtures",
+	"author": "test",
+	"description": "Development-only data-stage fixtures for the PlanetsLib FUnit test scenario. Not shipped with PlanetsLib.",
+	"dependencies": ["base", "PlanetsLib", "funit", "? space-age", "? quality"]
+}

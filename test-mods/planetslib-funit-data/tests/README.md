@@ -1,0 +1,69 @@
+# FUnit tests for PlanetsLib
+
+Headless [FUnit](https://mods.factorio.com/mod/funit) test suite for PlanetsLib.
+
+Current status: **142 tests, 0 failures, 0 errors** against Factorio 2.1.22 with
+Space Age and Quality enabled, on both the entity-replacements-enabled and
+entity-replacements-disabled axes. The same suite runs in CI in the matrix
+described below; the workflow is exercised by GitHub Actions, not by the local
+development container.
+
+Everything lives inside the `planetslib-funit-data` companion mod so the tests
+can be developed next to the data-stage fixtures whose prototypes they assert
+on. The scenario is only a thin launcher; the suites are required from this mod
+as `__planetslib-funit-data__.tests.suites.<name>`.
+
+See [`../AGENTS.md`](../AGENTS.md) for the full test plan, conventions and the
+list of known bugs the suite pins down.
+
+## Layout
+
+- `scenario/control.lua` — scenario entry point. Loads
+  `__base__/script/freeplay/control.lua`, registers PlanetsLib with FUnit, sets
+  the report name (`planetslib`), then loads each suite listed in
+  `suites/manifest.lua`.
+- `suites/manifest.lua` — ordered list of suite module names.
+- `suites/<name>.lua` — a suite returning `function(runner) ... end`.
+- `scenario/description.json` / `scenario/mod-list.json` — scenario metadata and
+  required mods.
+- `legacy/` — old non-FUnit scenario scripts, retained for reference. They are
+  not loaded by the scenario.
+
+## Running locally
+
+1. Install [FUnit](https://mods.factorio.com/mod/funit).
+2. Put `PlanetsLib` and `test-mods/planetslib-funit-data` in your mods directory.
+3. Copy `scenario/` to `<Factorio user data>/scenarios/funit`.
+4. Enable the mods listed in `scenario/mod-list.json`.
+5. Run:
+   ```
+   factorio --start-server-load-scenario funit --mod-directory <mods>
+   ```
+6. The report is written to `script-output/funit-report-planetslib.json`
+   (testsuite name `planetslib`).
+
+The CI workflow (`.github/workflows/funit.yml`) does steps 2–5 automatically
+inside a `factorio-docker` container.
+
+## Tests that drive stateful PlanetsLib internals
+
+Functions that manipulate `storage` or entities cannot be called from another
+mod's Lua environment. PlanetsLib registers a test-only remote interface,
+`planetslib_funit`, when FUnit is active (see the guarded block at the end of the
+root `control.lua`). Call it as:
+
+```
+remote.call("planetslib_funit", "replace_entity", entity, "new-entity", false)
+```
+
+Available seam functions: `replace_entity`, `on_built_entity`,
+`construct_ground_digger`, `on_entity_built`, `on_configuration_changed`,
+`pod_contents_is_allowed`, `examine_cargo_pods`.
+
+## Data-stage fixtures
+
+`planetslib-funit-data` exercises PlanetsLib's data-stage API inside `pcall` and
+records pass/fail into the `PlanetsLib-funit-results` mod-data prototype. Suite
+files assert on that bag at runtime. Fixtures are split across the `data`,
+`data-updates` and `data-final-fixes` stages via separate lists under
+`../prototypes/fixtures/manifest.lua`.
