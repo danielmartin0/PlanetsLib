@@ -48,7 +48,7 @@ Some frequently used event combinations can be declared together. You have to wr
 ```
 ##### Remote interface:
 
-The `add_to_remote_interface` method lets you append to a single remote interface that is registered with your mod's name, instead of either collectiong all of you api functions from every relevant file, or registering multiple remote interfaces. 
+The `add_to_remote_interface` method lets you append to a single remote interface that is registered with your mod's name, instead of either collecting all of you api functions from every relevant file, or registering multiple remote interfaces.
 
 ```lua
 local handler = require("__PlanetsLib__.lib.event-handler.event-handler")
