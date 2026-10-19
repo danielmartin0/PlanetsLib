@@ -412,7 +412,7 @@ function Public.process_technology_recipe_productivity_effects(tech)
 
 			local recipe_categories = recipe.categories or { "crafting" }
 			if
-				recipe.Planetslib_blacklist_technology_updates
+				recipe.PlanetsLib_blacklist_technology_updates
 				or PlanetsLib.rro.contains_any(category_blacklist, recipe_categories)
 			then
 				goto continue
@@ -471,7 +471,7 @@ function Public.process_technology_recipe_productivity_effects(tech)
 		end
 		tech.effects = new_effects
 	end
-	tech.PlanetsLib_recipe_producitivity_effects = nil
+	tech.PlanetsLib_recipe_productivity_effects = nil
 end
 
 return Public

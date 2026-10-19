@@ -112,7 +112,7 @@ function rro.deep_replace(list, objectToRemove, replacementObject,gsub,excluded_
         for i,item in pairs(list) do -- Can also be a dictionary
             if rro.contains(excluded_fields,i) then goto continue end
             if type(item) == "string" and type(objectToRemove) == "string" and gsub then
-                item = string.gsub(item,objectToRemove,replacementObject)
+                list[i] = string.gsub(item,objectToRemove,replacementObject)
             
             elseif rro.deep_equals(list[i] , objectToRemove) then
                 if type(replacementObject) == "function" then
@@ -124,7 +124,7 @@ function rro.deep_replace(list, objectToRemove, replacementObject,gsub,excluded_
                 end
                 --break -- Don't exit the loop after replacing or removing
             elseif type(list[i]) == "table" then
-                rro.deep_replace(list[i],objectToRemove, replacementObject, excluded_fields)
+                rro.deep_replace(list[i],objectToRemove, replacementObject, gsub, excluded_fields)
             end
             ::continue::
         end
@@ -152,7 +152,6 @@ end
 
 ---Searches a list for all items where `item[field] == name`, and replaces `name` with `new_name`.
 function rro.deep_replace_field(list,field,replacementObject) 
-    if gsub == nil then gsub = false end
     if list then
         for i,item in pairs(list) do -- Can also be a dictionary
             if i == field then

@@ -224,7 +224,9 @@ local function resolve_planet_diggers(planet_name, item_lookup)
 
 	local drill_names = {}
 	if config.drills then
-		for drill_name in pairs(config.drills) do
+		-- Accept both array/list and dictionary forms, including configs injected
+		-- directly into PlanetsLib.constants.ground_diggers.
+		for drill_name in pairs(normalize_name_set(config.drills) or {}) do
 			drill_names[drill_name] = true
 		end
 	else
@@ -235,7 +237,7 @@ local function resolve_planet_diggers(planet_name, item_lookup)
 		end
 	end
 	if config.blacklist then
-		for drill_name in pairs(config.blacklist) do
+		for drill_name in pairs(normalize_name_set(config.blacklist) or {}) do
 			drill_names[drill_name] = nil
 		end
 	end

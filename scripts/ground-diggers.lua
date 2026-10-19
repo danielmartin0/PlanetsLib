@@ -140,7 +140,6 @@ function Public.construct_ground_digger(event)
     rro.remove(colliding_entities,function(entry) return entry.type == "corpse" end)
 	rro.remove(colliding_entities,function(entry) return entry.has_flag("not-on-map") end)
 	rro.remove(colliding_entities,function(entry) return entry.name == "maraxsis-water-shader" end)
-	game.print(serpent.block(colliding_entities))
     if #colliding_entities ~= 0 then 
 		player.create_local_flying_text({
 			text = { "cant-build-reason.entity-in-the-way", colliding_entities[1] },

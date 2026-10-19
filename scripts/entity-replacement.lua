@@ -12,29 +12,34 @@ for planet,planet_table in pairs(entity_replacements) do
 end
 
 
+-- A nil default cannot be stored in a Lua table, so fields whose default is nil
+-- used to be silently skipped by pairs(). Use an explicit sentinel instead so
+-- every listed field is actually considered for transfer.
+local NO_DEFAULT = {}
+
 local fields_to_transfer = {
     products_finished = 0,
     disabled_by_script = false,
     temperature = 0,
-    health = nil,
+    health = NO_DEFAULT,
     protected = false,
     orientation = 0,
-    relative_turret_orientation = nil,
-    direction = nil,
-    crafting_progress=nil,
-    bonus_progress=nil,
-    loader_type=nil,
+    relative_turret_orientation = NO_DEFAULT,
+    direction = NO_DEFAULT,
+    crafting_progress=NO_DEFAULT,
+    bonus_progress=NO_DEFAULT,
+    loader_type=NO_DEFAULT,
     rocket_parts=0,
     damage_dealt=0,
     kills=0,
-    recipe_locked=nil,
-    custom_status=nil,
-    valve_threshold_override=nil,
-    is_military_target=nil,
-    link_id=nil,
-    linked_belt_type=nil,
-    proxy_target_entity=nil,
-    proxy_target_inventory=nil,
+    recipe_locked=NO_DEFAULT,
+    custom_status=NO_DEFAULT,
+    valve_threshold_override=NO_DEFAULT,
+    is_military_target=NO_DEFAULT,
+    link_id=NO_DEFAULT,
+    linked_belt_type=NO_DEFAULT,
+    proxy_target_entity=NO_DEFAULT,
+    proxy_target_inventory=NO_DEFAULT,
     
 
 }
@@ -200,7 +205,7 @@ end
 
 --Get inventories from entity, used for rolling stock to hold inventory contents while the two rolling stock are not allowed to coexist.
 function Public.get_all_inventories_rolling_stock(entity)
-    returned_inventories = {}
+    local returned_inventories = {}
     for _,inventory_type in pairs(defines.inventory) do
         local inventory = entity.get_inventory(inventory_type)
         
@@ -293,7 +298,10 @@ function Public.copy_info_to_new_rolling_stock(new_entity,info)
                 orientation = value
             end
         end
-        new_entity[field] = value
+        -- Some fields are read-only for particular rolling-stock types.
+        pcall(function()
+            new_entity[field] = value
+        end)
     end
     if do_rotate then
         --game.print("Train rotated, orientation = "..tostring(orientation))
@@ -309,16 +317,16 @@ function Public.copy_info_to_new_rolling_stock(new_entity,info)
         else
             for _,stack in pairs(inventory_contents) do
                 local items = new_entity.surface.spill_item_stack {
-                        position = entity.position,
+                        position = new_entity.position,
                         stack = stack,
                         enable_looted = true,
-                        force = entity.force_index,
+                        force = new_entity.force_index,
                         allow_belts = false
                     }
             
                 if new_entity.force then
                     for _,item in pairs(items) do
-                        item.order_deconstruction(entity.force)
+                        item.order_deconstruction(new_entity.force)
                     end
                 end
             end
@@ -355,9 +363,22 @@ function Public.transfer_entity_state(entity,new_entity)
     new_entity.copy_settings(entity)
     
     for field_to_transfer,default_value in pairs(fields_to_transfer) do
-        if get_field(new_entity,field_to_transfer) then
-            --game.print(field_to_transfer)
-            new_entity[field_to_transfer] = get_field(entity,field_to_transfer) or (default_value ~= nil and default_value)
+        if get_field(new_entity,field_to_transfer) ~= nil then
+            local old_value = get_field(entity,field_to_transfer)
+            local value
+            if old_value ~= nil then
+                value = old_value
+            elseif default_value ~= NO_DEFAULT then
+                value = default_value
+            end
+            if value ~= nil then
+                -- Some fields (for example is_military_target) exist on every
+                -- entity but are read-only for most entity types. Ignore those
+                -- instead of aborting the whole replacement.
+                pcall(function()
+                    new_entity[field_to_transfer] = value
+                end)
+            end
         end
     end
 
@@ -404,30 +425,54 @@ function Public.replace_entity(entity,new_entity,raise_built)
     -- end
     local train_types= {"locomotive","cargo-wagon","infinity-cargo-wagon","fluid-wagon","artillery-wagon"}
     local is_train = entity.type == "entity-ghost" and rro.contains(train_types,entity.ghost_type) or rro.contains(train_types,entity.type)
+    -- Raising script built for an entity that carries equipment ghosts makes
+    -- the engine try to place the ghost directly and throw "Equipment is not
+    -- equipment-ghost". The grid has already been transferred, so skip only the
+    -- notification in that case.
+    local has_ghost_equipment = false
+    if entity.valid and entity.grid then
+        for _, equipment in pairs(entity.grid.equipment) do
+            -- Reading ghost_name on a non-ghost equipment throws in the engine.
+            if equipment.name == "equipment-ghost" then
+                has_ghost_equipment = true
+                break
+            end
+        end
+    end
     
     if is_train then
         local old_orientation = entity.orientation
         --print(entity.orientation)
         local surface = entity.surface
-        --local rolling_stock_info = Public.get_info_rolling_stock(entity)
-        -- local has_front_stock 
-        -- local has_back_stock
-        -- if rolling_stock_info.train.front_stock then
-        --     has_front_stock = true
-        -- end
-        -- if rolling_stock_info.train.back_stock then
-        --     has_back_stock = true
-        -- end
+        -- Capture rolling-stock state before the old entity is destroyed; the
+        -- create fallback below needs it. Ghost rolling stock has no train (and
+        -- therefore no inventories or schedule) to capture.
+        local rolling_stock_info
+        if not is_ghost then
+            rolling_stock_info = Public.get_info_rolling_stock(entity)
+        end
         local new_entity
-        if true or rolling_stock_info.train.front_stock or rolling_stock_info.train.back_stock then
-            entity.order_upgrade{target=new_entity_properties,force=entity.force}
+        local upgrade_target = {name = name, quality = entity.quality}
+        if is_ghost then
+            upgrade_target = {name = "entity-ghost", inner_name = name, quality = entity.quality}
+        end
+        local marked = entity.order_upgrade{target=upgrade_target,force=entity.force}
+        if marked then
             new_entity = entity.apply_upgrade()
         else
+            -- Custom entity variants are often not valid construction-robot
+            -- upgrade targets (they are not an item's place_result), so the
+            -- override target may still refuse the in-place upgrade. Fall back
+            -- to recreating the rolling stock and restoring its captured state.
+            new_entity = entity.apply_upgrade(nil, upgrade_target)
+        end
+        if not new_entity then
             entity.destroy()
             new_entity = surface.create_entity(new_entity_properties)
-            Public.copy_info_to_new_rolling_stock(new_entity,rolling_stock_info)
+            if new_entity and rolling_stock_info then
+                Public.copy_info_to_new_rolling_stock(new_entity, rolling_stock_info)
+            end
         end
-        --print(new_entity.orientation)
         if new_entity and new_entity.orientation ~= old_orientation then
             game.print("Orientation mismatch between locomotive and replacement locomotive! Don't save this game. Report this issue to PlanetsLib."..serpent.block(new_entity.position))
         end
@@ -446,39 +491,28 @@ function Public.replace_entity(entity,new_entity,raise_built)
             entity = entity,
             new_entity = new_entity or entity,
         })
+        return new_entity
         --Public.transfer_entity_state(entity,new_entity)
     else
         local new_entity = entity.surface.create_entity(new_entity_properties)
         if not new_entity or not new_entity.valid then return end
         
         Public.transfer_entity_state(entity,new_entity)
-        
-        if not is_ghost and entity.get_module_inventory() then
-            local modules = entity.get_module_inventory().get_contents()
-            for _, item in pairs(modules) do
-                local inserted_count = new_entity.insert(item)
-                if inserted_count < item.count then
-                    item.count = item.count - inserted_count
-                    entity.surface.spill_item_stack {
-                        position = entity.position,
-                        stack = item,
-                        enable_looted = true,
-                        force = entity.force_index,
-                        allow_belts = false
-                    }
-                end
-            end
-        end
+        -- Modules are moved by transfer_all_inventories (the module inventory is
+        -- one of defines.inventory), and any overflow is spilled there. Do not
+        -- insert them into the new entity again: that put a second copy in the
+        -- crafting output.
         new_entity.last_user = entity.last_user
         storage.replaced_entities[new_entity.unit_number] = new_entity --Important for preventing infinite recursion
-        --if not storage.replaced_entities then storage.replaced_entities = {} end
-        --storage.replaced_entities[entity.unit_number] = new_entity --Used to allow other mods to track which entities have been replaced with another.
+        -- Also record the original unit number so other mods can look the
+        -- replacement up through the documented get_replacement() interface.
+        storage.replaced_entities[entity.unit_number] = new_entity
         script.raise_event("PlanetsLib-on-entity-replaced", {
             entity = entity,
             new_entity = new_entity,
         })
         entity.destroy()
-        if raise_built == true then
+        if raise_built == true and not has_ghost_equipment then
             script.raise_script_built{entity=new_entity}
         end
     end

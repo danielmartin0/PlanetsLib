@@ -101,6 +101,9 @@ end
 
 local function create_is_planet_surface_property(planet_name)
 	local property_name = "PlanetsLib-is-" .. planet_name
+	local planet = data.raw["planet"][planet_name]
+	assert(planet, "PlanetsLib.restrict_to_planet(): planet not found: " .. tostring(planet_name))
+	planet["surface_properties"] = planet["surface_properties"] or {}
 	if not data.raw["surface-property"][property_name] then
 		data:extend{
 			{
@@ -114,20 +117,33 @@ local function create_is_planet_surface_property(planet_name)
 				localised_unit_key = "surface-property-name.planet-str",
 			}
 		}
-		data.raw["planet"][planet_name].surface_properties[property_name] = 1
+		planet["surface_properties"][property_name] = 1
 	end
 	return property_name
 
 end
 
 function Public.restrict_to_planet(recipe_or_entity, planet,invert)
-	local planet_name = type(planet) == "string" and planet or data.raw["planet"][planet].name
 	assert(recipe_or_entity,"PlanetsLib.restrict_to_planet(): Recipe_or_entity is a nil value.")
+	local planet_name = type(planet) == "string" and planet or (planet and planet.name)
+	assert(planet_name, "PlanetsLib.restrict_to_planet(): planet must be a name or a planet prototype.")
 	local surface_conditions = recipe_or_entity.surface_conditions
 			and util.table.deepcopy(recipe_or_entity.surface_conditions)
 		or {}
 	local property_name = create_is_planet_surface_property(planet_name)
 	local condition_value = invert and 0 or 1
+
+	-- Reuse an existing condition for the same property so repeated calls are idempotent
+	-- and an `invert` call overrides the previous value instead of adding a contradiction.
+	for i = 1, #surface_conditions do
+		local existing = surface_conditions[i]
+		if existing.property == property_name then
+			existing.min = condition_value
+			existing.max = condition_value
+			recipe_or_entity.surface_conditions = surface_conditions
+			return
+		end
+	end
 
 	table.insert(surface_conditions, {
 		property = property_name,

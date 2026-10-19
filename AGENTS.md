@@ -91,8 +91,8 @@ scripts/                    Runtime helpers required by control.lua (cargo-pods,
 locale/<lang>/              Localisation (.cfg). Add keys to existing files.
 graphics/                   Shared icons/entities (entity/, icons/)
 helper_scripts/             Standalone Python asset generators + source PNGs (NOT shipped; see below)
-tests/                      Factorio test-scenario scripts (minimal)
-test-mods/                  Development test mods written while testing a feature (NOT shipped)
+test-mods/                  Development test mods written while testing a feature (NOT shipped);
+                            planetslib-funit-data/ also holds the FUnit suite and scenario
 docs-source/                Docusaurus documentation site — the canonical user-facing docs
 docs/                       Built docs output (committed by update_documentation.sh)
 helper scripts              bump_version.sh, archive.sh, update_documentation.sh, config.ld (legacy LDoc config)
@@ -149,12 +149,15 @@ helper scripts              bump_version.sh, archive.sh, update_documentation.sh
 
 ## Building, testing, releasing
 
-There is **no in-repo unit-test runner or linter**, and no CI that runs Lua. Testing is done by launching
-Factorio with the mod enabled (see `.vscode/launch.json`, which uses a Factorio debug adapter).
+There is a headless FUnit suite in `test-mods/planetslib-funit-data/tests/` and a GitHub Actions
+workflow (`.github/workflows/funit.yml`) that runs it in a Factorio Docker container. The suite is
+development-only and is not shipped. There is still no general-purpose Lua linter; `luac5.1 -p` can
+syntax-check test files that do not use `goto`.
 
 - **Testing is mandatory before a PR**: the contributor notes require changes to be tested, ideally with
-  multiple planet mods installed. `tests/` contains only minimal Factorio scenario scaffolding
-  (`tests/index.lua` requires an (empty) test file); don't assume it runs automatically.
+  multiple planet mods installed. Add or extend the FUnit suite in
+  `test-mods/planetslib-funit-data/` (see its `AGENTS.md` for the plan and conventions) and run it
+  locally or let CI run it. Don't assume the suite runs automatically outside CI.
 - **Development test mods**: any test mod you write while developing a feature must be saved to
   `test-mods/<mod-name>/` (see `test-mods/README.md`). This keeps tests reproducible for reviewers
   while excluding them from release builds.

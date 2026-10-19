@@ -109,14 +109,14 @@ local function migrate_surface(planet_name,surface,planet_rules,replacement_rule
 
 end
 
-PlanetsLib.event_handler.add_lib{on_configuration_changed=function(data)
+local function on_configuration_changed(configuration_changed_data)
 	if cargo_pods then
 		cargo_pods.init_storage()
 	end
 	init_storage()
 	local mod_changed = false
 
-	for _, _ in pairs(data.mod_changes) do
+	for _, _ in pairs(configuration_changed_data.mod_changes or {}) do
 		mod_changed = true
 		break
 	end
@@ -155,7 +155,9 @@ PlanetsLib.event_handler.add_lib{on_configuration_changed=function(data)
 		unreachable_techs.warn_unreachable_techs()
 	end
 	
-end}
+end
+
+PlanetsLib.event_handler.add_lib{on_configuration_changed=on_configuration_changed}
 
 local entity_replacements = PlanetsLib.constants.on_entity_placed_on_planet_replacements
 local is_entity_replacements = not PlanetsLib.objects.deep_equals(entity_replacements,{}) --If no mods add entity replacements, disable related event triggers.
@@ -330,4 +332,45 @@ if script.active_mods["gvv"] then
 	
 
 	end --gvv enables debugging of storage values with a GUI
+
+-- == Test-only seams for the FUnit test suite == --
+-- This block is purely additive and does nothing unless the FUnit test
+-- framework is active. It (1) registers PlanetsLib with FUnit's event mocker so
+-- mocked events reach the handlers above, and (2) exposes a remote interface so
+-- the headless test scenario can drive the stateful internals below, which
+-- cannot be reached across mod Lua environments. It wraps the existing
+-- functions unchanged; see test-mods/planetslib-funit-data/tests/README.md.
+if script.active_mods["funit"] then
+	require("__funit__.mock").register()
+
+	remote.add_interface("planetslib_funit", {
+		replace_entity = function(entity, new_entity, raise_built)
+			return entity_replacement.replace_entity(entity, new_entity, raise_built)
+		end,
+		on_built_entity = function(event, swap_target, dont_raise_built)
+			return entity_replacement.on_built_entity(event, swap_target, dont_raise_built)
+		end,
+		construct_ground_digger = function(event)
+			return ground_diggers.construct_ground_digger(event)
+		end,
+		on_entity_built = function(event)
+			return ground_diggers.on_entity_built(event)
+		end,
+		on_configuration_changed = function(configuration_changed_data)
+			return on_configuration_changed(configuration_changed_data)
+		end,
+		pod_contents_is_allowed = function(pod_contents, planet_name)
+			if not cargo_pods then
+				return nil
+			end
+			return cargo_pods.pod_contents_is_allowed(pod_contents, planet_name)
+		end,
+		examine_cargo_pods = function(platform, planet_name)
+			if not cargo_pods then
+				return nil
+			end
+			return cargo_pods.examine_cargo_pods(platform, planet_name)
+		end,
+	})
+end
 

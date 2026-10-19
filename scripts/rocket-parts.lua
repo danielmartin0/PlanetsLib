@@ -29,9 +29,10 @@ function Public.on_built_rocket_silo(event)
         recipe = rocket_part_recipe_data["default"]
     end
 
-    if lock_rocket_silo_data[entity.surface.name] then
-        lock_silo = lock_rocket_silo_data[entity.surface.name]
-    elseif lock_rocket_silo_data["default"] then 
+    local lock_override = lock_rocket_silo_data[entity.surface.name]
+    if lock_override ~= nil then
+        lock_silo = lock_override
+    elseif lock_rocket_silo_data["default"] ~= nil then
         lock_silo = lock_rocket_silo_data["default"]
     else
         local multiple_recipes_possible = surface_properties_lib.multiple_rocket_parts_can_be_crafted_in_vanilla_silo(entity.surface)

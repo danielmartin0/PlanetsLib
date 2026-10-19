@@ -12,9 +12,6 @@ local PLACEHOLDER_ICON_SIZE = 101
 -- item (default) < planet < fluid < capsule < tool < surface.
 function Public.detect_type(name)
 	local prototype_type = "item"
-	if data.raw["item"][name] then
-		return prototype_type
-	end
 	for _, candidate in ipairs({ "planet", "fluid", "capsule", "tool", "surface" }) do
 		if data.raw[candidate] and data.raw[candidate][name] then
 			prototype_type = candidate
