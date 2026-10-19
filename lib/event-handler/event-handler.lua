@@ -16,7 +16,7 @@ local register_remote_interfaces = function()
     local global_interface = {}
     local added_to_global_interface = false
     for lib_name, lib in pairs(libraries) do
-        if lib.add_remote_interface then
+        if lib.add_to_remote_interface then
             lib.add_to_remote_interface(global_interface)
             added_to_global_interface= true
         end
