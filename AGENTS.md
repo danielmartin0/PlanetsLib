@@ -95,7 +95,7 @@ tests/                      Factorio test-scenario scripts (minimal)
 test-mods/                  Development test mods written while testing a feature (NOT shipped)
 docs-source/                Docusaurus documentation site — the canonical user-facing docs
 docs/                       Built docs output (committed by update_documentation.sh)
-helper scripts              archive.sh, update_documentation.sh, config.ld (legacy LDoc config)
+helper scripts              bump_version.sh, archive.sh, update_documentation.sh, config.ld (legacy LDoc config)
 ```
 
 ## Coding conventions
@@ -162,8 +162,13 @@ Factorio with the mod enabled (see `.vscode/launch.json`, which uses a Factorio 
   `cd docs-source && npm install && npm start` (or `npm run build`).
   `./update_documentation.sh` rebuilds the committed `docs/` output (`rm -rf ../docs && mv build ../docs`)
   and writes the `CNAME`.
-- **Release**: `./archive.sh` creates a versioned zip (`git archive`) and regenerates the docs. Bump the
-  version in `info.json` (and match the zip prefix in `archive.sh`).
+- **Release**: run `./bump_version.sh <minor|feature|major>` first. It bumps the version in `info.json`,
+  rewrites the hard-coded zip prefix/name in `archive.sh`, and prepends a `changelog.txt` entry with empty
+  section headings for the release type (`minor`/`bugfix`/`patch` bump the patch digit and write `Bugfixes`;
+  `feature` bumps the minor digit and writes `Features`, `Changes`; `major` bumps the major digit and writes
+  `Features`, `Changes`, `Bugfixes`). It supports `--date YYYY-MM-DD|????` and `--dry-run`, and does not
+  commit. Then fill in the changelog, and `./archive.sh` creates a versioned zip (`git archive`) and
+  regenerates the docs.
 - **Packaging ignore**: `info.json`'s `package.ignore` and `.gitattributes` `export-ignore` exclude
   `*.py`, `*.bat`, `*.sh`, `*.exe`, `*.ps1`, and `test-mods/` from the release. Python helper scripts
   and development test mods must never ship.
@@ -177,7 +182,9 @@ Factorio with the mod enabled (see `.vscode/launch.json`, which uses a Factorio 
 - `api.lua`'s header comment says API docs live in `README.md`, but the README now only links to the docs
   site. When documenting a new API, update `docs-source/docs/usage-documentation/*` and/or `README.md`.
 - `helper_scripts/*.py` are standalone; they manage their own dependencies and are excluded from releases.
-- `archive.sh` hard-codes `PlanetsLib_2.0.8` as the zip prefix — update it whenever the version changes.
+- `archive.sh` is not fully generic: it hard-codes the version in its zip prefix/name. `./bump_version.sh`
+  rewrites it, so prefer that over editing it by hand, and double-check it whenever you bump the version
+  another way.
 
 ## Contribution checklist (from `.github/PULL_REQUEST_TEMPLATE.md`)
 
@@ -191,7 +198,8 @@ Before opening a PR, ensure:
    like `Thank you <name>!` where relevant.
 4. Documentation is updated: add/extend `docs-source/docs/...` (and `README.md` sections), and add new
    contributors to the Contributors list.
-5. The version is bumped in `info.json` (and `archive.sh` if its prefix is versioned).
+5. The version is bumped with `./bump_version.sh <minor|feature|major>`, which updates `info.json`, `archive.sh`
+   and the top of `changelog.txt` together.
 
 ## Quick file-finding tips
 

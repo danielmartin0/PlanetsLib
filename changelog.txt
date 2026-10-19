@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.1.2
+Date: 2026-10-19
+  Bugfixes:
+    - Improved filtering of colliding entities to exclude not-on-map entities in ground diggers.
+---------------------------------------------------------------------------------------------------
 Version: 2.1.1
 Date: 2026-10-18
   Bugfixes:

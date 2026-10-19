@@ -67,13 +67,35 @@ function rro.remove(list, objectToRemove)
     end
 end
 
+function rro.replace_no_duplicates(list, objectToRemove, replacementObject)
+    rro.replace(list, objectToRemove, replacementObject,true) 
+end
+
 ---Replaces object in list with another object
-function rro.replace(list, objectToRemove, replacementObject) 
+function rro.replace(list, objectToRemove, replacementObject,no_duplicates) 
+    if replacementObject == nil then
+        error("Use rro.remove instead of rro.replace.")
+    end
     if list then
         for i = #list, 1, -1 do -- Iterate backward to avoid index shifting
             if rro.deep_equals(list[i] , objectToRemove) then
-                if replacementObject ~= nil and not rro.contains(list,replacementObject) then
-                    list[i] = replacementObject -- Replace the object
+                if type(replacementObject) == "table" then
+                    for j,object in pairs(replacementObject) do
+                        if type(replacementObject[j]) == "function" then --If replacementObject entry is a function, replace the function with the function's return value with other_value as input.
+                            local other_value = list[i][j]
+                            replacementObject[j] = replacementObject[j](other_value)
+                        end
+                    end
+                end
+                if replacementObject ~= nil then
+                    if type(replacementObject) == "function" then
+                        list[i] = replacementObject(table.deepcopy(list[i]))
+                    elseif rro.contains(list, replacementObject) and no_duplicates then
+                        table.remove(list, i) -- Remove the object if the replacement is already in the list, to avoid duplicates
+                    else
+                        list[i] = replacementObject -- Replace the object
+                    end
+
                 else
                     table.remove(list, i) -- Remove the object if no replacement is provided
                 end
@@ -84,23 +106,27 @@ function rro.replace(list, objectToRemove, replacementObject)
 end
 
 --- Similar to rro.replace, but acts recursively within subobjects.
-function rro.deep_replace(list, objectToRemove, replacementObject,gsub)
+function rro.deep_replace(list, objectToRemove, replacementObject,gsub,excluded_fields)
     if gsub == nil then gsub = false end
     if list then
         for i,item in pairs(list) do -- Can also be a dictionary
+            if rro.contains(excluded_fields,i) then goto continue end
             if type(item) == "string" and type(objectToRemove) == "string" and gsub then
                 item = string.gsub(item,objectToRemove,replacementObject)
             
             elseif rro.deep_equals(list[i] , objectToRemove) then
-                if replacementObject ~= nil and not rro.contains(list,replacementObject) then
+                if type(replacementObject) == "function" then
+                    list[i] = replacementObject(list[i])
+                elseif replacementObject ~= nil and not rro.contains(list,replacementObject) then
                     list[i] = replacementObject -- Replace the object
                 else
                     list[i] = nil -- Remove the object if no replacement is provided
                 end
                 --break -- Don't exit the loop after replacing or removing
             elseif type(list[i]) == "table" then
-                rro.deep_replace(list[i],objectToRemove, replacementObject)
+                rro.deep_replace(list[i],objectToRemove, replacementObject, excluded_fields)
             end
+            ::continue::
         end
     end
 
@@ -119,6 +145,28 @@ function rro.replace_field(list,field,name,new_name)
         if list[i][field] == name then
                 list[i][field] = new_name -- Replace the object
                 break
+        end
+    end
+end
+
+
+---Searches a list for all items where `item[field] == name`, and replaces `name` with `new_name`.
+function rro.deep_replace_field(list,field,replacementObject) 
+    if gsub == nil then gsub = false end
+    if list then
+        for i,item in pairs(list) do -- Can also be a dictionary
+            if i == field then
+                if type(replacementObject) == "function" then
+                    list[i] = replacementObject(list[i])
+                elseif replacementObject ~= nil and not rro.contains(list,replacementObject) then
+                    list[i] = replacementObject -- Replace the object
+                else
+                    list[i] = nil -- Remove the object if no replacement is provided
+                end
+                --break -- Don't exit the loop after replacing or removing
+            elseif type(list[i]) == "table" then
+                rro.deep_replace_field(list[i],field, replacementObject)
+            end
         end
     end
 end
@@ -163,6 +211,7 @@ end
 
 --Checks if any objects in one list exist in another list.
 function rro.contains_any(list1,list2)
+    if not list2 then return false end
     for _,object in pairs(list2) do
         if rro.contains(list1,object) then
             return true
@@ -171,6 +220,32 @@ function rro.contains_any(list1,list2)
     return false
 
 
+end
+
+function rro.contains_all(list,object_list)
+    for _,object in pairs(object_list) do
+        if not rro.contains(list,object) then
+            return false
+        end
+    end
+    return true
+
+
+end
+
+
+---More powerful version of contains that returns the found object. This functionality is not added to the original contains to avoid unintended consequences.
+function rro.find_contains(list,object) 
+    --local contains = false
+    if list == nil then return false end
+    for _,item in pairs(list) do -- Iterate forward
+        if rro.deep_equals(item , object) then
+            return item
+            
+            end
+            
+    end
+    return false
 end
 
 ---Check if string.find(string,list[i]) returns a value for any i in list
@@ -208,7 +283,9 @@ function rro.merge(old, new)
     old = util.table.deepcopy(old)
 
     for k, v in pairs(new) do
-        if v == "_nil" then
+        if type(v) == "function" then
+            old[k] = v(old[k])
+        elseif v == "_nil" then
             old[k] = nil
         else
             old[k] = v
@@ -216,6 +293,11 @@ function rro.merge(old, new)
     end
 
     return old
+end
+
+-- Drop-in replacement for utils.merge
+function rro.util_merge(args)
+    return rro.merge(args[1],args[2])
 end
 
 function rro.ammend(old, new)
@@ -235,21 +317,6 @@ function rro.get_concatenation(first,second)
     end
     return out
 end
-
---- Returns a concatenation of the contents of two tables.
--- @param first table
--- @param second table
-function rro.get_concatenation_no_deepcopy(first,second)
-    local first_l = #first
-    local second_l = #second
-    local out = first
-    local out_second = second
-    for i=1,second_l do
-        out[first_l+i] = out_second[i]
-    end
-    return out
-end
-
 
 --- Attempts to find an object in a complex object, and returns nil if any level in the search returns nil
 -- @param table table
@@ -296,6 +363,26 @@ function rro.count(table,predicate)
     end
     return i
 
+end
+
+--Returns keys of table
+function rro.keys(table)
+    local out = {}
+    local n = 0
+    for key,value in pairs(table) do
+        n=n+1
+        out[n] = key
+    end
+
+    return out
+end
+
+function rro.range(first, last)
+    local t = {}
+    for i = first, last do
+        t[#t + 1] = i
+    end
+    return t
 end
 
 

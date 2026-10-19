@@ -119,16 +119,16 @@ function Public.construct_ground_digger(event)
 	--If mining drill not square, this code can't cleanly handle it, so while mod-data should ideally not contain this drill,
     --this check allows them to exist in mod-data without crashing.
 	local selection_box = drill_prototype.selection_box
-	game.print(serpent.block(selection_box))
+	--game.print(serpent.block(selection_box))
     local offset_width = math.abs(selection_box.left_top.x - selection_box.right_bottom.x)
     local offset_height = math.abs(selection_box.left_top.y - selection_box.right_bottom.y)
-	game.print(offset_width)
+	--game.print(offset_width)
     local margin = 0
     local rounded_position = {
         x = math.ceil(position.x) - 0.5,
         y = math.ceil(position.y) - 0.5
     }
-	game.print(serpent.block(rounded_position))
+	--game.print(serpent.block(rounded_position))
 	
 	
     if offset_width ~= offset_height then return end 
@@ -138,7 +138,17 @@ function Public.construct_ground_digger(event)
             to_be_deconstructed = false,
         }
     rro.remove(colliding_entities,function(entry) return entry.type == "corpse" end)
-    if #colliding_entities ~= 0 then return end
+	rro.remove(colliding_entities,function(entry) return entry.has_flag("not-on-map") end)
+	rro.remove(colliding_entities,function(entry) return entry.name == "maraxsis-water-shader" end)
+	game.print(serpent.block(colliding_entities))
+    if #colliding_entities ~= 0 then 
+		player.create_local_flying_text({
+			text = { "cant-build-reason.entity-in-the-way", colliding_entities[1] },
+			surface = surface,
+			create_at_cursor = true,
+			speed = 0.01,
+		})
+	return end
 
 	if surface.get_tile(position).hidden_tile then
 		player.create_local_flying_text({
