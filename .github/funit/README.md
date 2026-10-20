@@ -35,6 +35,13 @@ Project-specific changes:
 - `test-mods/planetslib-funit-settings` is a checked-in, text-based settings
   mod that forces `PlanetsLib-enable-entity-replacements = false` for the
   no-replacements scenarios. It replaces the previous inline generated mod.
+- `summarize_funit_results.rb` is a project-specific helper (not copied from
+  upstream). It reads the per-scenario JSON reports and writes a Markdown
+  summary to the GitHub step summary: scenario totals plus every failing test,
+  its message and log excerpt. Missing or malformed reports are called out and
+  include the relevant tail of the captured headless log. Failing tests are
+  also emitted as `::error` annotations. The helper exits 0 on test failures so
+  that the JUnit conversion step remains the single source of the job result.
 - The Factorio image uses the `latest` tag, as recommended by the FUnit
   template. Local validation used Factorio 2.1.22.
 

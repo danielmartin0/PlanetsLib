@@ -5,7 +5,8 @@
 #
 # The suite itself lives in test-mods/planetslib-funit-data. This workflow
 # builds the mod archives and four scenarios, runs them in a Factorio job
-# container, then converts FUnit's JSON reports to JUnit XML.
+# container, writes a failure summary to the run page, then converts FUnit's
+# JSON reports to JUnit XML.
 #
 # Scenarios:
 #   * base (no Space Age/Quality/Elevated Rails), entity replacements on/off
@@ -241,7 +242,7 @@ jobs:
           path: test_artifacts
 
   parse-results-job:
-    name: Parse FUnit results
+    name: Parse and summarize FUnit results
     needs: unit-test-job
     if: ${{ !cancelled() && needs.unit-test-job.result != 'skipped' }}
     runs-on: ubuntu-latest
@@ -249,11 +250,22 @@ jobs:
       image: ruby:4-alpine
     timeout-minutes: 30
     steps:
-      - run: apk add --no-cache ca-certificates wget
+      - run: apk add --no-cache ca-certificates git wget
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: unit-test-job
           path: test_artifacts
+      # Write a human-readable summary to the run page even when a scenario
+      # crashed and produced no report. The step itself never fails the job;
+      # the JUnit conversion below is what reports the test result.
+      - name: Summarize FUnit results
+        if: always()
+        run: |
+          ruby .github/funit/summarize_funit_results.rb \
+            "test_artifacts/${MOD_NAME}/reports" \
+            --expect "planetslib-base,planetslib-base-no-replacements,planetslib-space-age,planetslib-space-age-no-replacements" \
+            --log "test_artifacts/${MOD_NAME}/funit.log"
       - name: Fetch FUnit JSON parser
         run: |
           wget -qO parse_funit_json.rb \
