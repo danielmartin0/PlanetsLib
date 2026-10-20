@@ -32,10 +32,14 @@ for _,recipe in pairs(data.raw.recipe) do
                         recipe.custom_tooltip_fields = {}
                     end
                     
-                    local probability = tostring((returned_ingredient.independent_probability and returned_ingredient.independent_probability 
-                            or (returned_ingredient.shared_probability and (returned_ingredient.shared_probability.max - returned_ingredient.shared_probability.min)) * 100))
-                    
-                            local amount_string = tostring(returned_ingredient.amount)
+                    local probability
+                    if returned_ingredient.independent_probability then
+                        probability = tostring(returned_ingredient.independent_probability)
+                    elseif returned_ingredient.shared_probability then
+                        probability = tostring((returned_ingredient.shared_probability.max - returned_ingredient.shared_probability.min) * 100)
+                    end
+
+                    local amount_string = tostring(returned_ingredient.amount)
                     table.insert(recipe.custom_tooltip_fields,
                     {
                         name = {"tooltip.returned-ingredients",{recipe.localised_name or ("item-name."..returned_ingredient.name)}},

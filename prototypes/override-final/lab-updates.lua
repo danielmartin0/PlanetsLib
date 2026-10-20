@@ -23,9 +23,29 @@ if settings.startup["PlanetsLib-enable-lab-science-pack-preview-size-change"].va
                 --{inventory_index = defines.inventory.lab_modules, shift = {0, -0.9 * shift_factor}},
             }
             end
-            --if not PlanetsLib.rro.contains(lab.icons_positioning,function(entry) return entry.inventory_index == defines.inventory.lab_input end) then
-                table.insert(lab.icons_positioning,{inventory_index = defines.inventory.lab_input, shift = {0, 0.75*size_factor*(icon_scaling-1)}, max_icons_per_row = math.floor(6/icon_scaling), separation_multiplier = 1, scale = 0.5*size_factor*icon_scaling})
-            --end
+            local lab_input_entry
+            for _,entry in pairs(lab.icons_positioning) do
+                if entry.inventory_index == defines.inventory.lab_input then
+                    lab_input_entry = entry
+                    break
+                end
+            end
+            local positioning = {
+                shift = {0, 0.75*size_factor*(icon_scaling-1)},
+                max_icons_per_row = math.floor(6/icon_scaling),
+                separation_multiplier = 1,
+                scale = 0.5*size_factor*icon_scaling,
+            }
+            if lab_input_entry then
+                -- Update an existing lab-input entry (for example one inherited
+                -- from the vanilla lab) instead of adding a duplicate entry.
+                for field,value in pairs(positioning) do
+                    lab_input_entry[field] = value
+                end
+            else
+                positioning.inventory_index = defines.inventory.lab_input
+                table.insert(lab.icons_positioning,positioning)
+            end
             
         end
     end 
