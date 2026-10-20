@@ -7,6 +7,7 @@ The primary intent of PlanetsLib is to be a library which provides opt-in functi
     * If PlanetsLib detects that technologies have hidden prerequisites such that they would be unresearchable, it warns players about this fact.
         * This is done because the Factorio client gives no explanation or reason for why these technologies cannot be researched.
         * There are PlanetsLib mod settings to repair the user's game by unlinking all such prerequisites, or to disable the warning.
+        * If the repair list (`unlinked_prerequisites`) is non-empty, PlanetsLib warns about the repairs instead of also showing the hidden-prerequisite warning; the repair warning takes precedence.
 * Fixed rocket weights of vanilla items
     * If an item prototype does not have an explicitly specified rocket weight, the behavior of the Factorio engine is to assign it a weight based on the recipes that produce it. Unfortunately, this means that the rocket weight of vanilla items is liable to change when additional mods are installed. PlanetsLib therefore sets an explicit weight on vanilla items equal to their weight in Space Age. This occurs in `data-final-fixes` and only if the item does not have a weight by that point.
 * Extra informational tooltips

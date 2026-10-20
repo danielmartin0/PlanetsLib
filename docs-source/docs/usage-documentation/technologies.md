@@ -4,19 +4,19 @@ sidebar_label: Science & Technologies
 
 # Science & Technologies
 
-* `PlanetsLib.get_child_technologies(tech_name)` — Returns a list of the names of all technologies that have `tech_name` as a prerequisite.
+* `PlanetsLib.get_child_technologies(tech_name)` — Returns a list of the names of all technologies that have `tech_name` as a prerequisite. Throws an error if `tech_name` is not a valid technology.
 * `PlanetsLib.sort_science_pack_names(science_pack_names_table)` — Sorts the given list of science pack names (strings expected) by the `order` fields of the corresponding prototypes, or by their names if an `order` field does not exist.
     * This is useful for defining the inputs of labs because (unlike in Factoriopedia) science packs displayed in labs aren't ordered by the `order` field.
 
 ### Recipe productivity technology helper field
 
-PlanetsLib adds a new field named `PlanetsLib_recipe_productivity_effects` to [[TechnologyPrototype]], used by recipe productivity technologies. During `data-final-fixes`, technologies with this field will have their effects list appended or replaced with recipes matching either an output name or recipe category. Recipes will be excluded if they have the field `PlanetsLib_blacklist_technology_updates` set to true `true`.
+PlanetsLib adds a new field named `PlanetsLib_recipe_productivity_effects` to [[TechnologyPrototype]], used by recipe productivity technologies. During `data-final-fixes`, technologies with this field will have their effects list appended or replaced with recipes matching either an output name or recipe category. Recipes will be excluded if they have the field `PlanetsLib_blacklist_technology_updates` set to `true`.
 
 Recipe products are ignored if they are not "productivity-capable"—if `ignored_by_productivity` is greater than or equal to `amount` (or `amount_max`)—because changing a recipe's productivity has no effect on such products. If a recipe has no productivity-capable products, it is fully ineligible; and if a recipe has multiple products, but only one product is productivity-capable (e.g. Kovarex enrichment), it is eligible _even if `allow_multiple_results` = false_.
 
 #### [[TechnologyPrototype]] field: `PlanetsLib_recipe_productivity_effects` Properties:
 *   `effects`: `table[ChangeResultProductivityModifier]`
-*   `category_blacklist` - `table[`[`RecipeCategoryID`](https://lua-api.factorio.com/latest/types/RecipeCategoryID.html)`]`
+*   `category_blacklist` - `table[`[`RecipeCategoryID`](https://lua-api.factorio.com/latest/types/RecipeCategoryID.html)`]`. Recipes in these categories are skipped. Defaults to `{ "recycling" }`. Must be omitted when using a `category` filter.
 *   `purge_other_effects`- `boolean`. Default: false. Before adding effects added by `PlanetsLib_recipe_productivity_effects`, remove all 
 effects not flagged with `PlanetsLib_force_include`.
 *   `allow_recipes_without_productivity` - `boolean`. Default: false. Captures recipes even if they have `allow_productivity` set to false.

@@ -6,9 +6,11 @@ sidebar_label: Special Planet Properties
 
 PlanetsLib allows the addition of "special properties", values which can be displayed as surface properties, but are not intended to be used as surface properties. These properties are used during data-final-fixes and in control scripts to execute certain behavior.
 
-* `PlanetsLib.set_special_properties(planet(table or string),properties(table))` -> `table` — Sets the special properties of a planet. Can not be called during data-final-fixes.
-* `PlanetsLib.get_special_property(planet(table or string),property(string))` -> `table` — Returns the value of a single special property.
-* `PlanetsLib.get_special_properties(planet(table or string))` -> `table` — Returns the entire `special_properties` table of a planet.
+* `PlanetsLib.set_special_properties(planet(table or string),properties(table))` -> `table` — Sets the special properties of a planet. Can not be called during data-final-fixes. `properties` is deep-copied, and later calls merge into the existing values instead of replacing the whole table.
+* `PlanetsLib.get_special_property(planet(table or string),property(string))` -> `any` — Returns the value of a single special property, or `nil` if the planet or property has no value. If `property` is omitted, returns the whole `special_properties` table (or `nil`).
+* `PlanetsLib.get_special_properties(planet(table or string))` -> `table or nil` — Returns the entire `special_properties` table of a planet, or `nil` if none are defined.
+
+`PlanetsLib:extend()` and `PlanetsLib:update()` reject a `special_properties` field as invalid. Use `set_special_properties` instead, before data-final-fixes.
 
 ### Hardcoded Special Properties
 PlanetsLib reserves two special property values for runtime scripts set up during data-final-fixes. They are displayed as surface properties in game. If no mods define these properties, they are not displayed.
@@ -23,6 +25,10 @@ PlanetsLib reserves two special property values for runtime scripts set up durin
 PlanetsLib includes a variety of surface properties, all of which are either hidden or disabled by default. To enable a surface property, modders must add the following line to settings-updates.lua (using 'oxygen' as an example):
 
 `data.raw["bool-setting"]["PlanetsLib-enable-oxygen"].forced_value = true`
+
+#### Planet string limitation
+
+The legacy planet-string surface property (`planet-str`) and the `parent-planet-str` surface property encode a planet name in a double. Only names of six characters or fewer are guaranteed to round-trip; seven- and eight-character names can be truncated or corrupted because a double only has 53 bits of integer precision. This affects the legacy `PlanetsLib.restrict_to_surface` helper. Prefer `PlanetsLib.restrict_to_planet` when possible, because it uses a dedicated hidden surface property instead of encoding the planet name.
 
 #### Restricting and relaxing conditions
 
