@@ -1,40 +1,32 @@
 local Public = {}
 
 function Public.assign_rocket_part_recipe(planet, recipe, lock_silo)
-	local planet_name
-	local recipe_name
-	if type(planet) == "list" then
-		planet_name = planet.name
-	else
-		planet_name = planet
-	end
-	if type(recipe) == "list" then
-		recipe_name = recipe.name
-	else
-		recipe_name = recipe
-	end
+	local planet_name = type(planet) == "table" and planet.name or planet
+	local recipe_name = type(recipe) == "table" and recipe.name or recipe
 	local recipe_obj = data.raw["recipe"][recipe_name]
-	if recipe_obj then
-		if data.raw["planet"][planet_name] and not recipe_obj.PlanetsLib_exclusive_to then --If only one planet uses this rocket part recipe, give it a surface condition restricting it.
+
+	-- If exactly one planet uses this rocket part recipe, restrict the recipe to that
+	-- planet. Once a second planet is assigned, remove the restriction and never
+	-- reapply it (see changelog: the restriction is not reapplied).
+	if recipe_obj and data.raw["planet"][planet_name] and not recipe_obj.PlanetsLib_rocket_part_shared then
+		local exclusive_to = recipe_obj.PlanetsLib_rocket_part_exclusive_to
+		if exclusive_to and exclusive_to ~= planet_name then
+			PlanetsLib.remove_surface_condition(recipe_obj, "PlanetsLib-is-" .. exclusive_to)
+			recipe_obj.PlanetsLib_rocket_part_exclusive_to = nil
+			recipe_obj.PlanetsLib_rocket_part_shared = true
+		elseif not exclusive_to then
 			PlanetsLib.restrict_to_planet(recipe_obj, planet_name)
 			recipe_obj.PlanetsLib_rocket_part_exclusive_to = planet_name
-		else
-			if recipe_obj.PlanetsLib_rocket_part_exclusive_to then --If more than one planet is assigned to this recipe, remove the planet restriction
-				PlanetsLib.remove_surface_condition(recipe_obj, "PlanetsLib-is-"..recipe_obj.PlanetsLib_rocket_part_exclusive_to)
-			end
-			
-			--PlanetsLib.relax_surface_conditions(recipe_obj,{property = ,min=0,max=1})
 		end
 	end
-	local planets = {planet_name}
-	for _,planet in pairs(planets) do
-		data.raw["mod-data"]["Planetslib-planet-rocket-part-recipe"].data[planet_name] = recipe_name
-		if recipe_name ~= "_other" then
-			data.raw["mod-data"]["Planetslib-planet-lock-rocket-silos"].data[planet_name] = lock_silo or true
+
+	data.raw["mod-data"]["Planetslib-planet-rocket-part-recipe"].data[planet_name] = recipe_name
+	if recipe_name ~= "_other" then
+		if lock_silo == nil then
+			lock_silo = true
 		end
+		data.raw["mod-data"]["Planetslib-planet-lock-rocket-silos"].data[planet_name] = lock_silo
 	end
-	
-	
 end
 
 local function initialize_planet_cargo_drops_whitelist(planet_name)
