@@ -359,6 +359,12 @@ record("ENT-2e", function()
 			"locomotive-PlanetsLib-nauvis",
 			nil,
 		},
+		{
+			"car",
+			data.raw["car"] and data.raw["car"]["car"],
+			"car-PlanetsLib-nauvis",
+			"car",
+		},
 	}
 
 	for _, info in ipairs(variants) do

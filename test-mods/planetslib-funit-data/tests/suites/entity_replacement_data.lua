@@ -158,6 +158,7 @@ return function(runner)
 			{ "arithmetic-combinator", "arithmetic-combinator-PlanetsLib-nauvis" },
 			{ "locomotive", "locomotive-PlanetsLib-nauvis" },
 			{ "spidertron", "spidertron-PlanetsLib-nauvis" },
+			{ "car", "car-PlanetsLib-nauvis" },
 		}
 		for _, info in ipairs(runtime_variants) do
 			runner.assert(prototypes.entity[info[2]], "runtime variant prototype is missing: " .. info[1])

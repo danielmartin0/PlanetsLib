@@ -217,6 +217,44 @@ return function(runner)
 		end)
 	end)
 
+	runner.test("ENT-5d placing a vehicle ghost preserves its orientation", function()
+		local on_built_entity = require_seam(runner, "on_built_entity")
+
+		with_area(runner, function(surface, center)
+			-- A vehicle ghost reports direction as north and ignores
+			-- orientation writes, so the smooth orientation has to be supplied
+			-- when the ghost is created.
+			local orientation = 0.3
+			local ghost, position = create_at(
+				surface,
+				"entity-ghost",
+				center,
+				{ inner_name = "car", orientation = orientation },
+				"car"
+			)
+			runner.assert(ghost and ghost.valid, "could not create the car ghost")
+			runner.assert(ghost.ghost_name == "car", "the test ghost has the wrong inner name")
+			runner.assert(
+				math.abs(ghost.orientation - orientation) < 1e-4,
+				"the engine did not apply the requested orientation to the car ghost"
+			)
+
+			on_built_entity({ entity = ghost }, nil, false)
+
+			runner.assert(not ghost.valid, "the source car ghost was not destroyed")
+			local new = find(surface, "entity-ghost", position)
+			runner.assert(new and new.valid, "the car ghost was not replaced")
+			runner.assert(
+				new.ghost_name == "car-PlanetsLib-nauvis",
+				"the car ghost did not switch to the replacement entity"
+			)
+			runner.assert(
+				math.abs(new.orientation - orientation) < 1e-4,
+				"the vehicle ghost's orientation was not preserved"
+			)
+		end)
+	end)
+
 	runner.test("ENT-6a recipe, crafting progress, products and health transfer", function()
 		local on_built_entity = require_seam(runner, "on_built_entity")
 

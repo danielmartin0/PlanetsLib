@@ -185,8 +185,8 @@ end
 
 Status: every suite listed in `tests/suites/manifest.lua` is implemented (no
 stubs), and every fixture listed in `prototypes/fixtures/manifest.lua` is
-implemented for its stage. Against Factorio 2.1.22 the suite runs **143 tests
-with 0 failures/errors** with Space Age + Quality and **121 tests with 0
+implemented for its stage. Against Factorio 2.1.22 the suite runs **144 tests
+with 0 failures/errors** with Space Age + Quality and **122 tests with 0
 failures/errors** in a base-only game; Space Age-only fixtures/suites are
 filtered out when `mods["space-age"]` is nil (see `tests/README.md` for how to
 run it). Check the files for the current state.

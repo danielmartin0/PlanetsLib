@@ -406,6 +406,9 @@ function Public.replace_entity(entity,new_entity,raise_built)
         tags = is_ghost and entity.tags or nil,
         position = entity.position,
         direction = entity.direction,
+        -- Vehicle ghosts cannot be rotated after creation and expose direction
+        -- as north, so pass the smooth orientation when the ghost is created.
+        orientation = is_ghost and entity.orientation or nil,
         force = entity.force_index,
         quality = entity.quality,
         health = entity.health,
