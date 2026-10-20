@@ -17,7 +17,9 @@ Date: 2026-10-20
     - icon-entry.detect_type() now applies the documented surface > tool > capsule > fluid > planet > item precedence instead of always preferring items.
     - rro.deep_gsub() now writes string replacements back to the list and forwards the gsub flag through recursive deep_replace() calls.
     - Building the returned-ingredient tooltip no longer crashes data-final-fixes when a returned ingredient has no probability; the tooltip uses the amount-only form in that case.
+    - Banning a player from a script or the server console no longer errors when by_player is absent; the message reports "server" instead.
     - process_technology_recipe_productivity_effects() now clears the correctly spelled PlanetsLib_recipe_productivity_effects input field, preventing effects from being duplicated on a second call.
+    - Pipette-result processing now handles both array and dictionary shapes of defines.prototypes.entity, so custom PlanetsLib_pipette_result values are always registered.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.1
 Date: 2026-10-20
