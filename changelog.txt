@@ -1,4 +1,26 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.2
+Date: 2026-10-20
+  Bugfixes:
+    - Restored the documented PlanetsLib.restrict_to_surface() export in the public API.
+    - Absolute positions calculated from nested orbits now use the same polar convention as the other orbit helpers, so orbit positions are no longer rotated 90 degrees relative to the rest of the library.
+    - PlanetsLib.assign_rocket_part_recipe() now accepts prototype tables for its planet and recipe arguments, restricts a recipe to a single planet only while it is exclusive to that planet, removes the restriction when the recipe becomes shared, and preserves lock_silo = false instead of coercing it to true.
+    - Rocket silos now respect a planet's lock_silo = false setting instead of falling back to the default lock.
+    - PlanetsLib.assign_entity_replacement() now handles planet lists correctly, including {name = ...} entries, and keeps the supplied name_suffix when expanding a list.
+    - PlanetsLib.get_replacement() now finds replacements by the original entity's unit number as documented; both the old and new unit numbers are recorded.
+    - Entity replacement now transfers health, crafting progress, bonus progress, direction, turret orientation, loader type, recipe lock, custom status, and proxy/link fields. Fields that are read-only for a particular entity type are skipped instead of aborting the replacement.
+    - Entity replacement no longer inserts modules into the new entity a second time after moving the module inventory, so modules cannot be duplicated in the crafting output.
+    - Generated entity variants now inherit the base entity's fast_replaceable_group (or its name when no group is set), so the engine accepts upgrades and fast replacement between a variant and the original entity, including locomotives.
+    - Rolling-stock replacement now falls back to recreating the rolling stock and restoring its inventories, grid and train state when the engine refuses the in-place upgrade. This also fixes ghost rolling stock, an undefined variable when spilling items, read-only fields, and a leaked global.
+    - Replacing an entity whose grid contains equipment ghosts no longer raises "Equipment is not equipment-ghost" when notifying the new entity as script-built.
+    - The more-than-12-science-pack lab pass now updates an existing lab_input entry in icons_positioning instead of adding a duplicate entry.
+    - icon-entry.detect_type() now applies the documented surface > tool > capsule > fluid > planet > item precedence instead of always preferring items.
+    - rro.deep_gsub() now writes string replacements back to the list and forwards the gsub flag through recursive deep_replace() calls.
+    - Building the returned-ingredient tooltip no longer crashes data-final-fixes when a returned ingredient has no probability; the tooltip uses the amount-only form in that case.
+    - Banning a player from a script or the server console no longer errors when by_player is absent; the message reports "server" instead.
+    - process_technology_recipe_productivity_effects() now clears the correctly spelled PlanetsLib_recipe_productivity_effects input field, preventing effects from being duplicated on a second call.
+    - Pipette-result processing now handles both array and dictionary shapes of defines.prototypes.entity, so custom PlanetsLib_pipette_result values are always registered.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.1
 Date: 2026-10-20
   Compatibility:
