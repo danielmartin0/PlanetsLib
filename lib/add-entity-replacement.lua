@@ -8,30 +8,33 @@ if not PlanetsLib.constants.entity_variants_list_inverse then PlanetsLib.constan
 -- Mass-assignment is possible by making entity a dictionary table and new_entity nil.
 function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting,name_suffix)
     assert(entity ~= new_entity,"PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - entity must be different from new_entity.")
-    local planet_name = (type(planet) == "table" and planet.name) or planet
     if not bound_setting then --Since entity replacements can potentially break saves, every entity replacement must be bound to a startup setting that can be disabled to aid in safe uninstallation.
         bound_setting = "PlanetsLib-enable-entity-replacements"
     end
 
-    if not PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name] then PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name] = {} end
-
+    -- Mass-assignment is possible by making planet a list of planets.
     if type(planet) == "table" and not planet.name then
         for key,single_planet in pairs(planet) do
-            Public.assign_entity_replacement(single_planet,entity,new_entity,bound_setting)
+            local single_planet_name = (type(single_planet) == "table" and single_planet.name) or single_planet
+            Public.assign_entity_replacement(single_planet_name,entity,new_entity,bound_setting,name_suffix)
         end
         return
     end
+
+    local planet_name = (type(planet) == "table" and planet.name) or planet
+
+    if not PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name] then PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name] = {} end
 
     if type(entity) == "table" and new_entity == nil then
         for key,value in pairs(entity) do
-            Public.assign_entity_replacement(planet_name,key,value.entity,bound_setting)
+            Public.assign_entity_replacement(planet_name,key,value.entity,bound_setting,value.name_suffix or name_suffix)
         end
         return
     end
-    if PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet][entity] then
+    if PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name][entity] then
         error("PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - Assigning an entity variant of the same entity on the same planet more than once is currently not possible.")
     end
-    PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet][entity] = {old_entity=entity,entity=new_entity,enabled=settings.startup[bound_setting].value}
+    PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name][entity] = {old_entity=entity,entity=new_entity,enabled=settings.startup[bound_setting].value}
     
     
     
@@ -41,11 +44,11 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
     table.insert(PlanetsLib.constants.entity_variants_list_inverse[new_entity],{entity=entity,suffix=name_suffix})
     --Check if recursive rules exist that would create a stack overflow error.
     
-    if not PlanetsLib.constants.inverted_entity_variants[planet] then PlanetsLib.constants.inverted_entity_variants[planet] = {} end
-    if not PlanetsLib.constants.inverted_entity_variants[planet][new_entity] then PlanetsLib.constants.inverted_entity_variants[planet][new_entity] = {} end
-    PlanetsLib.constants.inverted_entity_variants[planet][new_entity]=entity
-    assert(not (PlanetsLib.constants.inverted_entity_variants[planet][entity] and PlanetsLib.constants.inverted_entity_variants[planet][entity]==new_entity),
-    "PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - Recursive entity replacement ruleset created on planet ".. planet ..". " .. new_entity .. " <-> " .. entity)
+    if not PlanetsLib.constants.inverted_entity_variants[planet_name] then PlanetsLib.constants.inverted_entity_variants[planet_name] = {} end
+    if not PlanetsLib.constants.inverted_entity_variants[planet_name][new_entity] then PlanetsLib.constants.inverted_entity_variants[planet_name][new_entity] = {} end
+    PlanetsLib.constants.inverted_entity_variants[planet_name][new_entity]=entity
+    assert(not (PlanetsLib.constants.inverted_entity_variants[planet_name][entity] and PlanetsLib.constants.inverted_entity_variants[planet_name][entity]==new_entity),
+    "PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - Recursive entity replacement ruleset created on planet ".. planet_name ..". " .. new_entity .. " <-> " .. entity)
     
 end
 
@@ -72,6 +75,14 @@ local function create_planet_entity_variant(planet_names,entity,new_properties,b
     local new_entity = table.deepcopy(entity)
     local name_suffix = "-PlanetsLib-" .. first_planet_name 
     new_entity.name = entity.name .. name_suffix
+
+    -- Factorio defaults an unspecified fast_replaceable_group to the prototype
+    -- name. Without this, the variant's effective group becomes its own name
+    -- and the engine refuses to fast-replace/upgrade between the variant and
+    -- the original entity (for example when upgrading a locomotive).
+    if not new_entity.fast_replaceable_group then
+        new_entity.fast_replaceable_group = entity.fast_replaceable_group or entity.name
+    end
 
     if not entity.factoriopedia_alternative then
         new_entity.factoriopedia_alternative = entity.name
