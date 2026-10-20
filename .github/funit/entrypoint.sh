@@ -126,14 +126,6 @@ if [ -s "scenario_names.txt" ]; then
             ANY_FAILURE=$EXIT_CODE
         fi
 
-        # Keep one report per scenario. The PlanetsLib scenario always writes
-        # funit-report-planetslib.json; rename it so later scenarios cannot
-        # overwrite the results of earlier ones.
-        if [ -f /factorio/script-output/funit-report-planetslib.json ]; then
-            mv /factorio/script-output/funit-report-planetslib.json \
-                "/factorio/script-output/funit-report-${fn}.json"
-        fi
-
         sleep 1
     done
 fi

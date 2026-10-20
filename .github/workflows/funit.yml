@@ -216,13 +216,23 @@ jobs:
       - name: Verify every scenario produced a report
         if: always()
         run: |
-          expected="$(wc -l < "artifacts/${MOD_NAME}/scenario_names.txt")"
-          actual="$(find "test_artifacts/${MOD_NAME}/reports" -maxdepth 1 -name 'funit-report-*.json' | wc -l)"
-          echo "Expected ${expected} report(s), found ${actual}."
-          if [ "$actual" -ne "$expected" ]; then
-            echo "::error::Expected ${expected} FUnit report(s), found ${actual}."
-            exit 1
-          fi
+          reports=(
+            planetslib-base
+            planetslib-base-no-replacements
+            planetslib-space-age
+            planetslib-space-age-no-replacements
+          )
+          missing=0
+          for report in "${reports[@]}"; do
+            path="test_artifacts/${MOD_NAME}/reports/funit-report-${report}.json"
+            if [ ! -s "$path" ]; then
+              echo "::error::Missing FUnit report: ${path}"
+              missing=1
+            else
+              echo "Found ${path}"
+            fi
+          done
+          exit "$missing"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

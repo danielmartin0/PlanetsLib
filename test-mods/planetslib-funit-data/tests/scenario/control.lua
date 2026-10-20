@@ -8,13 +8,20 @@
 -- alongside the data-stage fixtures whose prototypes they assert on.
 --
 -- FUnit runs the registered tests on the first tick and, when finished, writes:
---   script-output/funit-report-planetslib.json
+--   script-output/funit-report-<report name>.json
+-- The report name includes the scenario axes so that multiple scenarios can
+-- write to the same script-output directory without overwriting each other.
 
 require('__base__/script/freeplay/control.lua')
 
 local runner = require("__funit__.test_runner")
 runner.register("PlanetsLib")
-runner.report("planetslib")
+
+local report_name = "planetslib-" .. (script.active_mods["space-age"] and "space-age" or "base")
+if not settings.startup["PlanetsLib-enable-entity-replacements"].value then
+	report_name = report_name .. "-no-replacements"
+end
+runner.report(report_name)
 
 -- Require suites from the companion mod. This is the same mechanism FUnit
 -- itself uses to load "__funit__.test_runner" from a scenario, and avoids
