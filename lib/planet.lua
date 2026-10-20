@@ -20,10 +20,13 @@ function Public.extend(config)
 
 	if planet.orbit.parent then --Adds encoded parent body to surface properties.
 		if planet.orbit.parent.type == "planet" then
-			if data.raw["planet"][config.orbit.parent.name] then
+			local parent = data.raw["planet"][config.orbit.parent.name]
+			local parent_planet_str = parent
+				and parent["surface_properties"]
+				and parent["surface_properties"]["planet-str"]
+			if parent_planet_str ~= nil then
 				planet["surface_properties"] = planet["surface_properties"] or {}
-				planet["surface_properties"]["parent-planet-str"] =
-					data.raw["planet"][config.orbit.parent.name]["surface_properties"]["planet-str"]
+				planet["surface_properties"]["parent-planet-str"] = parent_planet_str
 			end
 		end
 	end
@@ -42,18 +45,29 @@ function Public.extend(config)
 	data:extend({ planet })
 end
 
+local function resolve_space_location(planet)
+	if type(planet) ~= "string" then
+		return planet
+	end
+	return (data.raw["planet"] or {})[planet] or (data.raw["space-location"] or {})[planet]
+end
+
 function Public.is_space_location(planet)
 	if not planet then
 		return false
 	end
-	return planet.type == "planet" or planet.type == "space-location"
+	local prototype = resolve_space_location(planet)
+	return prototype ~= nil and (prototype.type == "planet" or prototype.type == "space-location")
 end
 
 function Public.is_space_location_or_space_platform(planet)
 	if not planet then
 		return false
 	end
-	return planet == "space-platform" or planet.type == "planet" or planet.type == "space-location"
+	if planet == "space-platform" then
+		return true
+	end
+	return Public.is_space_location(planet)
 end
 -- TODO: Add checks to ensure the structure of orbit is correct.
 function Public.verify_extend_fields(config)
@@ -382,7 +396,10 @@ function Public.set_special_properties(planet,properties)
 	if not PlanetsLib.constants.planet_special_properties[planet_name] then
 		PlanetsLib.constants.planet_special_properties[planet_name] = table.deepcopy(properties)
 	else
-		PlanetsLib.rro.merge(PlanetsLib.constants.planet_special_properties[planet_name],table.deepcopy(properties))
+		PlanetsLib.constants.planet_special_properties[planet_name] = PlanetsLib.rro.merge(
+			PlanetsLib.constants.planet_special_properties[planet_name],
+			table.deepcopy(properties)
+		)
 	end
 	return PlanetsLib.constants.planet_special_properties[planet_name]
 end
@@ -390,16 +407,11 @@ end
 --- PlanetsLib.get_special_property(planet,property)
 function Public.get_special_property(planet,property)
 	local planet_name = type(planet) == "table" and planet.name or planet
+	local properties = PlanetsLib.constants.planet_special_properties[planet_name]
 	if property == nil then
-		return PlanetsLib.constants.planet_special_properties[planet_name]
+		return properties
 	end
-	local planet_name = type(planet) == "table" and planet.name or planet
-	if not PlanetsLib.constants.planet_special_properties[planet_name] then
-		PlanetsLib.constants.planet_special_properties[planet_name] = table.deepcopy(properties)
-	else
-		PlanetsLib.rro.merge(PlanetsLib.constants.planet_special_properties[planet_name],table.deepcopy(properties))
-	end
-	return PlanetsLib.constants.planet_special_properties[planet_name]
+	return properties and properties[property]
 end
 
 --- PlanetsLib.get_special_properties(planet)
