@@ -99,29 +99,14 @@ function Public.get_absolute_polar_position_from_orbit(orbit, return_special_pla
 		parent_distance, parent_orientation = Public.get_absolute_polar_position_from_orbit(parent_data.orbit)
 	end
 
-	local parent_angle = parent_orientation * 2 * math.pi
-	local orbit_angle = orbit.orientation * 2 * math.pi -- Note that this isn't rotated by the parent's orientation.
+	-- Use the same polar convention as get_rectangular_position_from_polar /
+	-- get_polar_position_from_rectangular so that orbit positions and the rest of
+	-- the library agree. Note that the orbit's orientation is not rotated by the
+	-- parent's orientation.
+	local px, py = Public.get_rectangular_position_from_polar(parent_distance, parent_orientation)
+	local ox, oy = Public.get_rectangular_position_from_polar(orbit.distance, orbit.orientation)
 
-	local px = parent_distance * math.cos(parent_angle)
-	local py = parent_distance * math.sin(parent_angle)
-
-	local ox = orbit.distance * math.cos(orbit_angle)
-	local oy = orbit.distance * math.sin(orbit_angle)
-
-	local x = px + ox
-	local y = py + oy
-
-	local distance = math.sqrt(x * x + y * y)
-	local orientation = math.atan2(y, x) / (2 * math.pi)
-
-	if orientation < 0 then
-		orientation = orientation + 1
-	end
-	if orientation > 1 then
-		orientation = orientation - 1
-	end
-
-	return distance, orientation
+	return Public.get_polar_position_from_rectangular(px + ox, py + oy)
 end
 
 function Public.locations_ordered_by_orbits(locations)
