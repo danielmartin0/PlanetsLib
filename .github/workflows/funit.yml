@@ -11,8 +11,8 @@
 #   * base (no Space Age/Quality/Elevated Rails), entity replacements on/off
 #   * Space Age + Quality + Elevated Rails, entity replacements on/off
 #
-# The no-replacements scenarios load a generated settings-only mod that forces
-# PlanetsLib-enable-entity-replacements to false.
+# The no-replacements scenarios load the test-only planetslib-funit-settings
+# mod, which forces PlanetsLib-enable-entity-replacements to false.
 #
 # See .github/funit/README.md for the local adaptations to the template.
 
@@ -70,6 +70,9 @@ jobs:
           test_version="$(jq -r '.version' "$TEST_MOD_DIR/info.json")"
           test_folder="${TEST_MOD_NAME}_${test_version}"
           test_archive="${test_folder}.zip"
+          settings_version="$(jq -r '.version' test-mods/planetslib-funit-settings/info.json)"
+          settings_folder="planetslib-funit-settings_${settings_version}"
+          settings_archive="${settings_folder}.zip"
 
           mkdir -p "artifacts/${MOD_NAME}/scenarios" "artifacts/${MOD_NAME}/test" build
 
@@ -82,6 +85,10 @@ jobs:
           git archive --worktree-attributes --format=zip "HEAD:${TEST_MOD_DIR}" \
             -o "artifacts/${MOD_NAME}/${test_archive}" \
             --prefix="${test_folder}/"
+
+          git archive --worktree-attributes --format=zip HEAD:test-mods/planetslib-funit-settings \
+            -o "artifacts/${MOD_NAME}/${settings_archive}" \
+            --prefix="${settings_folder}/"
 
           # FUnit is public, so package it locally instead of requiring mod
           # portal credentials just to download the test framework. Pin the
@@ -96,28 +103,6 @@ jobs:
           cp -a "$TEST_MOD_DIR/test/." "artifacts/${MOD_NAME}/test/"
           : > "artifacts/${MOD_NAME}/save_names.txt"
           : > "artifacts/${MOD_NAME}/scenario_names.txt"
-
-          # CI-only mod used to force PlanetsLib-enable-entity-replacements off
-          # without authoring the binary mod-settings.dat.
-          settings_dir="build/planetslib-funit-settings"
-          mkdir -p "$settings_dir"
-          cat > "$settings_dir/info.json" <<'EOF'
-          {
-            "name": "planetslib-funit-settings",
-            "version": "0.0.1",
-            "factorio_version": "2.1",
-            "title": "PlanetsLib FUnit Settings",
-            "author": "test",
-            "description": "CI-only PlanetsLib startup settings override.",
-            "dependencies": ["base", "PlanetsLib"]
-          }
-          EOF
-          cat > "$settings_dir/settings-updates.lua" <<'EOF'
-          local setting = data.raw["bool-setting"]["PlanetsLib-enable-entity-replacements"]
-          setting.hidden = true
-          setting.forced_value = false
-          EOF
-          (cd build && zip -qr "../artifacts/${MOD_NAME}/planetslib-funit-settings_0.0.1.zip" "planetslib-funit-settings")
 
           # Use the upstream dependency expander rather than maintaining a
           # static dependency graph. Its local-mod detection reads these
@@ -162,7 +147,9 @@ jobs:
                   + [{name: "recycler", enabled: true}]
                   + (if $replacements == "false" then [
                       {name: "planetslib-funit-settings", enabled: true}
-                    ] else [] end)
+                    ] else [
+                      {name: "planetslib-funit-settings", enabled: false}
+                    ] end)
                 )
               }' > "$dest/mod-list.json"
 

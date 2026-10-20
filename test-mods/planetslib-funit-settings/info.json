@@ -1,0 +1,9 @@
+{
+	"name": "planetslib-funit-settings",
+	"version": "0.0.1",
+	"factorio_version": "2.1",
+	"title": "PlanetsLib FUnit Settings",
+	"author": "test",
+	"description": "CI-only PlanetsLib startup settings override. Not shipped with PlanetsLib.",
+	"dependencies": ["base", "PlanetsLib"]
+}
