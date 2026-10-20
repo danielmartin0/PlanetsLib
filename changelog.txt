@@ -1,4 +1,20 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.1
+Date: 2026-10-20
+  Bugfixes:
+    - Added compatibility corrections for obsolete prototype fields removed in Factorio 2.1.22: WaterTileEffectParameters::textures/texture_variations_*, FluidBox::minimum_temperature/maximum_temperature, and late ItemPrototype::fuel_category writes.
+    - Prototypes corrected by these compatibility checks now display a warning in their descriptions.
+    - Fixed PlanetsLib.get_special_property() returning the entire special-properties table instead of the requested property.
+    - Fixed PlanetsLib.set_special_properties() discarding the result of its merge, so properties set by later calls are now retained.
+    - PlanetsLib.restrict_to_planet() now accepts a planet prototype as well as a name, creates missing surface_properties, and is idempotent. Repeated calls reuse the same surface condition, and an invert call replaces the previous value instead of adding a contradictory condition.
+    - PlanetsLib:extend() no longer errors when the parent planet has no planet-str surface property; the parent-planet-str field is simply left unset.
+    - PlanetsLib.is_space_location() now accepts a planet or space-location name as well as a prototype, and no longer errors when given an unrelated value.
+    - The deprecated cargo-pod whitelist now allows an item when any legacy entry matches (global or per-planet, by name or entity type), restoring the pre-refactor OR semantics.
+    - Banning a player from a script or the server console no longer errors when by_player is absent; the message reports "server" instead.
+    - Removed a leftover debug print that dumped every colliding entity to chat when placing a ground digger.
+    - Ground-digger drills and blacklist options now accept both list and dictionary forms, including configurations injected directly into PlanetsLib.constants.ground_diggers.
+    - on_configuration_changed no longer errors if mod_changes is absent.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.0
 Date: 2026-10-19
   Changes:
