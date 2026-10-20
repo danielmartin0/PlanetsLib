@@ -58,6 +58,10 @@ local function effects_for(technology, recipe_name)
 end
 
 return function(runner)
+	if not script.active_mods["space-age"] then
+		return
+	end
+
 	runner.test("GD-1 enable_ground_diggers validation and normalisation", function()
 		assert_entries(runner, DATA_SUITE, { "GD-0-setup", "GD-1a", "GD-1b" })
 		assert_entry(runner, LATE_SUITE, "GD-1c")

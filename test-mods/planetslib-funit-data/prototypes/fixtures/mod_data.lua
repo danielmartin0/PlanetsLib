@@ -24,43 +24,47 @@ local ok, err = pcall(function()
 	local p3 = create_planet("funit-md-3")
 	local p4 = create_planet("funit-md-4")
 
-	local recipe_map = data.raw["mod-data"]["Planetslib-planet-rocket-part-recipe"].data
-	local lock_map = data.raw["mod-data"]["Planetslib-planet-lock-rocket-silos"].data
-	local recipe_name = "iron-gear-wheel"
-	local recipe = data.raw.recipe[recipe_name]
+	-- Rocket part assignment adds surface conditions, which require the
+	-- space-travel feature (Space Age). A base-only game cannot test it.
+	if mods["space-age"] then
+		local recipe_map = data.raw["mod-data"]["Planetslib-planet-rocket-part-recipe"].data
+		local lock_map = data.raw["mod-data"]["Planetslib-planet-lock-rocket-silos"].data
+		local recipe_name = "iron-gear-wheel"
+		local recipe = data.raw.recipe[recipe_name]
 
-	-- First assignment: store the mapping, lock by default and restrict the recipe.
-	PlanetsLib.assign_rocket_part_recipe("funit-md-1", recipe_name)
-	assert(recipe_map["funit-md-1"] == recipe_name, "planet -> recipe mapping was not stored")
-	assert(lock_map["funit-md-1"] == true, "lock_silo should default to true")
-	assert(recipe.PlanetsLib_rocket_part_exclusive_to == "funit-md-1", "recipe was not marked exclusive")
-	assert(has_condition(recipe, "PlanetsLib-is-funit-md-1", 1), "recipe was not restricted to the first planet")
+		-- First assignment: store the mapping, lock by default and restrict the recipe.
+		PlanetsLib.assign_rocket_part_recipe("funit-md-1", recipe_name)
+		assert(recipe_map["funit-md-1"] == recipe_name, "planet -> recipe mapping was not stored")
+		assert(lock_map["funit-md-1"] == true, "lock_silo should default to true")
+		assert(recipe.PlanetsLib_rocket_part_exclusive_to == "funit-md-1", "recipe was not marked exclusive")
+		assert(has_condition(recipe, "PlanetsLib-is-funit-md-1", 1), "recipe was not restricted to the first planet")
 
-	-- Second assignment: remove the restriction and never reapply it.
-	PlanetsLib.assign_rocket_part_recipe("funit-md-2", recipe_name)
-	assert(recipe_map["funit-md-2"] == recipe_name, "second planet mapping was not stored")
-	assert(recipe.PlanetsLib_rocket_part_exclusive_to == nil, "the exclusivity marker was not cleared")
-	assert(recipe.PlanetsLib_rocket_part_shared == true, "the shared marker was not set")
-	assert(not has_condition(recipe, "PlanetsLib-is-funit-md-1", 1), "the single-planet restriction was not removed")
-	assert(not has_condition(recipe, "PlanetsLib-is-funit-md-2", 1), "a restriction was added despite being shared")
+		-- Second assignment: remove the restriction and never reapply it.
+		PlanetsLib.assign_rocket_part_recipe("funit-md-2", recipe_name)
+		assert(recipe_map["funit-md-2"] == recipe_name, "second planet mapping was not stored")
+		assert(recipe.PlanetsLib_rocket_part_exclusive_to == nil, "the exclusivity marker was not cleared")
+		assert(recipe.PlanetsLib_rocket_part_shared == true, "the shared marker was not set")
+		assert(not has_condition(recipe, "PlanetsLib-is-funit-md-1", 1), "the single-planet restriction was not removed")
+		assert(not has_condition(recipe, "PlanetsLib-is-funit-md-2", 1), "a restriction was added despite being shared")
 
-	-- A third assignment stays unrestricted.
-	PlanetsLib.assign_rocket_part_recipe("funit-md-3", recipe_name)
-	assert(recipe_map["funit-md-3"] == recipe_name, "third planet mapping was not stored")
-	assert(not has_condition(recipe, "PlanetsLib-is-funit-md-3", 1), "the shared recipe gained a restriction")
+		-- A third assignment stays unrestricted.
+		PlanetsLib.assign_rocket_part_recipe("funit-md-3", recipe_name)
+		assert(recipe_map["funit-md-3"] == recipe_name, "third planet mapping was not stored")
+		assert(not has_condition(recipe, "PlanetsLib-is-funit-md-3", 1), "the shared recipe gained a restriction")
 
-	-- Prototype-table arguments plus lock_silo = false.
-	PlanetsLib.assign_rocket_part_recipe(p1, data.raw.recipe["copper-cable"], false)
-	assert(recipe_map["funit-md-1"] == "copper-cable", "prototype-table arguments were not unwrapped")
-	assert(lock_map["funit-md-1"] == false, "lock_silo = false must be preserved")
+		-- Prototype-table arguments plus lock_silo = false.
+		PlanetsLib.assign_rocket_part_recipe(p1, data.raw.recipe["copper-cable"], false)
+		assert(recipe_map["funit-md-1"] == "copper-cable", "prototype-table arguments were not unwrapped")
+		assert(lock_map["funit-md-1"] == false, "lock_silo = false must be preserved")
 
-	-- "_other" stores the mapping but does not set lock behaviour. Use a fresh
-	-- planet so an earlier default lock cannot mask the check.
-	PlanetsLib.assign_rocket_part_recipe(p4, "_other")
-	assert(recipe_map["funit-md-4"] == "_other", "'_other' mapping was not stored")
-	assert(lock_map["funit-md-4"] == nil, "'_other' must not set a silo lock value")
+		-- "_other" stores the mapping but does not set lock behaviour. Use a fresh
+		-- planet so an earlier default lock cannot mask the check.
+		PlanetsLib.assign_rocket_part_recipe(p4, "_other")
+		assert(recipe_map["funit-md-4"] == "_other", "'_other' mapping was not stored")
+		assert(lock_map["funit-md-4"] == nil, "'_other' must not set a silo lock value")
+	end
 
-	-- Cargo-drop whitelists, per planet and global.
+	-- Cargo-drop whitelists, per planet and global. These do not need Space Age.
 	PlanetsLib.add_item_name_to_planet_cargo_drops_whitelist("funit-md-1", "iron-plate")
 	PlanetsLib.add_entity_type_to_planet_cargo_drops_whitelist("funit-md-1", "container")
 	local whitelist = data.raw["mod-data"].Planetslib.data.planet_cargo_drop_whitelists["funit-md-1"]

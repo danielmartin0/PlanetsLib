@@ -36,6 +36,10 @@ return function(runner)
 		assert_fixture_namespace(runner, "misc_visuals_setup")
 		assert_fixture_namespace(runner, "misc_visuals_final")
 
+		if not script.active_mods["space-age"] then
+			return
+		end
+
 		if settings.startup["PlanetsLib-enhanced-tooltips"].value ~= true then
 			return
 		end

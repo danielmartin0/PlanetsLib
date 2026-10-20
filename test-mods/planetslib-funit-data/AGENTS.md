@@ -41,6 +41,9 @@ test-mods/planetslib-funit-data/
   lib/results.lua            <- results.record(suite, id, ok, err) helper
   prototypes/fixtures/       <- one fixture file per data-stage area
     manifest.lua             <- stage-by-stage fixture lists
+  test/
+    server-settings.json     <- headless CI server settings
+    player-data.json         <- headless CI player data
   tests/
     README.md
     scenario/                <- copy to <user data>/scenarios/funit
@@ -127,7 +130,10 @@ results.record("entity_replacement_data", "ENT-1", ok, err)
   (dependency), so PlanetsLib's own final-fixes has **already run** when this
   mod's final-fixes fixtures execute.
 - Fixtures must not assume Space Age/Quality. Guard with `mods["space-age"]` or
-  prototype existence checks.
+  prototype existence checks. Fixtures whose whole area needs the
+  space-travel feature are listed in `SPACE_AGE_ONLY` in
+  `prototypes/fixtures/manifest.lua`; the matching runtime suite returns early
+  when `script.active_mods["space-age"]` is nil. Keep the base scenario green.
 - To create a valid test planet, deepcopy an existing planet before modifying it:
 
   ```lua
@@ -175,9 +181,11 @@ end
 
 Status: every suite listed in `tests/suites/manifest.lua` is implemented (no
 stubs), and every fixture listed in `prototypes/fixtures/manifest.lua` is
-implemented for its stage. The full suite currently runs **142 tests with 0
-failures/errors** against Factorio 2.1.22 (see `tests/README.md` for how to run
-it). Check the files for the current state.
+implemented for its stage. Against Factorio 2.1.22 the suite runs **143 tests
+with 0 failures/errors** with Space Age + Quality and **121 tests with 0
+failures/errors** in a base-only game; Space Age-only fixtures/suites are
+filtered out when `mods["space-age"]` is nil (see `tests/README.md` for how to
+run it). Check the files for the current state.
 
 ### A. Pure runtime helper suites
 
@@ -208,7 +216,7 @@ it). Check the files for the current state.
 
 | Suite | IDs | What to cover |
 | --- | --- | --- |
-| `entity_replacement_data` | ENT-1..4 | `assign_entity_replacement` (rule storage, default bound setting, duplicate error, recursion assertion, variant lists, mass-assignment and planet-table forms); `create_planet_entity_variant` (name suffix, deepcopy, localised fields, flags, Factoriopedia redirect/hide, `placeable_by`, icon corner, order suffix, `do_not_generate_variants`, multi-planet, invalid setting, item inference); rocket lift/part multiplier variant generation. Fixture: `entity_replacement_data`. |
+| `entity_replacement_data` | ENT-0..4 | `ENT-0` asserts the CI scenario's `PlanetsLib-enable-entity-replacements` value; `assign_entity_replacement` (rule storage, default bound setting, duplicate error, recursion assertion, variant lists, mass-assignment and planet-table forms); `create_planet_entity_variant` (name suffix, deepcopy, localised fields, flags, Factoriopedia redirect/hide, `placeable_by`, icon corner, order suffix, `do_not_generate_variants`, multi-planet, invalid setting, item inference); rocket lift/part multiplier variant generation. Fixture: `entity_replacement_data`. |
 | `entity_replacement_runtime` | ENT-5..11 | Place → replace; settings/inventory/crafting/health/temperature transfer; ghost preservation; robot-built path; inverse normalisation; modules/spill; fluid transfer; wire connections incl. self-referential; grid contents incl. ghost equipment; `storage.replaced_entities` + `get_replacement`; `PlanetsLib.events.on_entity_replaced`; disabled rule. |
 | `entity_replacement_migration` | ENT-12..13 | Rolling-stock replacement (watch the undefined `rolling_stock_info` path); `on_configuration_changed` migration when a rule is added/disabled. Needs a prebuilt save or a controlled configuration change; if impossible headlessly, test the pure layout helpers and record the limitation. |
 
@@ -414,6 +422,7 @@ syntax. All four were fixture mistakes and are fixed in
 - Every public documented API has at least one positive test and one
   error/edge test.
 - Every fixture namespace has a runtime assertion that all its entries passed.
-- The FUnit report has zero failures/errors in both CI matrix axes.
+- The FUnit report has zero failures/errors in all four CI scenarios (base and
+  Space Age + Quality, each with entity replacements on and off).
 - Suspected bugs are either fixed (test + changelog + docs) or explicitly
   converted to characterization tests with a written justification.

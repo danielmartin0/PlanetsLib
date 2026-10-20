@@ -36,6 +36,18 @@ local function contains(list, value)
 end
 
 return function(runner)
+	runner.test("ENT-0 entity-replacement default setting matches the CI scenario", function()
+		local forced_off = script.active_mods["planetslib-funit-settings"] ~= nil
+		local actual = settings.startup["PlanetsLib-enable-entity-replacements"].value
+		runner.assert(
+			actual == not forced_off,
+			"PlanetsLib-enable-entity-replacements is "
+				.. tostring(actual)
+				.. ", but the CI settings mod is "
+				.. (forced_off and "enabled" or "not loaded")
+		)
+	end)
+
 	runner.test("ENT-1 assign_entity_replacement storage, errors and variant lists", function()
 		assert_entries(runner, {
 			"ENT-1a",
@@ -155,6 +167,10 @@ return function(runner)
 	end)
 
 	runner.test("ENT-3 rocket lift/part multiplier variant fields", function()
+		if not script.active_mods["space-age"] then
+			return
+		end
+
 		assert_entries(runner, { "ENT-3" })
 
 		local base = prototypes.entity["rocket-silo"]

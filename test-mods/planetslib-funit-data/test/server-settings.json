@@ -1,0 +1,32 @@
+{
+  "name": "PlanetsLib FUnit",
+  "description": "Headless PlanetsLib FUnit run",
+  "tags": [],
+  "max_players": 1,
+  "visibility": {
+    "public": false,
+    "lan": false
+  },
+  "username": "${USERNAME}",
+  "token": "${TOKEN}",
+  "game_password": "",
+  "require_user_verification": false,
+  "max_upload_in_kilobytes_per_second": 0,
+  "max_upload_slots": 5,
+  "minimum_latency_in_ticks": 0,
+  "max_heartbeats_per_second": 60,
+  "ignore_player_limit_for_returning_players": false,
+  "allow_commands": "admins-only",
+  "autosave_interval": 0,
+  "autosave_slots": 1,
+  "afk_autokick_interval": 0,
+  "auto_pause": false,
+  "auto_pause_when_players_connect": false,
+  "only_admins_can_pause_the_game": true,
+  "autosave_only_on_server": true,
+  "non_blocking_saving": false,
+  "_comment_segmentsize": 25,
+  "minimum_segment_size_peer_count": 20,
+  "maximum_segment_size": 100,
+  "maximum_segment_size_peer_count": 10
+}

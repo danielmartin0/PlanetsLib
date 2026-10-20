@@ -25,6 +25,10 @@ return function(runner)
 	end)
 
 	runner.test("MD-2 assignments survive into the runtime prototypes", function()
+		if not script.active_mods["space-age"] then
+			return
+		end
+
 		local recipe_map = prototypes.mod_data["Planetslib-planet-rocket-part-recipe"]
 		local lock_map = prototypes.mod_data["Planetslib-planet-lock-rocket-silos"]
 		runner.assert(recipe_map, "rocket-part recipe mod-data is missing")

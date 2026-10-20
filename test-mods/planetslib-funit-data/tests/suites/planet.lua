@@ -17,6 +17,10 @@ local function assert_fixture_namespace(runner, suite)
 end
 
 return function(runner)
+	if not script.active_mods["space-age"] then
+		return
+	end
+
 	package.loaded["util"] = require("__core__.lualib.util")
 	package.loaded["lib.lib"] = require("__PlanetsLib__.lib.lib")
 	package.loaded["lib.orbits"] = require("__PlanetsLib__.lib.orbits")

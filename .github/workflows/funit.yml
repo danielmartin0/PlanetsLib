@@ -1,0 +1,252 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later WITH FUnit-CI-Exception
+#
+# Headless FUnit test suite for PlanetsLib, based on the GitHub Actions
+# template from https://gitlab.com/jfletcher94/funit.
+#
+# The suite itself lives in test-mods/planetslib-funit-data. This workflow
+# builds the mod archives and four scenarios, runs them in a Factorio job
+# container, then converts FUnit's JSON reports to JUnit XML.
+#
+# Scenarios:
+#   * base (no Space Age/Quality/Elevated Rails), entity replacements on/off
+#   * Space Age + Quality + Elevated Rails, entity replacements on/off
+#
+# The no-replacements scenarios load a generated settings-only mod that forces
+# PlanetsLib-enable-entity-replacements to false.
+#
+# See .github/funit/README.md for the local adaptations to the template.
+
+name: FUnit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FACTORIO_VERSION: "2.1.22"
+  MOD_NAME: PlanetsLib
+  TEST_MOD_NAME: planetslib-funit-data
+  TEST_MOD_DIR: test-mods/planetslib-funit-data
+  FUNIT_COMMIT: b69c2f277a467726e3a8c555d48df5b647ec5a64
+  TIMEOUT: 5m
+  USERNAME: ${{ secrets.FACTORIO_USERNAME }}
+  TOKEN: ${{ secrets.FACTORIO_TOKEN }}
+
+jobs:
+  build-archive-job:
+    name: Build test artifacts
+    runs-on: ubuntu-latest
+    container:
+      image: ruby:4-alpine
+    timeout-minutes: 30
+    outputs:
+      factorio_version: ${{ env.FACTORIO_VERSION }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - run: apk add --no-cache bash git jq zip
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+      - name: Build archives, scenarios and test config
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+          mod_version="$(jq -r '.version' info.json)"
+          mod_folder="${MOD_NAME}_${mod_version}"
+          mod_archive="${mod_folder}.zip"
+          test_version="$(jq -r '.version' "$TEST_MOD_DIR/info.json")"
+          test_folder="${TEST_MOD_NAME}_${test_version}"
+          test_archive="${test_folder}.zip"
+
+          mkdir -p "artifacts/${MOD_NAME}/scenarios" "artifacts/${MOD_NAME}/test"
+
+          # The repository root is the mod. .gitattributes excludes test-mods/,
+          # .github/, docs/ and other development-only files from this archive.
+          git archive --worktree-attributes --format=zip HEAD \
+            -o "artifacts/${MOD_NAME}/${mod_archive}" \
+            --prefix="${mod_folder}/"
+
+          git archive --worktree-attributes --format=zip "HEAD:${TEST_MOD_DIR}" \
+            -o "artifacts/${MOD_NAME}/${test_archive}" \
+            --prefix="${test_folder}/"
+
+          # FUnit is public, so package it locally instead of requiring mod
+          # portal credentials just to download the test framework. Pin the
+          # commit so the packaged mod matches the vendored CI helpers.
+          git clone --depth 1 https://gitlab.com/jfletcher94/funit.git funit-src
+          git -C funit-src fetch --depth 1 origin "$FUNIT_COMMIT"
+          git -C funit-src checkout --detach "$FUNIT_COMMIT"
+          funit_version="$(jq -r '.version' funit-src/funit/info.json)"
+          test -n "$funit_version"
+          (cd funit-src && zip -qr "../artifacts/${MOD_NAME}/funit_${funit_version}.zip" funit)
+
+          cp -a "$TEST_MOD_DIR/test/." "artifacts/${MOD_NAME}/test/"
+          : > "artifacts/${MOD_NAME}/save_names.txt"
+          : > "artifacts/${MOD_NAME}/scenario_names.txt"
+
+          # CI-only mod used to force PlanetsLib-enable-entity-replacements off
+          # without authoring the binary mod-settings.dat.
+          settings_dir="build/planetslib-funit-settings"
+          mkdir -p "$settings_dir"
+          cat > "$settings_dir/info.json" <<'EOF'
+          {
+            "name": "planetslib-funit-settings",
+            "version": "0.0.1",
+            "factorio_version": "2.1",
+            "title": "PlanetsLib FUnit Settings",
+            "author": "test",
+            "description": "CI-only PlanetsLib startup settings override.",
+            "dependencies": ["base", "PlanetsLib"]
+          }
+          EOF
+          cat > "$settings_dir/settings-updates.lua" <<'EOF'
+          local setting = data.raw["bool-setting"]["PlanetsLib-enable-entity-replacements"]
+          setting.hidden = true
+          setting.forced_value = false
+          EOF
+          (cd build && zip -qr "../artifacts/${MOD_NAME}/planetslib-funit-settings_0.0.1.zip" "planetslib-funit-settings")
+
+          write_scenario() {
+            local name="$1"
+            local replacements="$2"
+            local dlc="$3"
+            local dest="artifacts/${MOD_NAME}/scenarios/${name}"
+
+            cp -a "$TEST_MOD_DIR/tests/scenario" "$dest"
+            jq -n \
+              --arg replacements "$replacements" \
+              --arg dlc "$dlc" \
+              '{
+                mods: (
+                  [
+                    {name: "base", enabled: true},
+                    {name: "funit", enabled: true},
+                    {name: "PlanetsLib", enabled: true},
+                    {name: "planetslib-funit-data", enabled: true}
+                  ]
+                  + (if $dlc == "true" then [
+                      {name: "space-age", enabled: true},
+                      {name: "quality", enabled: true},
+                      {name: "elevated-rails", enabled: true}
+                    ] else [
+                      {name: "space-age", enabled: false},
+                      {name: "quality", enabled: false},
+                      {name: "elevated-rails", enabled: false}
+                    ] end)
+                  + [{name: "recycler", enabled: true}]
+                  + (if $replacements == "false" then [
+                      {name: "planetslib-funit-settings", enabled: true}
+                    ] else [] end)
+                )
+              }' > "$dest/mod-list.json"
+
+            echo "$name" >> "artifacts/${MOD_NAME}/scenario_names.txt"
+          }
+
+          write_scenario "__funit__planetslib_base" "true" "false"
+          write_scenario "__funit__planetslib_base_no_replacements" "false" "false"
+          write_scenario "__funit__planetslib_space_age" "true" "true"
+          write_scenario "__funit__planetslib_space_age_no_replacements" "false" "true"
+
+          echo "Built artifacts:"
+          find "artifacts/${MOD_NAME}" -maxdepth 2 -type f | sort
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-archive-job
+          retention-days: 1
+          path: artifacts/
+          if-no-files-found: error
+
+  unit-test-job:
+    name: Run FUnit scenarios
+    needs: build-archive-job
+    runs-on: ubuntu-latest
+    container:
+      image: "factoriotools/factorio:${{ needs.build-archive-job.outputs.factorio_version }}"
+    timeout-minutes: 30
+    env:
+      UPDATE_MODS_ON_START: "true"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install Git
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-archive-job
+          path: artifacts
+      - name: Prepare test environment
+        run: bash .github/funit/prepare_test_environment.sh
+      - name: Run FUnit scenarios
+        run: |
+          mkdir -p "test_artifacts/${MOD_NAME}"
+          (cd / && bash "$GITHUB_WORKSPACE/.github/funit/entrypoint.sh") \
+            2>&1 | tee "$GITHUB_WORKSPACE/test_artifacts/${MOD_NAME}/funit.log"
+      - name: Collect JSON reports
+        if: always()
+        run: |
+          mkdir -p "test_artifacts/${MOD_NAME}/reports"
+          if [ -d /factorio/script-output ]; then
+            cp -a /factorio/script-output/. "test_artifacts/${MOD_NAME}/reports/"
+          fi
+      - name: Verify every scenario produced a report
+        if: always()
+        run: |
+          expected="$(wc -l < "artifacts/${MOD_NAME}/scenario_names.txt")"
+          actual="$(find "test_artifacts/${MOD_NAME}/reports" -maxdepth 1 -name 'funit-report-*.json' | wc -l)"
+          echo "Expected ${expected} report(s), found ${actual}."
+          if [ "$actual" -ne "$expected" ]; then
+            echo "::error::Expected ${expected} FUnit report(s), found ${actual}."
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-job
+          retention-days: 30
+          path: test_artifacts
+
+  parse-results-job:
+    name: Parse FUnit results
+    needs: unit-test-job
+    if: ${{ !cancelled() && needs.unit-test-job.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    container:
+      image: ruby:4-alpine
+    timeout-minutes: 30
+    steps:
+      - run: apk add --no-cache git
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: unit-test-job
+          path: test_artifacts
+      - name: Convert FUnit reports to JUnit XML
+        run: |
+          ruby .github/funit/parse_funit_json.rb \
+            "test_artifacts/${MOD_NAME}/reports" \
+            -o "funit-report-${MOD_NAME}.xml"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: parse-results-job
+          retention-days: 30
+          path: funit-report-*.xml

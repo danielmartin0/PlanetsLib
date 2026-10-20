@@ -167,6 +167,10 @@ local function restore_player(player, state)
 end
 
 return function(runner)
+	if not script.active_mods["space-age"] then
+		return
+	end
+
 	runner.test("GD-6 built digger gets and locks the planet recipe", function()
 		local created = {}
 		run_with_cleanup(function()

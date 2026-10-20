@@ -1,0 +1,4 @@
+{
+  "service-username": "${USERNAME}",
+  "service-token": "${TOKEN}"
+}

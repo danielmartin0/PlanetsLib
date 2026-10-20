@@ -587,14 +587,15 @@ return function(runner)
 			end
 			runner.assert(not allowed(), "removing the legacy whitelist entry must deny the item")
 		else
-			-- Without Space Age there is no seam exposing cargo-pod storage;
-			-- reach init_storage through its on_configuration_changed entry
-			-- point twice and assert the mod-data whitelist is untouched.
+			-- Without Space Age there is no cargo-pod storage seam, but the
+			-- control-stage on_configuration_changed seam still exists. Reach
+			-- init_storage through it twice and assert the mod-data whitelist is
+			-- untouched.
 			local ok, err = pcall(function()
-				mock.mock_event({ name = "on_configuration_changed", mod_changes = {} })
-				mock.mock_event({ name = "on_configuration_changed", mod_changes = {} })
+				seam_call("on_configuration_changed", { mod_changes = {} })
+				seam_call("on_configuration_changed", { mod_changes = {} })
 			end)
-			runner.assert(ok, "mocking on_configuration_changed failed: " .. tostring(err))
+			runner.assert(ok, "calling on_configuration_changed failed: " .. tostring(err))
 			local maps = whitelists()
 			runner.assert(maps and maps.all.item_names["copper-plate"], "the mod-data whitelist is missing")
 			runner.assert(

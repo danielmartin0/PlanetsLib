@@ -6,6 +6,14 @@
 -- test-mods/planetslib-funit-data/AGENTS.md).
 local results = require("lib.results")
 
+-- The planet-str surface property only exists with Space Age; a base-only game
+-- cannot assign surface properties at all.
+if not mods["space-age"] then
+	results.record("planet_str", "PSTR-3", true, "space-age not active; planet-str fixtures are skipped")
+	results.record("planet_str_auto", "PSTR-4", true, "space-age not active; planet-str fixtures are skipped")
+	return true
+end
+
 local ps = PlanetsLib.planet_str
 
 local function create_planet(name)

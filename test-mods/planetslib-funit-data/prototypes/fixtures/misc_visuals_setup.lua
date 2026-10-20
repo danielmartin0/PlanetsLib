@@ -17,65 +17,69 @@ local function clone_item(name, source)
 end
 
 local ok, err = pcall(function()
-	-- A spoilable item and a non-spoiling item for the enhanced-tooltip
-	-- recipes. Icons and other fields are inherited from iron-plate.
-	local spoiler = clone_item("funit-visual-spoiler", "iron-plate")
-	spoiler.spoil_ticks = 3600
-	data:extend({ spoiler })
+	if SPACE_AGE then
+		-- A spoilable item and a non-spoiling item for the enhanced-tooltip
+		-- recipes. Icons and other fields are inherited from iron-plate.
+		-- Spoiling is an expansion feature, so the whole MISC-4 fixture is
+		-- skipped when Space Age is not active.
+		local spoiler = clone_item("funit-visual-spoiler", "iron-plate")
+		spoiler.spoil_ticks = 3600
+		data:extend({ spoiler })
 
-	local nospoil = clone_item("funit-visual-nospoil", "iron-plate")
-	data:extend({ nospoil })
+		local nospoil = clone_item("funit-visual-nospoil", "iron-plate")
+		data:extend({ nospoil })
 
-	-- MISC-4: enhanced tooltips.
-	--
-	-- `always_fresh` and `reset_freshness_on_craft` are per-product fields in
-	-- Factorio 2.1 (the recipe-level fields were moved to ItemProductPrototype).
-	data:extend({
-		{
-			type = "recipe",
-			name = "funit-visual-tooltip-all",
-			ingredients = { { type = "item", name = "funit-visual-spoiler", amount = 1 } },
-			results = {
-				{
-					type = "item",
-					name = "funit-visual-spoiler",
-					amount = 1,
-					always_fresh = true,
-					reset_freshness_on_craft = true,
+		-- MISC-4: enhanced tooltips.
+		--
+		-- `always_fresh` and `reset_freshness_on_craft` are per-product fields in
+		-- Factorio 2.1 (the recipe-level fields were moved to ItemProductPrototype).
+		data:extend({
+			{
+				type = "recipe",
+				name = "funit-visual-tooltip-all",
+				ingredients = { { type = "item", name = "funit-visual-spoiler", amount = 1 } },
+				results = {
+					{
+						type = "item",
+						name = "funit-visual-spoiler",
+						amount = 1,
+						always_fresh = true,
+						reset_freshness_on_craft = true,
+					},
+				},
+				preserve_products_in_machine_output = true,
+				energy_required = 1,
+			},
+			{
+				-- A non-spoiling result must not gain freshness tooltips.
+				type = "recipe",
+				name = "funit-visual-tooltip-nospoil",
+				ingredients = { { type = "item", name = "funit-visual-nospoil", amount = 1 } },
+				results = {
+					{ type = "item", name = "funit-visual-nospoil", amount = 1, always_fresh = true },
+				},
+				energy_required = 1,
+			},
+			{
+				-- The exact tooltip PlanetsLib would add is already present, so
+				-- rro.soft_insert() must not duplicate it.
+				type = "recipe",
+				name = "funit-visual-tooltip-dedupe",
+				ingredients = { { type = "item", name = "funit-visual-spoiler", amount = 1 } },
+				results = {
+					{ type = "item", name = "funit-visual-spoiler", amount = 1, always_fresh = true },
+				},
+				energy_required = 1,
+				custom_tooltip_fields = {
+					{
+						name = { "tooltip.result-is-always-fresh" },
+						value = { "", "[item=funit-visual-spoiler]" },
+						order = 201,
+					},
 				},
 			},
-			preserve_products_in_machine_output = true,
-			energy_required = 1,
-		},
-		{
-			-- A non-spoiling result must not gain freshness tooltips.
-			type = "recipe",
-			name = "funit-visual-tooltip-nospoil",
-			ingredients = { { type = "item", name = "funit-visual-nospoil", amount = 1 } },
-			results = {
-				{ type = "item", name = "funit-visual-nospoil", amount = 1, always_fresh = true },
-			},
-			energy_required = 1,
-		},
-		{
-			-- The exact tooltip PlanetsLib would add is already present, so
-			-- rro.soft_insert() must not duplicate it.
-			type = "recipe",
-			name = "funit-visual-tooltip-dedupe",
-			ingredients = { { type = "item", name = "funit-visual-spoiler", amount = 1 } },
-			results = {
-				{ type = "item", name = "funit-visual-spoiler", amount = 1, always_fresh = true },
-			},
-			energy_required = 1,
-			custom_tooltip_fields = {
-				{
-					name = { "tooltip.result-is-always-fresh" },
-					value = { "", "[item=funit-visual-spoiler]" },
-					order = 201,
-				},
-			},
-		},
-	})
+		})
+	end
 
 	-- MISC-5: PlanetsLib_pipette_result. The source must not define
 	-- placeable_by, which is mutually exclusive with the custom field.
@@ -150,7 +154,9 @@ local ok, err = pcall(function()
 		data:extend({ orbit_planet })
 	end
 
-	assert(data.raw.recipe["funit-visual-tooltip-all"], "the tooltip recipe was not created")
+	if SPACE_AGE then
+		assert(data.raw.recipe["funit-visual-tooltip-all"], "the tooltip recipe was not created")
+	end
 	assert(data.raw["container"]["funit-visual-pipette"], "the pipette entity was not created")
 	assert(data.raw["assembling-machine"]["funit-visual-centrifuge"], "the centrifuge clone was not created")
 end)

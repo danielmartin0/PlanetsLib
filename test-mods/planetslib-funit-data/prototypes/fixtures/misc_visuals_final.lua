@@ -25,7 +25,9 @@ end
 
 -- MISC-4: enhanced tooltips.
 local tooltip_ok, tooltip_err
-if settings.startup["PlanetsLib-enhanced-tooltips"].value ~= true then
+if not SPACE_AGE then
+	tooltip_ok, tooltip_err = true, "space-age not active; spoilable tooltip fixtures are skipped"
+elseif settings.startup["PlanetsLib-enhanced-tooltips"].value ~= true then
 	tooltip_ok, tooltip_err = true, "PlanetsLib-enhanced-tooltips is disabled; skipped"
 else
 	tooltip_ok, tooltip_err = pcall(function()

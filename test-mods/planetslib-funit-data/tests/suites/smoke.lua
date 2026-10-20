@@ -37,6 +37,10 @@ return function(runner)
 	end)
 
 	runner.test("SMOKE-3 expected PlanetsLib prototypes are present", function()
-		runner.assert(prototypes.space_location["nauvis"], "planet prototype 'nauvis' not found")
+		if script.active_mods["space-age"] then
+			runner.assert(prototypes.space_location["nauvis"], "space location prototype 'nauvis' not found")
+		else
+			runner.assert(prototypes.entity["iron-chest"], "base prototype 'iron-chest' not found")
+		end
 	end)
 end

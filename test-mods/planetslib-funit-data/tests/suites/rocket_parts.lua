@@ -16,6 +16,10 @@ local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
 local MARKER = "PlanetsLib-is-funit-rocket-planet"
 
 return function(runner)
+	if not script.active_mods["space-age"] then
+		return
+	end
+
 	-- lib.surface-property-lib reads the PlanetsLib global (set in PlanetsLib's
 	-- own control stage, which is a separate Lua state). Recreate the runtime
 	-- marker in this state.
