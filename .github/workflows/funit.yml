@@ -37,6 +37,7 @@ env:
   TEST_MOD_NAME: planetslib-funit-data
   TEST_MOD_DIR: test-mods/planetslib-funit-data
   FUNIT_COMMIT: b69c2f277a467726e3a8c555d48df5b647ec5a64
+  FUNIT_SCRIPTS_URL: https://gitlab.com/jfletcher94/funit/-/raw/master/scripts
   TIMEOUT: 5m
   USERNAME: ${{ secrets.FACTORIO_USERNAME }}
   TOKEN: ${{ secrets.FACTORIO_TOKEN }}
@@ -54,7 +55,7 @@ jobs:
       run:
         shell: sh
     steps:
-      - run: apk add --no-cache bash git jq zip
+      - run: apk add --no-cache bash ca-certificates git jq wget zip
       - uses: actions/checkout@v4
         with:
           fetch-depth: 20
@@ -233,15 +234,18 @@ jobs:
       image: ruby:4-alpine
     timeout-minutes: 30
     steps:
-      - run: apk add --no-cache git
-      - uses: actions/checkout@v4
+      - run: apk add --no-cache ca-certificates wget
       - uses: actions/download-artifact@v4
         with:
           name: unit-test-job
           path: test_artifacts
+      - name: Fetch FUnit JSON parser
+        run: |
+          wget -qO parse_funit_json.rb \
+            "${FUNIT_SCRIPTS_URL}/parse_funit_json.rb"
       - name: Convert FUnit reports to JUnit XML
         run: |
-          ruby .github/funit/parse_funit_json.rb \
+          ruby parse_funit_json.rb \
             "test_artifacts/${MOD_NAME}/reports" \
             -o "funit-report-${MOD_NAME}.xml"
       - uses: actions/upload-artifact@v4
