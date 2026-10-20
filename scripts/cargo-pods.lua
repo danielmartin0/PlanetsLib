@@ -34,10 +34,11 @@ local function pod_contents_is_allowed(pod_contents, planet_name)
 				or (whitelists[planet_name] and whitelists[planet_name].entity_types[entity.type])
 			)
 
-		-- Check the legacy whitelist:
+		-- Check the legacy whitelist. An item is allowed when it is whitelisted
+		-- by name or by entity type, either globally or for this planet.
 		local old_whitelist_condition = old_whitelisted_names_all_planets[item.name]
-			and not (old_whitelisted_names[planet_name] and old_whitelisted_names[planet_name][item.name])
-			and not (
+			or (old_whitelisted_names[planet_name] and old_whitelisted_names[planet_name][item.name])
+			or (
 				entity
 				and (
 					old_whitelisted_types_all_planets[entity.type]
@@ -159,6 +160,12 @@ local function examine_cargo_pods(platform, planet_name)
 		end
 	end
 end
+
+-- Exposed for the test-only seams registered in control.lua when FUnit is
+-- active. This is purely additive; the locals remain the single implementation
+-- and are still used internally, so behaviour is unchanged.
+Public.pod_contents_is_allowed = pod_contents_is_allowed
+Public.examine_cargo_pods = examine_cargo_pods
 
 function Public.on_cargo_pod_started_ascending(event)
 	local cargo_pod = event.cargo_pod
