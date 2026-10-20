@@ -101,6 +101,7 @@ PlanetsLib.technology_icons_planet_cargo_drops = technology.technology_icons_pla
 PlanetsLib.technology_effect_cargo_drops = technology.technology_effect_cargo_drops
 PlanetsLib.surface_conditions = surface_conditions
 PlanetsLib.restrict_to_planet = surface_conditions.restrict_to_planet
+PlanetsLib.restrict_to_surface = surface_conditions.restrict_to_surface
 PlanetsLib.planet_str = planet_str
 
 PlanetsLib.generate_ground_diggers = ground_diggers.generate_ground_diggers
