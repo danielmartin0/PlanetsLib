@@ -55,6 +55,10 @@ test-mods/planetslib-funit-data/
     legacy/                  <- old non-FUnit scenario scripts, not run
 ```
 
+The CI-only settings mod lives outside this mod at
+`test-mods/planetslib-funit-settings`; it forces entity replacements off for the
+no-replacements scenarios.
+
 ### Runtime seams (root `control.lua`)
 
 When FUnit is active, PlanetsLib registers `planetslib_funit` and registers with

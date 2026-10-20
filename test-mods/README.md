@@ -21,3 +21,6 @@ the feature.
 - `planetslib-ground-digger-test` — exercises `PlanetsLib.enable_ground_diggers()`:
   registers a recipe on `nauvis` in `data.lua`, and a late-registered recipe on `vulcanus`
   (with a blacklist) from `data-final-fixes.lua`.
+- `planetslib-funit-settings` — CI-only companion mod that forces
+  `PlanetsLib-enable-entity-replacements = false` for the no-replacements FUnit
+  scenarios. It is not needed for normal local test runs.

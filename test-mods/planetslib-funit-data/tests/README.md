@@ -12,7 +12,8 @@ Current status (Factorio 2.1.22, both entity-replacements axes):
   Elevated Rails.
 
 The same suite runs in CI in four scenarios: base and Space Age + Quality, each
-with entity replacements on and off. A CI-only settings mod forces
+with entity replacements on and off. The CI-only
+`test-mods/planetslib-funit-settings` mod forces
 `PlanetsLib-enable-entity-replacements = false` for the no-replacements
 scenarios; `ENT-0` asserts that the setting matches the scenario. All four
 scenario runs were validated locally against Factorio 2.1.22; the container
@@ -30,8 +31,8 @@ list of known bugs the suite pins down.
 
 - `scenario/control.lua` — scenario entry point. Loads
   `__base__/script/freeplay/control.lua`, registers PlanetsLib with FUnit, sets
-  the report name (`planetslib`), then loads each suite listed in
-  `suites/manifest.lua`.
+  a scenario-specific report name (for example `planetslib-base`), then loads
+  each suite listed in `suites/manifest.lua`.
 - `suites/manifest.lua` — ordered list of suite module names.
 - `suites/<name>.lua` — a suite returning `function(runner) ... end`.
 - `scenario/description.json` / `scenario/mod-list.json` — scenario metadata and
@@ -48,23 +49,32 @@ list of known bugs the suite pins down.
 3. Copy `scenario/` to `<Factorio user data>/scenarios/funit`.
 4. Enable the mods listed in `scenario/mod-list.json`. The checked-in list is the
    base scenario: Space Age, Quality and Elevated Rails are explicitly disabled
-   (and the built-in `recycler` mod is enabled). Set those three entries to
-   `"enabled": true` to run the full Space Age + Quality suite.
+   (and the built-in `recycler` mod is enabled). The optional
+   `planetslib-funit-settings` mod is also disabled. Set the three DLC entries
+   to `"enabled": true` to run the full Space Age + Quality suite.
 5. Run:
    ```
    factorio --start-server-load-scenario funit --mod-directory <mods>
    ```
-6. The report is written to `script-output/funit-report-planetslib.json`
-   (testsuite name `planetslib`). The CI workflow overrides `mod-list.json` for
-   each scenario, so the checked-in list only affects local runs.
+6. The report is written to
+   `script-output/funit-report-planetslib-base.json`. The report name reflects
+   the active DLC and entity-replacement setting; the CI scenarios use
+   `planetslib-base`, `planetslib-base-no-replacements`,
+   `planetslib-space-age` and `planetslib-space-age-no-replacements`. The CI
+   workflow overrides `mod-list.json` for each scenario, so the checked-in list
+   only affects local runs.
 
 The CI workflow (`.github/workflows/funit.yml`) does steps 2–5 automatically
-inside the `factoriotools/factorio` job container. It builds PlanetsLib, this companion
-mod, and FUnit as local zips, runs the four scenarios, and converts the
-per-scenario JSON reports to JUnit XML. The scenario `mod-list.json` files are
-generated statically: the base scenarios explicitly disable `space-age`,
-`quality` and `elevated-rails` (the Factorio image ships them as built-in mods),
-while the Space Age scenarios enable them. The helper scripts and their upstream
+inside the `factoriotools/factorio:latest` job container. It builds PlanetsLib,
+this companion mod, the settings mod and FUnit as local zips, runs the four
+scenarios, and converts the per-scenario JSON reports to JUnit XML. Each
+scenario starts from a list with explicit DLC and `recycler` entries, then runs
+FUnit's upstream `expand_dependencies.rb` against local copies of the mods so no
+mod-portal lookup is needed. The base scenarios explicitly disable `space-age`,
+`quality` and `elevated-rails`; the DLC mods are installed by the headless
+Factorio distribution and cannot be downloaded through the mod portal API. The
+CI-only `test-mods/planetslib-funit-settings` mod forces entity replacements off
+for the no-replacements scenarios. The helper scripts and their upstream
 provenance are documented in [`.github/funit/README.md`](../../../.github/funit/README.md).
 
 ## Tests that drive stateful PlanetsLib internals

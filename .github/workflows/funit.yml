@@ -92,7 +92,7 @@ jobs:
 
           # FUnit is public, so package it locally instead of requiring mod
           # portal credentials just to download the test framework. Pin the
-          # commit so the packaged mod matches the vendored CI helpers.
+          # commit so the packaged mod matches the copied CI helpers.
           git clone --depth 1 https://gitlab.com/jfletcher94/funit.git funit-src
           git -C funit-src fetch --depth 1 origin "$FUNIT_COMMIT"
           git -C funit-src checkout --detach "$FUNIT_COMMIT"

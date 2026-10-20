@@ -1,16 +1,20 @@
 # FUnit CI helpers
 
-These scripts are vendored from the [FUnit](https://gitlab.com/jfletcher94/funit)
+These CI files are adapted from the [FUnit](https://gitlab.com/jfletcher94/funit)
 GitHub Actions template, which is licensed under
 `LGPL-3.0-or-later WITH FUnit-CI-Exception`. The exception permits
 project-specific CI adaptations to be copied and modified without applying
 copyleft to this repository.
 
-Sources (FUnit commit `b69c2f277a467726e3a8c555d48df5b647ec5a64`):
+Copied from FUnit commit `b69c2f277a467726e3a8c555d48df5b647ec5a64`:
 
 - `entrypoint.sh` — `entrypoint.sh`
 - `prepare_test_environment.sh` — `scripts/prepare_test_environment.sh`
-- `parse_funit_json.rb` — `scripts/parse_funit_json.rb`
+
+The Ruby helper scripts are not vendored. The workflow downloads the current
+`expand_dependencies.rb` and `parse_funit_json.rb` from FUnit's `master` branch
+so that upstream fixes and improvements are picked up automatically. FUnit
+keeps these scripts backwards-compatible for this reason.
 
 Project-specific changes:
 
@@ -18,17 +22,22 @@ Project-specific changes:
   config from `artifacts/PlanetsLib/test`, because PlanetsLib is a single-mod
   repository at the root and its fixtures live in
   `test-mods/planetslib-funit-data`.
-- `entrypoint.sh` renames `funit-report-planetslib.json` to
-  `funit-report-<scenario>.json` after each scenario, so all four scenarios
-  produce a separate report in the same job. It also treats `recycler` as a
-  built-in mod, alongside `space-age`, `quality` and `elevated-rails`, so the
-  mod updater does not try to download it.
+- `entrypoint.sh` treats `recycler` as a built-in mod, alongside `space-age`,
+  `quality` and `elevated-rails`, so the mod updater does not try to download
+  it. Reports are not renamed after each scenario; the scenario names its
+  report (see below).
+- `tests/scenario/control.lua` derives a unique report name from the active
+  scenario, for example `planetslib-base-no-replacements`. This lets all four
+  scenarios write their reports into the same `script-output` directory.
+- The workflow runs `expand_dependencies.rb` against each scenario. Symlinks to
+  the local PlanetsLib, FUnit, fixture mod and settings mod let the script
+  resolve their dependencies without querying the mod portal.
+- `test-mods/planetslib-funit-settings` is a checked-in, text-based settings
+  mod that forces `PlanetsLib-enable-entity-replacements = false` for the
+  no-replacements scenarios. It replaces the previous inline generated mod.
+- The Factorio image uses the `latest` tag, as recommended by the FUnit
+  template. Local validation used Factorio 2.1.22.
 
-`.github/workflows/funit.yml` also uses static scenario mod lists instead of
-`expand_dependencies.rb`: the test mod is local, and the paid DLC mods are
-supplied by the Factorio image rather than fetched through the public mod API.
-The base scenarios set `space-age`, `quality` and `elevated-rails` to
-`enabled: false` explicitly; omitting them would let Factorio's default mod
-manager enable them. FUnit itself is packaged from a shallow GitLab clone at a
-pinned commit, so no mod-portal credentials are required for the base test
-matrix.
+The Space Age, Quality, Elevated Rails and Recycler mods are installed by the
+headless Factorio distribution. They cannot be obtained through the mod portal
+API, so the scenario lists enable or disable them explicitly.
