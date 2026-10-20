@@ -52,7 +52,7 @@ jobs:
       factorio_version: ${{ env.FACTORIO_VERSION }}
     defaults:
       run:
-        shell: bash
+        shell: sh
     steps:
       - run: apk add --no-cache bash git jq zip
       - uses: actions/checkout@v4
