@@ -71,7 +71,7 @@ jobs:
           test_folder="${TEST_MOD_NAME}_${test_version}"
           test_archive="${test_folder}.zip"
 
-          mkdir -p "artifacts/${MOD_NAME}/scenarios" "artifacts/${MOD_NAME}/test"
+          mkdir -p "artifacts/${MOD_NAME}/scenarios" "artifacts/${MOD_NAME}/test" build
 
           # The repository root is the mod. .gitattributes excludes test-mods/,
           # .github/, docs/ and other development-only files from this archive.
@@ -119,6 +119,19 @@ jobs:
           EOF
           (cd build && zip -qr "../artifacts/${MOD_NAME}/planetslib-funit-settings_0.0.1.zip" "planetslib-funit-settings")
 
+          # Use the upstream dependency expander rather than maintaining a
+          # static dependency graph. Its local-mod detection reads these
+          # directories instead of querying the mod portal.
+          wget -qO build/expand_dependencies.rb \
+            "${FUNIT_SCRIPTS_URL}/expand_dependencies.rb"
+          expand_dir="$GITHUB_WORKSPACE/build/expand"
+          mkdir -p "$expand_dir"
+          ln -sfn "$GITHUB_WORKSPACE" "$expand_dir/PlanetsLib"
+          ln -sfn "$GITHUB_WORKSPACE/funit-src/funit" "$expand_dir/funit"
+          ln -sfn "$GITHUB_WORKSPACE/$TEST_MOD_DIR" "$expand_dir/$TEST_MOD_NAME"
+          ln -sfn "$GITHUB_WORKSPACE/test-mods/planetslib-funit-settings" \
+            "$expand_dir/planetslib-funit-settings"
+
           write_scenario() {
             local name="$1"
             local replacements="$2"
@@ -152,6 +165,11 @@ jobs:
                     ] else [] end)
                 )
               }' > "$dest/mod-list.json"
+
+            (cd "$expand_dir" && ruby "$GITHUB_WORKSPACE/build/expand_dependencies.rb" \
+              -i "$TEST_MOD_NAME/info.json" \
+              -m "$GITHUB_WORKSPACE/$dest/mod-list.json" \
+              -o "$GITHUB_WORKSPACE/$dest/mod-list.json")
 
             echo "$name" >> "artifacts/${MOD_NAME}/scenario_names.txt"
           }
