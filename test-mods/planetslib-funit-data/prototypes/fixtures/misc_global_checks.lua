@@ -85,6 +85,10 @@ results.record("misc_global_checks", "MISC-1", ok, err)
 -- Skipped (not failed) when the running engine rejects those fields outright.
 local legacy_ok, legacy_err = pcall(function()
 	local item = table.deepcopy(data.raw.item["iron-plate"])
+	-- PlanetsLib attaches a fuel_category guard metatable to item prototypes.
+	-- deepcopy copies it, which would make the assignment below take the late-write
+	-- path instead of creating a prototype that check_global_variables() corrects.
+	setmetatable(item, nil)
 	item.name = "funit-fuel-category"
 	item.fuel_category = "chemical"
 	local item_created = pcall(data.extend, data, { item })
