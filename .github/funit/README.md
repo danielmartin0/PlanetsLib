@@ -33,8 +33,9 @@ Project-specific changes:
   the local PlanetsLib, FUnit, fixture mod and settings mod let the script
   resolve their dependencies without querying the mod portal.
 - `test-mods/planetslib-funit-settings` is a checked-in, text-based settings
-  mod that forces `PlanetsLib-enable-entity-replacements = false` for the
-  no-replacements scenarios. It replaces the previous inline generated mod.
+  mod that forces `PlanetsLib-enable-entity-replacements = false` and
+  `PlanetsLib-disable-all-entity-replacements = true` for the no-replacements
+  scenarios. It replaces the previous inline generated mod.
 - `summarize_funit_results.rb` is a project-specific helper (not copied from
   upstream). It reads the per-scenario JSON reports and writes a Markdown
   summary to the GitHub step summary: scenario totals plus every failing test,
@@ -42,8 +43,12 @@ Project-specific changes:
   include the relevant tail of the captured headless log. Failing tests are
   also emitted as `::error` annotations. The helper exits 0 on test failures so
   that the JUnit conversion step remains the single source of the job result.
-- The Factorio image uses the `latest` tag, as recommended by the FUnit
-  template. Local validation used Factorio 2.1.22.
+  The workflow also passes `--min-tests` so a suite that silently stops loading
+  fails the summary even if the remaining tests pass.
+- The workflow pins Factorio `2.1.22` instead of using the floating `latest`
+  tag, so CI results are reproducible. The minimum test counts are set slightly
+  below the current totals (130 base, 157 Space Age) to catch a missing suite
+  without making every additive test change update the workflow.
 
 The Space Age, Quality, Elevated Rails and Recycler mods are installed by the
 headless Factorio distribution. They cannot be obtained through the mod portal

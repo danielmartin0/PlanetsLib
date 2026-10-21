@@ -54,6 +54,34 @@ local function pod_contents_is_allowed(pod_contents, planet_name)
 	return true
 end
 
+local function warn_player_of_canceled_pod(player, platform, planet_name)
+	if not (player and player.valid) then
+		return false
+	end
+	if not (player.surface and player.surface.valid and platform.surface and platform.surface.valid) then
+		return false
+	end
+	if player.surface.index ~= platform.surface.index then
+		return false
+	end
+
+	local whisper_hash = platform.index .. "-" .. player.name
+
+	local last_whisper_tick = storage.planets_lib.cargo_pod_canceled_whisper_ticks[whisper_hash]
+
+	if (not last_whisper_tick) or (game.tick - last_whisper_tick >= 60 * 10) then
+		player.print({
+			"planetslib.cargo-pod-canceled",
+			"[space-platform=" .. platform.index .. "]",
+			"[technology=" .. "planetslib-" .. planet_name .. "-cargo-drops" .. "]",
+		}, { color = warn_color })
+
+		storage.planets_lib.cargo_pod_canceled_whisper_ticks[whisper_hash] = game.tick
+		return true
+	end
+	return false
+end
+
 local function destroy_pod_on_platform(pod, platform, planet_name)
 	local hub = platform.hub
 	if hub and hub.valid then
@@ -68,26 +96,7 @@ local function destroy_pod_on_platform(pod, platform, planet_name)
 	end
 
 	for _, player in pairs(game.connected_players) do
-		if
-			player.valid
-			and player.surface
-			and player.surface.valid
-			and player.surface.index == platform.surface.index
-		then
-			local whisper_hash = platform.index .. "-" .. player.name
-
-			local last_whisper_tick = storage.planets_lib.cargo_pod_canceled_whisper_ticks[whisper_hash]
-
-			if (not last_whisper_tick) or (game.tick - last_whisper_tick >= 60 * 10) then
-				player.print({
-					"planetslib.cargo-pod-canceled",
-					"[space-platform=" .. platform.index .. "]",
-					"[technology=" .. "planetslib-" .. planet_name .. "-cargo-drops" .. "]",
-				}, { color = warn_color })
-
-				storage.planets_lib.cargo_pod_canceled_whisper_ticks[whisper_hash] = game.tick
-			end
-		end
+		warn_player_of_canceled_pod(player, platform, planet_name)
 	end
 
 	local pod_unit_number = pod.unit_number
@@ -166,6 +175,7 @@ end
 -- and are still used internally, so behaviour is unchanged.
 Public.pod_contents_is_allowed = pod_contents_is_allowed
 Public.examine_cargo_pods = examine_cargo_pods
+Public.warn_player_of_canceled_pod = warn_player_of_canceled_pod
 
 function Public.on_cargo_pod_started_ascending(event)
 	local cargo_pod = event.cargo_pod

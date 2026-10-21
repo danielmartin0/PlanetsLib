@@ -2,6 +2,19 @@ local Public = {}
 
 local WARN_COLOR = { r = 255, g = 90, b = 54 }
 
+---Whether the on-join warning should run.
+--
+-- The warning is only useful on the first tick of a newly started save; a
+-- player joining an existing save must not be spammed with warnings. Keeping
+-- this decision in a pure function lets the FUnit suite test both the tick and
+-- setting axes without changing startup settings.
+---@param tick integer
+---@param setting_value boolean|nil
+---@return boolean
+function Public.should_warn_on_join(tick, setting_value)
+	return setting_value == true and tick == 0
+end
+
 local function format_tech_list(techs, max_techs)
 	max_techs = max_techs or 10
 	if #techs <= max_techs then

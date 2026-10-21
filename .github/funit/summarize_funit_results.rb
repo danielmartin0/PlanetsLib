@@ -14,6 +14,10 @@
 #
 #   --expect NAMES   Comma-separated report names that must be present. Names
 #                    that produced no report are called out explicitly.
+#   --min-tests SPEC Comma-separated NAME=COUNT entries. A report with fewer
+#                    than COUNT testcases fails the step. This catches a suite
+#                    that silently stops loading even when the remaining tests
+#                    pass.
 #   --log FILE       Captured entrypoint output. The per-scenario section is
 #                    shown when a scenario produced no usable report.
 #   --output FILE    Append the Markdown to FILE (default:
@@ -218,6 +222,7 @@ end
 
 options = {
   expected: [],
+  min_tests: {},
   log: nil,
   output: ENV['GITHUB_STEP_SUMMARY'],
   annotate: ENV['GITHUB_ACTIONS'] == 'true'
@@ -231,6 +236,17 @@ parser = OptionParser.new do |opts|
   opts.on('--expect NAMES',
           'Comma-separated report names that must be present') do |value|
     options[:expected] = value.split(',').map(&:strip).reject(&:empty?)
+  end
+  opts.on('--min-tests SPEC',
+          'Comma-separated NAME=COUNT minimum test counts') do |value|
+    value.split(',').each do |pair|
+      name, count = pair.split('=', 2).map(&:strip)
+      unless name && count && count.match?(/\A\d+\z/)
+        warn "Error: invalid --min-tests entry #{pair.inspect}; expected NAME=COUNT"
+        exit 2
+      end
+      options[:min_tests][name] = count.to_i
+    end
   end
   opts.on('--log FILE', 'Captured headless Factorio output') do |value|
     options[:log] = value
@@ -294,7 +310,11 @@ total_failures = reports.sum { |report| report.failures.size }
 total_errors = reports.sum { |report| report.errors.size }
 incomplete = reports.select { |report| report.missing? || report.invalid? }
 failed = reports.select(&:failed?)
-bad = incomplete + failed
+low_count = reports.select do |report|
+  minimum = options[:min_tests][report.name]
+  minimum && !report.missing? && !report.invalid? && report.tests < minimum
+end
+bad = incomplete + failed + low_count
 all_passed = bad.empty? && !reports.empty?
 
 lines = ['## FUnit results', '']
@@ -314,6 +334,7 @@ else
   summary = []
   summary << "#{failed.size} of #{reports.size} scenarios failed" unless failed.empty?
   summary << "#{incomplete.size} of #{reports.size} scenarios did not report" unless incomplete.empty?
+  summary << "#{low_count.size} scenario(s) had too few tests" unless low_count.empty?
   counts = []
   counts << "#{total_failures} test #{total_failures == 1 ? 'failure' : 'failures'}"
   counts << "#{total_errors} #{total_errors == 1 ? 'error' : 'errors'}"
@@ -379,6 +400,15 @@ failed.each do |report|
   end
 end
 
+low_count.each do |report|
+  minimum = options[:min_tests][report.name]
+  lines << "### ❌ #{table_escape(report.name)} — too few tests"
+  lines << ''
+  lines << "Expected at least #{minimum} testcases, but the report contains #{report.tests}. " \
+           'A suite may have failed to load or been accidentally removed.'
+  lines << ''
+end
+
 incomplete.each do |report|
   lines << "### ⚠️ #{table_escape(report.name)} — no usable report"
   lines << ''
@@ -417,6 +447,15 @@ if options[:annotate]
     emit_annotation('error', "FUnit #{report.name}",
                     invalid_report_reason(report))
   end
+
+  low_count.each do |report|
+    minimum = options[:min_tests][report.name]
+    emit_annotation(
+      'error',
+      "FUnit #{report.name}: too few tests",
+      "Expected at least #{minimum} testcases, but the report contains #{report.tests}."
+    )
+  end
 end
 
-exit 0
+exit(low_count.empty? ? 0 : 1)

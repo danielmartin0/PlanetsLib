@@ -31,12 +31,17 @@ if cargo_pods then
 	
 end
 
+local function warn_on_join_if_due()
+	local setting = settings.startup["PlanetsLib-warn-on-hidden-prerequisites"]
+	if not unreachable_techs.should_warn_on_join(game.tick, setting and setting.value) then
+		return false
+	end
+	unreachable_techs.warn_unreachable_techs()
+	return true
+end
+
 if settings.startup["PlanetsLib-warn-on-hidden-prerequisites"].value then
-	script.on_event(defines.events.on_player_joined_game, function()
-		if game.tick == 0 then
-			unreachable_techs.warn_unreachable_techs()
-		end
-	end)
+	script.on_event(defines.events.on_player_joined_game, warn_on_join_if_due)
 end
 
 local function init_storage()
@@ -356,8 +361,27 @@ if script.active_mods["funit"] then
 		on_entity_built = function(event)
 			return ground_diggers.on_entity_built(event)
 		end,
+		ground_digger_collisions = function(surface, position, digger_prototype_name)
+			return ground_diggers.find_build_collisions(surface, position, digger_prototype_name)
+		end,
 		on_configuration_changed = function(configuration_changed_data)
 			return on_configuration_changed(configuration_changed_data)
+		end,
+		migrate_entity_replacement_rules = function(old_rules)
+			storage.old_replacement_rules = old_rules or storage.old_replacement_rules
+			return migrate_all_entity_replacement_rules()
+		end,
+		warn_on_join = function()
+			return warn_on_join_if_due()
+		end,
+		should_warn_on_join = function(tick, setting_value)
+			return unreachable_techs.should_warn_on_join(tick, setting_value)
+		end,
+		warn_cargo_pod_canceled = function(player, platform, planet_name)
+			if not cargo_pods then
+				return nil
+			end
+			return cargo_pods.warn_player_of_canceled_pod(player, platform, planet_name)
 		end,
 		pod_contents_is_allowed = function(pod_contents, planet_name)
 			if not cargo_pods then
