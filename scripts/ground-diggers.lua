@@ -56,6 +56,19 @@ function Public.on_entity_built(event)
 	if not config or not config.recipe then
 		return
 	end
+	-- A drill may be blacklisted on this planet while being allowed on another
+	-- planet (the generated digger prototype and `digger_names` are shared).
+	-- Only lock the recipe when this planet actually configured this digger.
+	local allowed_on_planet = false
+	for _, info in pairs(config.diggers or {}) do
+		if info.digger == entity.name then
+			allowed_on_planet = true
+			break
+		end
+	end
+	if not allowed_on_planet then
+		return
+	end
 	entity.set_recipe(config.recipe, "normal")
 	entity.recipe_locked = true
 end
@@ -79,6 +92,62 @@ local function surface_conditions_met(surface, prototype)
 end
 
 local mining_drill_prototypes = prototypes.get_entity_filtered{{filter="type",type="mining-drill"}}
+
+---Entities that block placing a ground digger at a position.
+-- The checked area is the digger's square collision footprint around the tile the
+-- build input targets. Corpses and characters do not block construction, so they
+-- are removed from the result.
+-- @param surface LuaSurface
+-- @param position MapPosition
+-- @param digger_prototype LuaEntityPrototype|string A prototype or a prototype name.
+-- @return table List of LuaEntity
+function Public.find_build_collisions(surface, position, digger_prototype)
+	if type(digger_prototype) == "string" then
+		digger_prototype = prototypes.entity[digger_prototype]
+	end
+	if not (surface and surface.valid and position and digger_prototype) then
+		return {}
+	end
+
+	-- If the digger is not square, this code can't cleanly handle the collision box.
+	local width = digger_prototype.tile_width
+	local height = digger_prototype.tile_height
+	if not width or not height or width ~= height then
+		return {}
+	end
+
+	local rounded_position = {
+		x = math.ceil(position.x + 0.5),
+		y = math.ceil(position.y + 0.5),
+	}
+	local collision_mask = digger_prototype.collision_mask
+	local colliding_entities = surface.find_entities_filtered({
+		area = {
+			{
+				rounded_position.x - width / 2,
+				rounded_position.y - height / 2,
+			},
+			{
+				rounded_position.x + width / 2,
+				rounded_position.y + height / 2,
+			},
+		},
+		to_be_deconstructed = false,
+		-- Only count entities that share a collision layer with the digger. Some planets
+		-- cover their surface with non-colliding visuals (e.g. Maraxsis' water shader),
+		-- which would otherwise block every placement.
+		collision_mask = collision_mask and collision_mask.layers,
+	})
+	for i = #colliding_entities, 1, -1 do
+		local entity = colliding_entities[i]
+		-- Corpses and characters do not block construction: the engine allows
+		-- building under the player, and the character itself is not an obstacle.
+		if entity.type == "corpse" or entity.type == "character" then
+			table.remove(colliding_entities, i)
+		end
+	end
+	return colliding_entities
+end
 
 function Public.construct_ground_digger(event)
 	
@@ -138,6 +207,7 @@ function Public.construct_ground_digger(event)
             to_be_deconstructed = false,
         }
     rro.remove(colliding_entities,function(entry) return entry.type == "corpse" end)
+	rro.remove(colliding_entities,function(entry) return entry.type == "character" end)
 	rro.remove(colliding_entities,function(entry) return entry.has_flag("not-on-map") end)
 	rro.remove(colliding_entities,function(entry) return entry.name == "maraxsis-water-shader" end)
     if #colliding_entities ~= 0 then 
@@ -212,33 +282,7 @@ function Public.construct_ground_digger(event)
 		return
 	end
 
-	local margin = 1.5
-	local rounded_position = {
-		x = math.ceil(position.x + 0.5),
-		y = math.ceil(position.y + 0.5),
-	}
-	local colliding_entities = surface.find_entities_filtered({
-		area = {
-			{
-				rounded_position.x - width / 2 + margin,
-				rounded_position.y - height / 2 + margin,
-			},
-			{
-				rounded_position.x + width / 2 - margin,
-				rounded_position.y + height / 2 - margin,
-			},
-		},
-		to_be_deconstructed = false,
-		-- Only count entities that share a collision layer with the digger. Some planets
-		-- cover their surface with non-colliding visuals (e.g. Maraxsis' water shader),
-		-- which would otherwise block every placement.
-		collision_mask = digger_prototype.collision_mask.layers,
-	})
-	for i = #colliding_entities, 1, -1 do
-		if colliding_entities[i].type == "corpse" then
-			table.remove(colliding_entities, i)
-		end
-	end
+	local colliding_entities = Public.find_build_collisions(surface, position, digger_prototype)
 	if #colliding_entities ~= 0 then
 		return
 	end
