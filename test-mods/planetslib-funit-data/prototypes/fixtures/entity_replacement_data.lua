@@ -29,6 +29,16 @@ local function contains(list, value)
 	return false
 end
 
+-- The global kill switch overrides every rule's own bound setting, so the
+-- expected `enabled` flag is the bound setting only when the switch is off.
+local function expected_enabled(bound_setting)
+	local disable_all = settings.startup[DISABLED_SETTING]
+	if disable_all and disable_all.value then
+		return false
+	end
+	return settings.startup[bound_setting].value
+end
+
 local function create_planet(name)
 	local planet = table.deepcopy(data.raw.planet.nauvis)
 	planet.name = name
@@ -52,15 +62,18 @@ record("ENT-1a", function()
 	assert(rule, "the rule was not stored")
 	assert(rule.old_entity == "funit-ent-old-a", "old_entity was not stored")
 	assert(rule.entity == "funit-ent-new-a", "entity was not stored")
-	assert(rule.enabled == settings.startup[SETTING].value, "the rule was not bound to the supplied setting")
+	assert(
+		rule.enabled == expected_enabled(SETTING),
+		"the rule was not bound to the supplied setting (or ignored the global kill switch)"
+	)
 
 	-- With no bound_setting the documented default setting is used.
 	PlanetsLib.assign_entity_replacement("funit-ent-planet-a", "funit-ent-old-b", "funit-ent-new-b")
 	local default_rule = rules["funit-ent-old-b"]
 	assert(default_rule, "the default-bound rule was not stored")
 	assert(
-		default_rule.enabled == settings.startup["PlanetsLib-enable-entity-replacements"].value,
-		"the default bound setting was not used"
+		default_rule.enabled == expected_enabled("PlanetsLib-enable-entity-replacements"),
+		"the default bound setting was not used (or ignored the global kill switch)"
 	)
 end)
 
@@ -127,8 +140,8 @@ record("ENT-1e", function()
 	assert(rules["funit-ent-mass-old-1"].entity == "funit-ent-mass-new-1", "the first mass assignment was not stored")
 	assert(rules["funit-ent-mass-old-2"].entity == "funit-ent-mass-new-2", "the second mass assignment was not stored")
 	assert(
-		rules["funit-ent-mass-old-1"].enabled == settings.startup[SETTING].value,
-		"the mass assignment ignored the bound setting"
+		rules["funit-ent-mass-old-1"].enabled == expected_enabled(SETTING),
+		"the mass assignment ignored the bound setting (or the global kill switch)"
 	)
 end)
 
@@ -195,7 +208,10 @@ record("ENT-1g", function()
 	end
 	local disabled = rules["transport-belt"]
 	assert(disabled, "the disabled rule was not stored")
-	assert(disabled.enabled == settings.startup[DISABLED_SETTING].value, "the disabled rule used the wrong setting")
+	assert(
+		disabled.enabled == expected_enabled(DISABLED_SETTING),
+		"the disabled rule used the wrong setting (or ignored the global kill switch)"
+	)
 	assert(disabled.enabled == false, "the disabled rule must be disabled with the default settings")
 end)
 

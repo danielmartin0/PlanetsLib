@@ -109,19 +109,17 @@ local legacy_ok, legacy_err = pcall(function()
 		sound_template = sound
 		break
 	end
-	if sound_template then
-		local sound = table.deepcopy(sound_template)
-		sound.name = "funit-legacy-planet-sound"
-		sound.planet = "nauvis"
-		sound.planets = nil
-		local sound_created = pcall(data.extend, data, { sound })
-		if sound_created then
-			PlanetsLib.check_global_variables()
-			local corrected_sound = data.raw["ambient-sound"]["funit-legacy-planet-sound"]
-			assert(corrected_sound.planet == nil, "AmbientSound::planet was not removed")
-			assert(contains(corrected_sound.planets, "nauvis"), "AmbientSound::planets was not populated")
-		end
-	end
+	assert(sound_template, "no ambient-sound prototype is available for the legacy-field check")
+	local sound = table.deepcopy(sound_template)
+	sound.name = "funit-legacy-planet-sound"
+	sound.planet = "nauvis"
+	sound.planets = nil
+	local sound_created, sound_err = pcall(data.extend, data, { sound })
+	assert(sound_created, "could not create the legacy ambient-sound fixture: " .. tostring(sound_err))
+	PlanetsLib.check_global_variables()
+	local corrected_sound = data.raw["ambient-sound"]["funit-legacy-planet-sound"]
+	assert(corrected_sound.planet == nil, "AmbientSound::planet was not removed")
+	assert(contains(corrected_sound.planets, "nauvis"), "AmbientSound::planets was not populated")
 end)
 results.record("misc_global_checks", "MISC-2", legacy_ok, legacy_err)
 

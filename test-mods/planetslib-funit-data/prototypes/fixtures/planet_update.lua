@@ -81,4 +81,32 @@ for _, check in ipairs(error_checks) do
 	)
 end
 
+-- PLAN-13: update accepts a batch of configs and applies non-orbit fields.
+local batch_ok, batch_err = pcall(function()
+	local color = { r = 0.125, g = 0.25, b = 0.5 }
+	local child = data.raw.planet["funit-child-str"]
+	local parent = data.raw.planet["funit-parent-nostr"]
+	assert(child and parent, "the PLAN-13 test planets are missing")
+	local child_parent = child.orbit and child.orbit.parent and child.orbit.parent.name
+
+	PlanetsLib:update({
+		{ type = "planet", name = "funit-child-str", map_color = color },
+		{ type = "planet", name = "funit-parent-nostr", map_color = color },
+	})
+
+	assert(
+		child.map_color
+			and child.map_color.r == 0.125
+			and child.map_color.g == 0.25
+			and child.map_color.b == 0.5,
+		"the first batch config did not apply map_color"
+	)
+	assert(parent.map_color and parent.map_color.b == 0.5, "the second batch config did not apply map_color")
+	assert(
+		child.orbit and child.orbit.parent and child.orbit.parent.name == child_parent,
+		"a non-orbit update changed the child's orbit"
+	)
+end)
+results.record("planet_update", "PLAN-13", batch_ok, batch_err)
+
 return true

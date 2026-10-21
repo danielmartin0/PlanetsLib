@@ -1,13 +1,18 @@
--- Ground diggers: runtime build conversion, recipe assignment and surface
--- conditions.
+-- Ground diggers: runtime build conversion, recipe assignment, collision
+-- detection and surface conditions.
 --
 -- The data-stage fixture and suite cover configuration/generation. These tests
 -- use real surfaces and the `planetslib_funit` remote interface. The headless
--- FUnit CI scenario has no player, so the player-driven parts of GD-8/GD-9 are
--- skipped with a log message; the no-player guard itself is still tested.
+-- FUnit CI scenario has no player, so GD-8/GD-9 assert that the environment is
+-- headless before logging the limitation; the no-player guard itself is still
+-- tested. When a player is present the player-driven path runs instead of being
+-- skipped.
+
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
 local MARKER = "PlanetsLib-has-ground-diggers"
 local DIGGER = "electric-mining-drill-ground-digger"
+local BURNER_DIGGER = "burner-mining-drill-ground-digger"
 local DRILL_ITEM = "electric-mining-drill"
 
 local function run_with_cleanup(cleanup, fn)
@@ -322,7 +327,19 @@ return function(runner)
 
 		local player = game.players[1]
 		if not player then
-			runner.log("GD-8 skipped: the headless scenario has no player (missing-player guard was tested)")
+			-- Make the reason explicit: this is a headless scenario, not a broken
+			-- player lookup. If a player is connected the real path below must run.
+			runner.assert(
+				#game.connected_players == 0,
+				"GD-8: game.players[1] is missing although "
+					.. #game.connected_players
+					.. " player(s) are connected"
+			)
+			runner.log(
+				"GD-8 player-driven checks skipped: the headless scenario has no player. "
+					.. "Conversion, collision, hidden-tile, reach and quality checks only run when a player exists; "
+					.. "the missing-player guard was tested above."
+			)
 			return
 		end
 
@@ -443,7 +460,17 @@ return function(runner)
 	runner.test("GD-9 remote-view ghost without reach", function()
 		local player = game.players[1]
 		if not player then
-			runner.log("GD-9 skipped: the headless scenario has no player")
+			-- As in GD-8: assert the actual reason instead of silently passing.
+			runner.assert(
+				#game.connected_players == 0,
+				"GD-9: game.players[1] is missing although "
+					.. #game.connected_players
+					.. " player(s) are connected"
+			)
+			runner.log(
+				"GD-9 remote-view ghost checks skipped: the headless scenario has no player. "
+					.. "The remote-view no-reach path only runs when a player exists."
+			)
 			return
 		end
 
@@ -490,6 +517,148 @@ return function(runner)
 				find_entity(surface, DIGGER, far) == nil,
 				"a remote-view build created a real digger instead of a ghost"
 			)
+		end)
+	end)
+
+	runner.test("GD-10 collision helper covers the whole digger footprint", function()
+		local created = {}
+		run_with_cleanup(function()
+			cleanup_surfaces(created)
+		end, function()
+			support.assert_entry(runner, "ground_diggers_late", "GD-4a")
+
+			local surface = prepare_surface(runner, "funit-gd-planet", created, 1)
+			-- The shared test planet may still hold a digger from an earlier
+			-- suite if a previous cleanup was interrupted. This test is about
+			-- the collision footprint, not surface setup, so start from an
+			-- explicitly empty 3x3 area.
+			for _, entity in pairs(surface.find_entities_filtered({ area = { { 0, 0 }, { 3, 3 } } })) do
+				entity.destroy()
+			end
+			local interface = remote.interfaces["planetslib_funit"]
+			runner.assert(
+				interface and interface["ground_digger_collisions"],
+				"PlanetsLib did not expose planetslib_funit.ground_digger_collisions"
+			)
+			local function collisions_at(position)
+				local collisions = remote.call(
+					"planetslib_funit",
+					"ground_digger_collisions",
+					surface,
+					position,
+					DIGGER
+				)
+				runner.assert(
+					type(collisions) == "table",
+					"the ground_digger_collisions seam did not return a table"
+				)
+				return collisions
+			end
+
+			-- A 3x3 drill centred on this tile spans tiles 0..2 in both axes.
+			local position = { x = 1.5, y = 1.5 }
+			local collisions = collisions_at(position)
+			runner.assert(
+				#collisions == 0,
+				"the collision helper reported "
+					.. #collisions
+					.. " entities in an empty 3x3 digger area"
+			)
+
+			-- One tile from the centre: inside the 3x3 footprint, but outside the
+			-- degenerate point that the old 1.5 margin produced for this build
+			-- position. A regression to a zero-size area would miss this chest.
+			local chest = surface.create_entity({
+				name = "iron-chest",
+				position = { x = position.x, y = position.y - 1 },
+				force = game.forces.player,
+			})
+			runner.assert(chest, "could not create the chest used by the collision check")
+
+			collisions = collisions_at(position)
+			local found = false
+			for _, entity in ipairs(collisions) do
+				if entity.unit_number == chest.unit_number then
+					found = true
+					break
+				end
+			end
+			runner.assert(
+				found,
+				"the collision helper missed a chest one tile from the digger centre; "
+					.. "the collision area must cover the full footprint, not a zero-size point"
+			)
+			runner.assert(
+				#collisions == 1,
+				"the collision helper returned "
+					.. #collisions
+					.. " entities, expected only the test chest"
+			)
+			chest.destroy()
+		end)
+	end)
+
+	runner.test("GD-11 on_entity_built respects the per-planet drill blacklist", function()
+		local created = {}
+		run_with_cleanup(function()
+			cleanup_surfaces(created)
+		end, function()
+			-- GD-4b records that funit-gd-planet blacklists the burner drill while
+			-- funit-gd-planet-b allows it.
+			support.assert_entry(runner, "ground_diggers_late", "GD-4b")
+
+			local surface_a = prepare_surface(runner, "funit-gd-planet", created, 1)
+			local burner = surface_a.create_entity({
+				name = BURNER_DIGGER,
+				position = { 0, 0 },
+				force = game.forces.player,
+				raise_built = false,
+			})
+			runner.assert(burner, "could not create a burner digger on the blacklisting planet")
+			remote.call("planetslib_funit", "on_entity_built", { entity = burner })
+			runner.assert(
+				burner.get_recipe() == nil,
+				"a drill blacklisted on this planet received a ground-digger recipe"
+			)
+			runner.assert(
+				burner.recipe_locked == false,
+				"a drill blacklisted on this planet had its recipe locked"
+			)
+
+			local electric = surface_a.create_entity({
+				name = DIGGER,
+				position = { 5, 0 },
+				force = game.forces.player,
+				raise_built = false,
+			})
+			runner.assert(electric, "could not create an electric digger on the configured planet")
+			remote.call("planetslib_funit", "on_entity_built", { entity = electric })
+			local recipe = electric.get_recipe()
+			runner.assert(recipe, "the allowed electric digger did not receive a recipe")
+			runner.assert(
+				recipe.name == "funit-gd-recipe-a",
+				"the electric digger got the wrong planet recipe: " .. tostring(recipe.name)
+			)
+			runner.assert(electric.recipe_locked == true, "the allowed electric digger was not locked")
+
+			-- The same shared prototype must still be converted on the planet that
+			-- allows the burner drill.
+			local surface_b = prepare_surface(runner, "funit-gd-planet-b", created, 1)
+			local burner_b = surface_b.create_entity({
+				name = BURNER_DIGGER,
+				position = { 0, 0 },
+				force = game.forces.player,
+				raise_built = false,
+			})
+			runner.assert(burner_b, "could not create a burner digger on the allowing planet")
+			remote.call("planetslib_funit", "on_entity_built", { entity = burner_b })
+			local recipe_b = burner_b.get_recipe()
+			runner.assert(recipe_b, "the burner digger did not receive a recipe on the allowing planet")
+			runner.assert(
+				recipe_b.name == "funit-gd-recipe-b",
+				"the burner digger got the wrong planet recipe: " .. tostring(recipe_b.name)
+			)
+			runner.assert(burner_b.recipe_locked == true, "the burner digger was not locked on the allowing planet")
 		end)
 	end)
 end

@@ -7,9 +7,18 @@
 --
 -- URT-1..2 drive warn_unreachable_techs / warn_unlinked_prerequisites with fake
 -- prototype tables. URT-3 drives the on_player_banned handler obtained from the
--- direct require of scripts/player-effects.lua. URT-4 exercises the on-join
--- event through FUnit's event mocker; the tick-0 branch is noted rather than
--- observed because that handler lives in PlanetsLib's VM.
+-- direct require of scripts/player-effects.lua. URT-4 asserts the real on-join
+-- gating through the `should_warn_on_join` / `warn_on_join` seams, then also
+-- routes the event through FUnit's mocker to prove the handler is registered.
+
+local function seam(name)
+	local iface = remote.interfaces["planetslib_funit"]
+	return iface ~= nil and iface[name] ~= nil
+end
+
+local function seam_call(name, ...)
+	return remote.call("planetslib_funit", name, ...)
+end
 
 local function count_occurrences(text, needle)
 	local count = 0
@@ -333,13 +342,14 @@ return function(runner)
 	end)
 
 	runner.test("URT-3 PlanetsLib authors are auto-unbanned, other players are not", function()
-		if not player_effects_ok or not player_effects_handler then
-			runner.log(
-				"URT-3 skipped: could not install scripts/player-effects.lua: " .. tostring(player_effects_err)
-			)
-			runner.assert(true, "skipped")
-			return
-		end
+		runner.assert(
+			player_effects_ok,
+			"could not install scripts/player-effects.lua: " .. tostring(player_effects_err)
+		)
+		runner.assert(
+			player_effects_handler ~= nil,
+			"scripts/player-effects.lua did not register an on_player_banned handler"
+		)
 
 		local authors = _G.PlanetsLib and _G.PlanetsLib.authors
 		runner.assert(type(authors) == "table", "PlanetsLib.authors was not loaded")
@@ -421,37 +431,72 @@ return function(runner)
 		runner.assert(setting ~= nil, "the PlanetsLib-warn-on-hidden-prerequisites startup setting is missing")
 		runner.assert(type(setting.value) == "boolean", "the warn setting should expose a boolean value")
 
+		runner.assert(
+			seam("should_warn_on_join"),
+			"PlanetsLib did not expose the should_warn_on_join test seam"
+		)
+		runner.assert(seam("warn_on_join"), "PlanetsLib did not expose the warn_on_join test seam")
+
+		-- The decision is a pure function of (tick, setting), so all axes can be
+		-- asserted without touching startup settings: only the first tick of a
+		-- newly started save with the setting enabled should warn.
+		local cases = {
+			{ tick = 0, setting = true, expected = true, label = "tick 0 with the setting enabled" },
+			{ tick = 1, setting = true, expected = false, label = "a later tick with the setting enabled" },
+			{ tick = 0, setting = false, expected = false, label = "tick 0 with the setting disabled" },
+			{ tick = 0, setting = nil, expected = false, label = "tick 0 with the setting unset" },
+		}
+		for _, case in ipairs(cases) do
+			runner.assert(
+				unreachable_techs.should_warn_on_join(case.tick, case.setting) == case.expected,
+				"should_warn_on_join must return "
+					.. tostring(case.expected)
+					.. " for "
+					.. case.label
+			)
+			runner.assert(
+				seam_call("should_warn_on_join", case.tick, case.setting) == case.expected,
+				"the should_warn_on_join seam must return "
+					.. tostring(case.expected)
+					.. " for "
+					.. case.label
+			)
+		end
+
+		-- The seam wraps control.lua's real gating: it returns the decision and
+		-- must not raise. At tick 0 that decision is the current setting value;
+		-- on a later tick it is always false.
+		local ok, result = pcall(seam_call, "warn_on_join")
+		runner.assert(ok, "warn_on_join raised: " .. tostring(result))
+		if game.tick == 0 then
+			runner.assert(
+				result == setting.value,
+				"warn_on_join at tick 0 must return the current setting value ("
+					.. tostring(setting.value)
+					.. "), got "
+					.. tostring(result)
+			)
+		else
+			runner.assert(
+				result == false,
+				"warn_on_join must not warn after tick 0 (game.tick is " .. tostring(game.tick) .. ")"
+			)
+			runner.log("URT-4 limitation: game.tick is not 0, so only the false gating branch was observable")
+		end
+
+		-- Also route the on-join event through FUnit's mocker to prove the
+		-- handler is registered and does not crash. Its printed text lives in
+		-- PlanetsLib's VM, so the assertions above are the real coverage.
 		local mock_interface = remote.interfaces["__funit_mock_event__PlanetsLib"]
 		runner.assert(
 			mock_interface ~= nil and mock_interface.call_event_handler ~= nil,
 			"PlanetsLib did not register with FUnit's event mocker"
 		)
 
-		local ok, err = pcall(mock.mock_event, {
+		local mock_ok, mock_err = pcall(mock.mock_event, {
 			name = defines.events.on_player_joined_game,
 			player_index = 1,
 		})
-		runner.assert(ok, "mocking on_player_joined_game raised: " .. tostring(err))
-
-		-- The handler lives in PlanetsLib's Lua VM, so this VM cannot observe its
-		-- game.print text. Record whether the tick-0 branch could run without
-		-- guessing; the module-level warning path is covered by URT-1.
-		if game.tick == 0 then
-			runner.log(
-				"URT-4 note: game.tick is 0 and PlanetsLib-warn-on-hidden-prerequisites="
-					.. tostring(setting.value)
-					.. "; the on-join handler ran in PlanetsLib's VM (its warning text is not observable here)"
-			)
-		else
-			runner.log(
-				"URT-4 note: skipped the tick-0 warning branch because game.tick is "
-					.. tostring(game.tick)
-					.. " (setting="
-					.. tostring(setting.value)
-					.. ")"
-			)
-		end
-
-		runner.assert(true, "the on-join warning path did not crash")
+		runner.assert(mock_ok, "mocking on_player_joined_game raised: " .. tostring(mock_err))
 	end)
 end

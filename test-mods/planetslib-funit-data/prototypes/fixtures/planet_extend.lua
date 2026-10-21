@@ -180,4 +180,25 @@ local music_ok, music_err = pcall(function()
 end)
 results.record("planet_extend", "PLAN-6", music_ok, music_err)
 
+-- PLAN-14: borrow_music accepts a prototype table as the source and copying to
+-- the space platform produces a track without a planet/surface list.
+local platform_ok, platform_err = pcall(function()
+	local source = data.raw.planet["funit-parent-str"]
+	assert(source, "funit-parent-str is missing")
+	local source_track = data.raw["ambient-sound"]["funit-music-track"]
+	assert(source_track, "the fixture music track is missing")
+	local source_planet_count = #source_track.planets
+
+	PlanetsLib.borrow_music(source, "space-platform")
+	local copied = data.raw["ambient-sound"]["funit-music-track-space-platform"]
+	assert(copied, "borrow_music did not copy the track to the space platform")
+	assert(copied.planets == nil, "a space-platform track must not keep a planets list")
+	assert(copied.surface_names == nil, "a space-platform track must not keep surface_names")
+	assert(
+		#source_track.planets == source_planet_count,
+		"copying a track to the space platform mutated the source track"
+	)
+end)
+results.record("planet_extend", "PLAN-14", platform_ok, platform_err)
+
 return true

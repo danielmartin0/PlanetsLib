@@ -15,7 +15,7 @@
 -- Known limitation: the cache-clearing handler is defined inline in the root
 -- control.lua (not in scripts/), so REC-3 can only exercise cache creation and
 -- reuse directly. See the runner.log note in REC-3.
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
 local SHARED = "funit-recipefx-shared"
 local INDEPENDENT = "funit-recipefx-independent"
@@ -155,17 +155,16 @@ local function tooltip_for(recipe, name)
 	return nil
 end
 
-local function assert_fixture_namespace(runner, suite, skip)
-	local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	local entries = mod_data.data[suite]
-	runner.assert(entries, "no data-stage results recorded for '" .. suite .. "'")
-	for id, entry in pairs(entries) do
-		if not (skip and skip[id]) then
-			runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
-		end
-	end
-end
+-- Every id the recipe_effects_setup fixture records. REC-1d is asserted by its
+-- own dedicated test below so a failure there does not mask the others.
+local RECIPE_EFFECTS_IDS = {
+	"REC-1",
+	"REC-1a",
+	"REC-1b",
+	"REC-1c",
+	"REC-1e",
+	"REC-1f",
+}
 
 local function handler_for(runner, recipe_name)
 	runner.assert(require_ok, "scripts/recipe-effects.lua failed to load: " .. tostring(require_err))
@@ -194,9 +193,9 @@ end
 
 return function(runner)
 	runner.test("REC-1 data preparation and derived prototype fields", function()
-		-- REC-1d is asserted separately: it pins the currently failing
-		-- no-probability tooltip path, so it must not mask the other checks.
-		assert_fixture_namespace(runner, "recipe_effects_setup", { ["REC-1d"] = true })
+		-- REC-1d is asserted separately so a failure there does not mask the
+		-- other checks.
+		support.assert_all(runner, "recipe_effects_setup", { expected = RECIPE_EFFECTS_IDS })
 
 		runner.assert(require_ok,
 			"scripts/recipe-effects.lua failed to load: " .. tostring(require_err))
@@ -271,15 +270,9 @@ return function(runner)
 	end)
 
 	runner.test("REC-1d a returned ingredient without a probability (no_probability) can be defined", function()
-		local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-		runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-		local entries = mod_data.data["recipe_effects_setup"]
-		runner.assert(entries, "no data-stage results recorded for 'recipe_effects_setup'")
-		local entry = entries["REC-1d"]
-		runner.assert(entry, "the REC-1d data-stage result is missing")
 		-- no_probability is set by the data-prep module for the runtime handler,
 		-- and the returned ingredient must not crash the tooltip arithmetic.
-		runner.assert(entry.ok, "data fixture 'REC-1d' failed: " .. tostring(entry.err))
+		support.assert_entry(runner, "recipe_effects_setup", "REC-1d")
 	end)
 
 	runner.test("REC-2a shared_probability hit/miss, bonus and production stats", function()

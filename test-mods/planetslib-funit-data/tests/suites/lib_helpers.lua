@@ -269,9 +269,12 @@ return function(runner)
 		local util_merged = rro.util_merge({ { a = 1 }, { a = 2 } })
 		runner.assert(util_merged.a == 2, "util_merge did not delegate to merge")
 
-		local target = { a = 1 }
-		rro.ammend(target, { a = 3 })
-		runner.assert(target.a == 1, "ammend returns the merged table; it cannot mutate its first argument")
+		local target = { a = 1, drop = "x" }
+		local returned = rro.ammend(target, { a = 3, drop = "_nil", added = 4 })
+		runner.assert(target.a == 3, "ammend did not mutate its first argument")
+		runner.assert(target.added == 4, "ammend did not copy an added field into its first argument")
+		runner.assert(target.drop == nil, "ammend did not apply the '_nil' sentinel")
+		runner.assert(returned == target, "ammend should return the table it mutated")
 	end)
 
 	runner.test("LIB-19 rro.get_concatenation copies both lists", function()

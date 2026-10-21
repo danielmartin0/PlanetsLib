@@ -3,17 +3,7 @@
 -- The pure helpers are tested directly; restrict_to_planet/restrict_to_surface
 -- need data.raw and are covered by the `surface_conditions` data fixture.
 
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
-
-local function assert_fixture_namespace(runner, suite)
-	local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	local entries = mod_data.data[suite]
-	runner.assert(entries, "no data-stage results recorded for '" .. suite .. "'")
-	for id, entry in pairs(entries) do
-		runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
-	end
-end
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
 local function find_condition(conditions, property)
 	for _, condition in ipairs(conditions) do
@@ -28,6 +18,7 @@ return function(runner)
 	package.loaded["util"] = require("__core__.lualib.util")
 	package.loaded["lib.objects"] = require("__PlanetsLib__.lib.objects")
 	local surface_conditions = require("__PlanetsLib__.lib.surface_conditions")
+	local surface_properties = require("__PlanetsLib__.lib.surface-property-lib")
 
 	runner.test("SFC-1 restrict_surface_conditions intersects ranges", function()
 		local initial = {
@@ -111,6 +102,72 @@ return function(runner)
 	end)
 
 	runner.test("SFC-4 data-stage restriction fixture results", function()
-		assert_fixture_namespace(runner, "surface_conditions")
+		local allow_skips = {}
+		if not support.has_space_age() then
+			allow_skips["SFC-DATA-1"] = true
+		end
+		support.assert_all(runner, "surface_conditions", {
+			expected = { "SFC-DATA-1" },
+			allow_skips = allow_skips,
+		})
+	end)
+
+	runner.test("SFC-5 fits_surface_conditions uses real surface properties", function()
+		local marker = prototypes.surface_property["pressure"]
+		runner.assert(marker, "the base-game pressure surface property is missing")
+		local default = marker.default_value
+		local entity = {
+			surface_conditions = {
+				{ property = marker.name, min = default + 1, max = default + 3 },
+			},
+		}
+
+		runner.assert(
+			surface_properties.fits_surface_conditions(entity, {
+				get_property = function()
+					return default + 2
+				end,
+			}),
+			"an in-range property should fit"
+		)
+		runner.assert(
+			not surface_properties.fits_surface_conditions(entity, {
+				get_property = function()
+					return default + 10
+				end,
+			}),
+			"a value above max should not fit"
+		)
+		runner.assert(
+			not surface_properties.fits_surface_conditions(entity, {
+				get_property = function()
+					return default
+				end,
+			}),
+			"a value below min should not fit"
+		)
+	end)
+
+	runner.test("SFC-6 fits_surface_conditions default fallback and missing field", function()
+		local marker = prototypes.surface_property["pressure"]
+		runner.assert(marker, "the base-game pressure surface property is missing")
+		local default = marker.default_value
+		local entity = {
+			surface_conditions = {
+				{ property = marker.name, min = default, max = default },
+			},
+		}
+
+		runner.assert(
+			surface_properties.fits_surface_conditions(entity, {}),
+			"the prototype default_value should satisfy an exact-default condition"
+		)
+
+		local ok, err = pcall(surface_properties.fits_surface_conditions, {}, {})
+		runner.assert(not ok, "fits_surface_conditions must reject an entity without surface_conditions")
+		runner.assert(
+			tostring(err):find("surface_conditions", 1, true),
+			"the missing-surface_conditions error should mention the field"
+		)
 	end)
 end

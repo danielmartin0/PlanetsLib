@@ -7,16 +7,10 @@
 -- misc_visuals_final fixtures record the processed state and this suite asserts
 -- both the recorded results and the surviving runtime prototypes.
 
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
 local function assert_fixture_namespace(runner, suite)
-	local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	local entries = mod_data.data[suite]
-	runner.assert(entries, "no data-stage results recorded for '" .. suite .. "'")
-	for id, entry in pairs(entries) do
-		runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
-	end
+	support.assert_all(runner, suite)
 end
 
 local function tooltip_by_name(fields, name)
@@ -32,9 +26,36 @@ local function tooltip_by_name(fields, name)
 end
 
 return function(runner)
+	runner.test("MISC-0 fixture result ids and expected skips", function()
+		local space_age = support.has_space_age()
+		local expected = { "MISC-4", "MISC-5", "MISC-6", "MISC-6-tint", "MISC-7" }
+		local allow_skips = {}
+		if not space_age then
+			allow_skips["MISC-4"] = true
+			allow_skips["MISC-6-tint"] = true
+			allow_skips["MISC-7"] = true
+			allow_skips["MISC-8"] = true
+			allow_skips["MISC-9"] = true
+			table.insert(expected, "MISC-8")
+			table.insert(expected, "MISC-9")
+		else
+			table.insert(expected, "MISC-8-gas")
+			table.insert(expected, "MISC-8-freezing")
+			table.insert(expected, "MISC-9-star")
+			table.insert(expected, "MISC-9-cleanup")
+			if settings.startup["PlanetsLib-enhanced-tooltips"].value ~= true then
+				allow_skips["MISC-4"] = true
+			end
+			allow_skips["MISC-6-tint"] = true
+		end
+		support.assert_all(runner, "misc_visuals_final", {
+			expected = expected,
+			allow_skips = allow_skips,
+		})
+	end)
+
 	runner.test("MISC-4 enhanced tooltips (freshness/reset/preserve, spoilage-only, dedupe)", function()
 		assert_fixture_namespace(runner, "misc_visuals_setup")
-		assert_fixture_namespace(runner, "misc_visuals_final")
 
 		if not script.active_mods["space-age"] then
 			return

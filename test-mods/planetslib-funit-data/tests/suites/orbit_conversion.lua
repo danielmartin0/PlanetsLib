@@ -3,16 +3,40 @@
 -- These functions read `data.raw`, so the actual behavior is exercised by the
 -- `orbit_native` data-final-fixes fixture and asserted here. The pure star
 -- pass-through and argument validation are also re-checked at runtime.
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
+--
+-- Fixture ids: ORB-5..16 and ORB-20. Runtime-only ids: ORB-17..19.
 
-local function assert_fixture_namespace(runner, suite)
-	local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	local entries = mod_data.data[suite]
-	runner.assert(entries, "no data-stage results recorded for '" .. suite .. "'")
-	for id, entry in pairs(entries) do
-		runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
-	end
+local support = require("__planetslib-funit-data__.tests.suites.support")
+
+local ORBIT_NATIVE_IDS = {
+	"ORB-5",
+	"ORB-6",
+	"ORB-7",
+	"ORB-8",
+	"ORB-9",
+	"ORB-10",
+	"ORB-11",
+	"ORB-12",
+	"ORB-13",
+	"ORB-14",
+	"ORB-15",
+	"ORB-16",
+	"ORB-20",
+}
+
+local EPSILON = 1e-6
+
+local function approx(a, b)
+	return math.abs(a - b) <= EPSILON
+end
+
+-- Native origins are MapPositions, which the engine stores in 1/256-tile
+-- fixed point. Recomputing the same position from the prototype's
+-- distance/orientation therefore agrees only to roughly one tile unit.
+local POSITION_EPSILON = 0.01
+
+local function approx_position(a, b)
+	return math.abs(a - b) <= POSITION_EPSILON
 end
 
 return function(runner)
@@ -24,8 +48,8 @@ return function(runner)
 	package.loaded["lib.lib"] = require("__PlanetsLib__.lib.lib")
 	local orbits = require("__PlanetsLib__.lib.orbits")
 
-	runner.test("ORB-5..16 orbit conversion fixture results", function()
-		assert_fixture_namespace(runner, "orbit_native")
+	runner.test("ORB-5..16, ORB-20 orbit conversion fixture results", function()
+		support.assert_all(runner, "orbit_native", { expected = ORBIT_NATIVE_IDS })
 	end)
 
 	runner.test("ORB-17 star parents pass through at runtime", function()
@@ -50,12 +74,30 @@ return function(runner)
 	end)
 
 	runner.test("ORB-19 converted prototypes have native origins", function()
+		local parent = prototypes.space_location["funit-parent-str"]
 		local native = prototypes.space_location["funit-native-a"]
+		runner.assert(parent, "funit-parent-str is missing")
 		runner.assert(native, "funit-native-a is missing")
 		runner.assert(native.origin, "the converted prototype has no native origin")
 		runner.assert(
 			type(native.origin.x) == "number" and type(native.origin.y) == "number",
 			"the native origin is not an x/y table"
 		)
+
+		-- The origin is the parent's absolute position, and distance/orientation
+		-- are rebased onto it (back to the orbit values).
+		local parent_x, parent_y = orbits.get_absolute_position(parent)
+		runner.assert(approx_position(native.origin.x, parent_x) and approx_position(native.origin.y, parent_y),
+			"the native origin is not the parent's absolute position (origin="
+				.. tostring(native.origin.x) .. "," .. tostring(native.origin.y)
+				.. ", parent=" .. tostring(parent_x) .. "," .. tostring(parent_y) .. ")")
+		runner.assert(approx(native.distance, 5) and approx(native.orientation, 0.25),
+			"distance/orientation were not rebased onto the native origin (distance="
+				.. tostring(native.distance) .. ", orientation=" .. tostring(native.orientation) .. ")")
+
+		-- orbit.sprite enables draw_orbit during the conversion.
+		local sprite = prototypes.space_location["funit-native-sprite"]
+		runner.assert(sprite, "funit-native-sprite is missing")
+		runner.assert(sprite.draw_orbit == true, "orbit.sprite did not enable draw_orbit")
 	end)
 end
