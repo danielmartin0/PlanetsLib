@@ -78,9 +78,7 @@ end
 return function(runner)
 	runner.test("SMOKE-1 results bag exists", function()
 		local results = get_results(runner)
-		-- Deliberately broken to exercise the FUnit failure PR comment.
-		runner.assert(type(results) == "string",
-			"deliberate failure: results bag should be a table")
+		runner.assert(type(results) == "table", "results bag is not a table")
 	end)
 
 	runner.test("SMOKE-2 example data-stage fixtures succeeded", function()
