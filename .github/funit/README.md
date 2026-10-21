@@ -45,6 +45,15 @@ Project-specific changes:
   that the JUnit conversion step remains the single source of the job result.
   The workflow also passes `--min-tests` so a suite that silently stops loading
   fails the summary even if the remaining tests pass.
+  `--comment` writes a second copy for a pull request comment, truncated to
+  GitHub's comment size limit, and `--github-output` records `failed=true|false`
+  for the workflow's comment steps.
+- On a failing run of a same-repository pull request, the workflow posts the
+  summary as a new comment on that PR (marked with a hidden
+  `<!-- funit-results -->` tag). A later passing run deletes all such comments,
+  so stale failures do not linger on the PR. Fork PRs are skipped because their
+  `GITHUB_TOKEN` is read-only; their summary remains in the step summary and
+  annotations.
 - The workflow pins Factorio `2.1.22` instead of using the floating `latest`
   tag, so CI results are reproducible. The minimum test counts are set slightly
   below the current totals (130 base, 157 Space Age) to catch a missing suite
