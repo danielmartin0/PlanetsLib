@@ -400,6 +400,16 @@ function Public.replace_entity(entity,new_entity,raise_built)
     local is_ghost = entity.name == "entity-ghost"
     local name = new_entity
     local player = entity.last_user
+    -- Belt-like entities cannot be recreated on top of themselves, so silent
+    -- migrations (raise_built = false) use the engine's fast-replace path. This
+    -- is what makes reverting an entity-replacement rule work for belts.
+    local fast_replace = not raise_built
+        and not is_ghost
+        and (entity.type == "transport-belt"
+            or entity.type == "underground-belt"
+            or entity.type == "splitter"
+            or entity.type == "loader")
+    local old_unit_number = entity.unit_number
     local new_entity_properties = {
         name = is_ghost and "entity-ghost" or name,
         inner_name = is_ghost and name or nil,
@@ -416,7 +426,7 @@ function Public.replace_entity(entity,new_entity,raise_built)
         player = raise_built and player or nil,
         mirror = entity.mirroring,
         create_build_effect_smoke = false,
-        --fast_replace = true
+        fast_replace = fast_replace or nil,
     }
     --game.print(entity.ghost_type)
     --if not surface.can_place_entity{new_entity_properties} then return end
@@ -499,7 +509,23 @@ function Public.replace_entity(entity,new_entity,raise_built)
     else
         local new_entity = entity.surface.create_entity(new_entity_properties)
         if not new_entity or not new_entity.valid then return end
-        
+
+        if fast_replace then
+            -- The engine replaced the old entity in place. Its contents and
+            -- settings were handled by fast-replace; do not touch the now
+            -- invalid source entity.
+            storage.replaced_entities[new_entity.unit_number] = new_entity
+            storage.replaced_entities[old_unit_number] = new_entity
+            script.raise_event("PlanetsLib-on-entity-replaced", {
+                entity = entity,
+                new_entity = new_entity,
+            })
+            if raise_built == true and not has_ghost_equipment then
+                script.raise_script_built{entity=new_entity}
+            end
+            return new_entity
+        end
+
         Public.transfer_entity_state(entity,new_entity)
         -- Modules are moved by transfer_all_inventories (the module inventory is
         -- one of defines.inventory), and any overflow is spilled there. Do not
@@ -530,6 +556,9 @@ end
 local get_planet = require("lib.entity-replacement-decision-tree.evaluators.planet")
 
 function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on Maraxsis function. Fulfills rule "If entity X placed on planet Y, replace entity with entity Z"
+    local disable_all = settings.startup["PlanetsLib-disable-all-entity-replacements"]
+    if disable_all and disable_all.value then return end
+
     local entity = event.entity
     --if not entity.valid then return end 
     local planet = get_planet(entity)
@@ -563,7 +592,6 @@ function Public.on_built_entity(event,swap_target,dont_raise_built) -- Based on 
     if swap_target == name then return end
     if entity_replacements and entity_replacements[planet] and entity_replacements[planet][name] and entity_replacements[planet][name].enabled == false then return end 
         
-    print("Replacing entity " .. entity.name .. " with " .. swap_target)
     Public.replace_entity(entity,swap_target,true)
     
 
