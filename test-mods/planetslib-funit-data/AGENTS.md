@@ -417,6 +417,20 @@ and called `PlanetsLib.extend`/`update` with dot syntax instead of method
 syntax. All four were fixture mistakes and are fixed in
 `prototypes/fixtures/`.
 
+A fifth harness-only issue surfaced when all four CI scenarios were run locally
+against Factorio 2.1.23: SFC-5 and SFC-6 errored in the base-only scenarios with
+`lib/surface-property-lib.lua:24: attempt to index global 'data' (a nil value)`.
+`fits_surface_conditions` chooses its data-stage branch from
+`PlanetsLib.stage`, and suites run in the scenario's Lua state, not PlanetsLib's
+control-stage state. The Space Age scenario only passed because the
+`rocket_parts` suite happens to set `_G.PlanetsLib.stage = "runtime"` before
+`surface_conditions` runs; `rocket_parts` returns early without Space Age, so
+the marker was never set in the base scenarios and the helper fell through to
+the data-stage branch. `tests/scenario/control.lua` now recreates the runtime
+`PlanetsLib` shim (`stage` plus the mod-data `constants`) once before loading
+any suite, so suite results no longer depend on manifest order or active DLC.
+This is a harness fix; the library's own control stage already sets the marker.
+
 ---
 
 ## 6. Implementing a suite (workflow)
