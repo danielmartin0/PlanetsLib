@@ -185,8 +185,8 @@ end
 
 Status: every suite listed in `tests/suites/manifest.lua` is implemented (no
 stubs), and every fixture listed in `prototypes/fixtures/manifest.lua` is
-implemented for its stage. Against Factorio 2.1.22 the suite runs **144 tests
-with 0 failures/errors** with Space Age + Quality and **122 tests with 0
+implemented for its stage. Against Factorio 2.1.23 the suite runs **155 tests
+with 0 failures/errors** with Space Age + Quality and **133 tests with 0
 failures/errors** in a base-only game; Space Age-only fixtures/suites are
 filtered out when `mods["space-age"]` is nil (see `tests/README.md` for how to
 run it). Check the files for the current state.
@@ -199,6 +199,7 @@ run it). Check the files for the current state.
 | `lib_helpers` | LIB-1.. | `lib.merge/find/contains/sort/wrap_single_config/event_name/build+destroy events`; `rro.deep_equals` (incl. `_any`, functions), `remove/replace/no_duplicates`, `deep_replace/deep_gsub/deep_replace_field`, `replace_field/name`, `contains*`, `find_contains/find_many`, `soft_insert`, `merge/util_merge`, `get_concatenation`, `safe_find`, `copy_fields`, `count`, `keys`, `range`, `cut_paste`; `predicates.compare` all operators + invalid operator. |
 | `planet_str` | PSTR-1..4 | `encode_string_to_double`/`decode_double_to_string` round-trip (empty, 8-byte boundary, high bytes), >8-char assertion; fixture: `set_planet_str` by name/prototype, `get_planet_str` explicit vs `name:sub(1,8)` fallback, `get_planet_str_double`; final-fixes fixture: auto-assignment for planets lacking it. |
 | `recipe` | RCP-1..7 | Crushing/asteroid icon arrays; `advanced_crushing_recipe_icons` variants + invalid variant; `melting_icon`; `icon-entry.build_icon_entry` (singular/plural/placeholder, shift/scale/tint); `dual_icon`/`dual_icon_reversed`; `blur_technology_icon` count/tint/blend/no mutation/argument assertions. Fixture `icons`: documented `detect_type` precedence (surface > tool > capsule > fluid > planet > item), `get_prototype`, composite icons on real prototypes. |
+| `asteroids` | AST-1..11 | Connection/planet output shapes; ratio normalization; independent size curves; interpolation and endpoint clamping; default and explicit custom asteroid names; zero-probability omission; input immutability; Space Age table conversion (families option, promethium); validation errors; setter fixture for planet/space-connection targets, default `0.9`, `influence`, and option rejection. Fixture `asteroids`. |
 
 ### B. Data-stage APIs (fixtures + prototype assertions)
 

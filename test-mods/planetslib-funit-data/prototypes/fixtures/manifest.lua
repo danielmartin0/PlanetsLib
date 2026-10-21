@@ -42,6 +42,7 @@ return {
 		"surface_conditions",
 		"mod_data",
 		"achievements",
+		"asteroids",
 		"icons",
 		"misc_global_checks",
 		"misc_science_lab",

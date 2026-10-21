@@ -15,6 +15,7 @@ return {
 		"lib_helpers",
 		"planet_str",
 		"recipe",
+		"asteroids",
 		-- Data/control-stage suites (assert on prototypes and on the results
 		-- bag produced by test-mods/planetslib-funit-data).
 		"planet",

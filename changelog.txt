@@ -2,6 +2,7 @@
 Version: 2.3.0
 Date: 2026-10-21
   Features:
+    - Added asteroid route helpers: PlanetsLib.asteroid_route(), PlanetsLib.asteroid_spawn_definitions() and PlanetsLib.set_asteroid_spawn_definitions(). Routes use named asteroid ratios, support custom asteroid prototype names, and generate both space-connection spawn_points and planet probabilities.
   Changes:
     - Ground diggers are no longer generated for mining drills that can only mine specific resource sites, such as pumpjacks or anomaly collectors. Such drills must be able to mine ordinary solid resources (their resource_categories must include basic-solid, or be unset).
 ---------------------------------------------------------------------------------------------------

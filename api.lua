@@ -12,6 +12,7 @@ local entity_replacements = require("lib.add-entity-replacement")
 local dual_item_icon = require("lib.dual-item-icon")
 local images = require("lib.images")
 local ground_diggers = require("lib.ground-diggers")
+local asteroids = require("lib.asteroids")
 
 --== APIs ==--
 -- API documentation lives in README.md (or on the mod portal.)
@@ -35,6 +36,10 @@ PlanetsLib.melting_icon = recipe.melting_icon
 PlanetsLib.dual_icon = dual_item_icon.dual_icon
 PlanetsLib.dual_icon_reversed = dual_item_icon.dual_icon_reversed
 PlanetsLib.blur_technology_icon = images.blur_technology_icon
+
+PlanetsLib.asteroid_route = asteroids.asteroid_route
+PlanetsLib.asteroid_spawn_definitions = asteroids.asteroid_spawn_definitions
+PlanetsLib.set_asteroid_spawn_definitions = asteroids.set_asteroid_spawn_definitions
 
 PlanetsLib.assign_rocket_part_recipe = mod_data.assign_rocket_part_recipe
 PlanetsLib.add_item_name_to_planet_cargo_drops_whitelist = mod_data.add_item_name_to_planet_cargo_drops_whitelist

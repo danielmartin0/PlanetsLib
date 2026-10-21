@@ -73,6 +73,7 @@ lib/                        Data-stage library modules ("lib.*")
   mod-data.lua              rocket-part recipes, cargo-drop whitelists
   surface_conditions.lua    restrict/relax/remove surface conditions
   technology.lua            Science-pack sorting, tech-tree excision, icons
+  asteroids.lua             Asteroid route builder + asteroid_spawn_definitions helpers
   recipe.lua  achievements.lua  planet-str.lua  predicates.lua  lib.lua
   add-entity-replacement.lua
   dual-item-icon.lua        Composite icon helpers (dual_icon, dual_icon_reversed)
