@@ -86,6 +86,21 @@ local setup_ok, setup_err = pcall(function()
 	conditioned_item.place_result = "funit-gd-conditioned-drill"
 	data:extend({ conditioned_item })
 
+	-- A drill that can only mine a specific resource category, like a pumpjack or an
+	-- anomaly collector. It must never be converted into a ground digger.
+	local restricted = table.deepcopy(data.raw["mining-drill"]["electric-mining-drill"])
+	restricted.name = "funit-gd-restricted-drill"
+	restricted.resource_categories = { "basic-fluid" }
+	restricted.minable = { mining_time = 0.2, result = "funit-gd-restricted-drill" }
+	restricted.next_upgrade = nil
+	restricted.fast_replaceable_group = "funit-gd-restricted"
+	data:extend({ restricted })
+
+	local restricted_item = table.deepcopy(data.raw.item["electric-mining-drill"])
+	restricted_item.name = "funit-gd-restricted-drill"
+	restricted_item.place_result = "funit-gd-restricted-drill"
+	data:extend({ restricted_item })
+
 	-- A technology with a mining-drill-productivity-bonus effect. PlanetsLib's
 	-- final-fixes should add change-recipe-productivity effects for every
 	-- configured ground-digger recipe.
@@ -104,7 +119,12 @@ local setup_ok, setup_err = pcall(function()
 
 	-- Final configuration consumed by PlanetsLib's data-final-fixes.
 	PlanetsLib.enable_ground_diggers("funit-gd-planet", "funit-gd-recipe-a", {
-		drills = { "electric-mining-drill", "burner-mining-drill", "funit-gd-conditioned-drill" },
+		drills = {
+			"electric-mining-drill",
+			"burner-mining-drill",
+			"funit-gd-conditioned-drill",
+			"funit-gd-restricted-drill",
+		},
 		blacklist = { "burner-mining-drill" },
 	})
 	PlanetsLib.enable_ground_diggers("funit-gd-planet-b", "funit-gd-recipe-b")
@@ -175,7 +195,12 @@ record("GD-1b", function()
 
 	-- Restore the configuration used by the generation assertions.
 	PlanetsLib.enable_ground_diggers("funit-gd-planet", "funit-gd-recipe-a", {
-		drills = { "electric-mining-drill", "burner-mining-drill", "funit-gd-conditioned-drill" },
+		drills = {
+			"electric-mining-drill",
+			"burner-mining-drill",
+			"funit-gd-conditioned-drill",
+			"funit-gd-restricted-drill",
+		},
 		blacklist = { "burner-mining-drill" },
 	})
 end)
@@ -189,6 +214,8 @@ record("GD-2", function()
 		["funit-iron-ore-drill"] = "funit-iron-ore-item",
 		["funit-normal-drill"] = "funit-normal-item",
 		["funit-variant-drill"] = "funit-variant-item",
+		["funit-site-drill"] = "funit-site-item",
+		["funit-hybrid-drill"] = "funit-hybrid-item",
 	}
 
 	local function drill(name, overrides)
@@ -240,6 +267,20 @@ record("GD-2", function()
 			item_lookup
 		),
 		"PlanetsLib_do_not_generate_variants must exclude a drill"
+	)
+	assert(
+		not ground_diggers.is_eligible_drill(
+			drill("funit-site-drill", { resource_categories = { "basic-fluid" } }),
+			item_lookup
+		),
+		"drills that can only mine specific resource sites must be excluded"
+	)
+	assert(
+		ground_diggers.is_eligible_drill(
+			drill("funit-hybrid-drill", { resource_categories = { "basic-solid", "funit-special" } }),
+			item_lookup
+		),
+		"drills that can still mine ordinary solid resources should be eligible"
 	)
 	assert(not ground_diggers.is_eligible_drill(nil, item_lookup), "nil must not be eligible")
 	local no_selection_box = drill("funit-eligible-drill")

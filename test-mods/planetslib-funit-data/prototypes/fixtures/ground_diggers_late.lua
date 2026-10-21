@@ -160,6 +160,11 @@ record("GD-4a", function()
 		data.raw["assembling-machine"]["pumpjack-ground-digger"] == nil,
 		"a pumpjack ground digger was generated"
 	)
+	-- Drills restricted to specific resource sites must never be converted either.
+	assert(
+		data.raw["assembling-machine"]["funit-gd-restricted-drill-ground-digger"] == nil,
+		"a ground digger was generated for a resource-site-only drill"
+	)
 
 	-- The drill's own surface conditions are inherited by the shared digger.
 	local conditioned = data.raw["assembling-machine"]["funit-gd-conditioned-drill-ground-digger"]
@@ -204,6 +209,10 @@ record("GD-4b", function()
 	assert(
 		config.diggers["funit-gd-conditioned-drill"],
 		"an explicitly listed drill is missing from the resolved diggers"
+	)
+	assert(
+		config.diggers["funit-gd-restricted-drill"] == nil,
+		"an explicitly listed resource-site-only drill was resolved into a digger"
 	)
 
 	-- With an explicit `drills` list, an otherwise eligible drill that is not

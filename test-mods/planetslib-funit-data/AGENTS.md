@@ -228,7 +228,7 @@ run it). Check the files for the current state.
 
 | Suite | IDs | What to cover |
 | --- | --- | --- |
-| `ground_diggers_data` | GD-1..5 | `enable_ground_diggers` validation, option normalisation (array + dictionary), late final-fixes call; `is_eligible_drill` exclusions (fluid output, non-square, no item, quality/resource-named, `do_not_generate_variants`); `create_ground_digger` field mapping/stripping/drain/surface condition/flags; `generate_ground_diggers` shared naming, recipe-category union, planet surface property, Factoriopedia note once, missing planet/recipe errors, `drills`/`blacklist`; mining-productivity effects. Fixtures: `ground_diggers_data`, `ground_diggers_late`. |
+| `ground_diggers_data` | GD-1..5 | `enable_ground_diggers` validation, option normalisation (array + dictionary), late final-fixes call; `is_eligible_drill` exclusions (fluid output, resource-site-only drills, non-square, no item, quality/resource-named, `do_not_generate_variants`); `create_ground_digger` field mapping/stripping/drain/surface condition/flags; `generate_ground_diggers` shared naming, recipe-category union, planet surface property, Factoriopedia note once, missing planet/recipe errors, `drills`/`blacklist`; mining-productivity effects. Fixtures: `ground_diggers_data`, `ground_diggers_late`. |
 | `ground_diggers_runtime` | GD-6..9 | Built digger gets and locks the planet recipe; non-participating planet not converted; surface conditions respected; `construct_ground_digger` (no resources → convert, resources → no convert, collision, hidden tile, reach, remote-view ghost, wrong quality, cursor consumption + build stats); remote-view ghost without reach. |
 
 ### E. Runtime features and overrides

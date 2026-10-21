@@ -102,6 +102,10 @@ return function(runner)
 			config.diggers["funit-gd-conditioned-drill"],
 			"the conditioned drill was not resolved"
 		)
+		runner.assert(
+			config.diggers["funit-gd-restricted-drill"] == nil,
+			"a drill restricted to specific resource sites was resolved"
+		)
 
 		runner.assert(
 			prototypes.entity["electric-mining-drill-ground-digger"],
@@ -118,6 +122,10 @@ return function(runner)
 		runner.assert(
 			prototypes.entity["pumpjack-ground-digger"] == nil,
 			"a pumpjack ground digger was generated even though it outputs fluid"
+		)
+		runner.assert(
+			prototypes.entity["funit-gd-restricted-drill-ground-digger"] == nil,
+			"a ground digger was generated for a drill restricted to specific resource sites"
 		)
 	end)
 

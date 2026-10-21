@@ -68,10 +68,26 @@ local function contains_quality_or_resource_name(name)
 	return false
 end
 
+-- Drills that cannot mine ordinary solid resources can only be placed on specific
+-- resource sites (pumpjacks on oil, anomaly collectors on warp anomalies, ...).
+-- Turning those into ground diggers would let players place them anywhere.
+local function can_mine_solid_resources(drill)
+	if not drill.resource_categories then
+		return true
+	end
+	for _, category in pairs(drill.resource_categories) do
+		if category == "basic-solid" then
+			return true
+		end
+	end
+	return false
+end
+
 ---Whether a mining drill can be converted into a ground digger.
--- Diggers are assembling machines, so the drill must be square and placeable, and must
--- not output fluids (pumpjacks are mining drills). Any energy source is allowed, so
--- non-electric drills are eligible too.
+-- Diggers are assembling machines, so the drill must be square and placeable, must
+-- not output fluids (pumpjacks are mining drills), and must be able to mine ordinary
+-- solid resources rather than only specific resource sites. Any energy source is
+-- allowed, so non-electric drills are eligible too.
 -- @param drill table
 -- @param item_lookup table Dictionary of entity name -> placing item name.
 -- @return boolean
@@ -83,6 +99,9 @@ function Public.is_eligible_drill(drill, item_lookup)
 		return false
 	end
 	if drill.output_fluid_box then
+		return false
+	end
+	if not can_mine_solid_resources(drill) then
 		return false
 	end
 	if not is_square(drill) then

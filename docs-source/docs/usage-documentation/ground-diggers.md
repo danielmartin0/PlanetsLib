@@ -36,10 +36,13 @@ Placement also respects the mining drill's own surface conditions. If the drill 
 By default, every mining drill that meets all of the following criteria gets a ground digger variant:
 
 * It does not output fluids (pumpjacks are mining drills).
+* It can mine ordinary solid resources: its `resource_categories` includes `basic-solid`, or is unset. Drills that can only be placed on specific resource sites, such as pumpjacks or anomaly collectors, are skipped.
 * It has a square selection box.
 * It is placeable by an item.
 * It does not set `PlanetsLib_do_not_generate_variants`.
 * Its name does not contain a quality or resource name. This skips per-quality and per-resource copies of drills. The check is a substring match, so a drill whose name contains a quality or resource name for another reason is also skipped.
+
+These criteria apply to every drill, including drills listed explicitly in `options.drills`; listing a drill cannot make a resource-site-only drill eligible.
 
 Any energy source is allowed, so non-electric drills (for example, burner mining drills) are eligible by default. A digger keeps the energy source of the drill it is copied from; diggers with an electric energy source default to no drain (`0 MW`), matching mining drills.
 
