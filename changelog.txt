@@ -4,6 +4,14 @@ Date: 2026-10-21
   Features:
   Changes:
     - Ground diggers are no longer generated for mining drills that can only mine specific resource sites, such as pumpjacks or anomaly collectors. Such drills must be able to mine ordinary solid resources (their resource_categories must include basic-solid, or be unset).
+  Bugfixes:
+    - PlanetsLib-disable-all-entity-replacements now actually disables all entity replacement rules at runtime, including rules bound to their own startup setting and migrations.
+    - Entity replacement migration now reverts rules that were removed between saves, handles belt-like entities (transport belts, underground belts, splitters and loaders) via the engine's fast-replace path, and no longer tries to replace entities while the global entity-replacement setting is disabled.
+    - Ground diggers now respect the per-planet drill blacklist when assigning the locked recipe, and the second placement collision check covers the drill's full 3x3 footprint instead of a zero-size area.
+    - The backwards-compatibility tier helpers now return nil when the separate PlanetsLib: Tiers mod is not installed instead of erroring.
+    - rro.ammend() now mutates and returns its first argument as documented, instead of silently doing nothing.
+    - get_planet_str_double() now truncates long planet names in its fallback, matching get_planet_str().
+    - Removed a leftover entity-replacement debug print that wrote to the log for every replacement.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.2
 Date: 2026-10-20
