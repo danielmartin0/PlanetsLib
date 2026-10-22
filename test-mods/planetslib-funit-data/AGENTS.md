@@ -420,6 +420,89 @@ syntax. All four were fixture mistakes and are fixed in
 7. Update this file only when the plan itself changes (new area, new fixture,
    new seam).
 
+### Local headless harness gotchas
+
+The Lua-side structure — data fixtures recording into
+`PlanetsLib-funit-results`, thin runtime suites asserting them, and the scenario
+launcher requiring the manifest — is described in §1–§4 and was not the
+difficult part. The friction is in the headless harness. These are the
+non-obvious requirements we hit while validating PlanetsLib:
+
+- **Pass `--server-settings` with `auto_pause: false`.** With only
+  `--start-server-load-scenario` and no server settings, Factorio uses its
+  default settings, where `auto_pause` is `true`. The scenario loads, the
+  server stays at tick 0, FUnit never runs, and no report is written. Start
+  from `test/server-settings.json`, set a local `username`, leave `token` empty,
+  and keep `visibility.public`/`visibility.lan` false.
+- **Put `mod-list.json` in the mod directory, not the scenario directory.**
+  `--mod-directory` makes Factorio read `<mods>/mod-list.json`. The checked-in
+  `tests/scenario/mod-list.json` is a template that CI copies into the mod
+  directory; editing only the scenario copy has no effect locally.
+- **Delete `<mods>/mod-settings.dat` between scenarios.** Startup settings are
+  persisted there. After a run with `planetslib-funit-settings` (which forces
+  `PlanetsLib-enable-entity-replacements = false`), merely disabling that mod
+  does not restore `true`; the stale value makes `ENT-0` fail and makes the
+  next scenario write a `...-no-replacements` report even when replacements are
+  meant to be on.
+- **FUnit does not stop the server.** It writes
+  `script-output/funit-report-<report>.json` and logs `====END====`, then keeps
+  ticking. Watch stdout for `====END====` and terminate Factorio yourself,
+  otherwise the run looks hung. This is what the CI entrypoint does.
+- **Report names describe the DLC/replacement axes, not the scenario folder.**
+  Clear `script-output/funit-report-*.json` before each scenario, or a stale
+  report can be mistaken for the current run.
+- **Isolate the write directory.** Scenarios live in
+  `<write-data>/scenarios/<name>` and reports in `<write-data>/script-output`.
+  Use a custom `--config` whose `read-data` points at the Factorio install and
+  whose `write-data` points at a scratch directory, so local runs do not touch
+  the normal user data.
+- **Package local mods as `<name>_<version>.zip`** (or folders with matching
+  names) and put `funit`, PlanetsLib, `planetslib-funit-data`, and
+  `planetslib-funit-settings` in the mod directory. The CI build job creates
+  these archives with `git archive --prefix=...`; use the same layout locally
+  rather than copying loose directories.
+
+A minimal local recipe:
+
+```sh
+FACTORIO=/path/to/factorio
+RUN=/tmp/funit-run
+MOD_VERSION=$(jq -r .version info.json)
+TEST_VERSION=$(jq -r .version test-mods/planetslib-funit-data/info.json)
+SETTINGS_VERSION=$(jq -r .version test-mods/planetslib-funit-settings/info.json)
+
+mkdir -p "$RUN/factorio/scenarios" "$RUN/factorio/script-output" "$RUN/mods"
+cp -a test-mods/planetslib-funit-data/tests/scenario "$RUN/factorio/scenarios/funit"
+cp test-mods/planetslib-funit-data/tests/scenario/mod-list.json "$RUN/mods/mod-list.json"
+git archive --worktree-attributes --format=zip HEAD \
+  -o "$RUN/mods/PlanetsLib_${MOD_VERSION}.zip" --prefix="PlanetsLib_${MOD_VERSION}/"
+git archive --worktree-attributes --format=zip HEAD:test-mods/planetslib-funit-data \
+  -o "$RUN/mods/planetslib-funit-data_${TEST_VERSION}.zip" \
+  --prefix="planetslib-funit-data_${TEST_VERSION}/"
+git archive --worktree-attributes --format=zip HEAD:test-mods/planetslib-funit-settings \
+  -o "$RUN/mods/planetslib-funit-settings_${SETTINGS_VERSION}.zip" \
+  --prefix="planetslib-funit-settings_${SETTINGS_VERSION}/"
+cp /path/to/funit_*.zip "$RUN/mods/"
+
+jq '.username="funit" | .token="" | .auto_pause=false
+    | .visibility={"public":false,"lan":false} | .autosave_interval=0' \
+  test-mods/planetslib-funit-data/test/server-settings.json > "$RUN/server-settings.json"
+printf '[path]\nread-data=%s/data\nwrite-data=%s/factorio\n' "$FACTORIO" "$RUN" > "$RUN/config.ini"
+
+# Edit "$RUN/mods/mod-list.json" for the scenario, then remove stale settings:
+rm -f "$RUN/mods/mod-settings.dat"
+"$FACTORIO/bin/x64/factorio" --config "$RUN/config.ini" \
+  --mod-directory "$RUN/mods" --start-server-load-scenario funit \
+  --server-settings "$RUN/server-settings.json"
+# Wait for "====END====" in the output, then kill the process. Read
+# "$RUN/factorio/script-output/funit-report-*.json".
+```
+
+For the no-replacements scenarios, enable `planetslib-funit-settings` in
+`mod-list.json`; for Space Age, enable `space-age`, `quality`, and
+`elevated-rails`. The CI-generated lists in `.github/workflows/funit.yml` are
+the canonical examples.
+
 ## 7. Definition of done for the suite
 
 - Every suite listed in `tests/suites/manifest.lua` has real tests (no stubs).
