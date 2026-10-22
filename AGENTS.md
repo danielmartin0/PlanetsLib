@@ -153,8 +153,10 @@ There is a headless FUnit suite in `test-mods/planetslib-funit-data/tests/` and 
 workflow (`.github/workflows/funit.yml`) that runs it in a Factorio Docker container in four
 scenarios: base and Space Age + Quality, each with entity replacements on and off. The suite is
 development-only and is not shipped. CI should always use the `latest` Factorio image so tests run
-against the newest engine release. There is still no general-purpose Lua linter; `luac5.1 -p` can
-syntax-check test files that do not use `goto`.
+against the newest engine release. Local headless runs have non-obvious harness requirements
+(`auto_pause`, `mod-settings.dat`, the `====END====` signal, and report cleanup); see "Local headless
+harness gotchas" in `test-mods/planetslib-funit-data/AGENTS.md`. There is still no general-purpose Lua
+linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
 
 - **Testing is mandatory before a PR**: the contributor notes require changes to be tested, ideally with
   multiple planet mods installed. Add or extend the FUnit suite in
