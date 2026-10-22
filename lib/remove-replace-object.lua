@@ -306,7 +306,7 @@ end
 -- @param old table
 -- @param new table
 -- @return old table
-function rro.ammend(old, new)
+function rro.amend(old, new)
     local merged = rro.merge(old, new)
     for key in pairs(old) do
         old[key] = nil
@@ -316,6 +316,9 @@ function rro.ammend(old, new)
     end
     return old
 end
+
+-- Deprecated misspelling kept as an alias for backwards compatibility.
+rro.ammend = rro.amend
 
 --- Returns a concatenation of the contents of two tables.
 -- @param first table

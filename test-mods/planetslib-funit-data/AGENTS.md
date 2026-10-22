@@ -391,9 +391,10 @@ Fixed while implementing these suites (each has a regression test):
     planet name while `get_planet_str` truncates to 8 characters, so long names
     disagreed (and the encoder asserted above 8 characters). It now truncates
     first. (PSTR)
-27. **`rro.ammend`** (fixed) — assigned the merged table to a local and neither
-    returned it nor mutated `old`; it is now an in-place merge that returns the
-    first argument. (LIB)
+27. **`rro.amend`** (fixed) — the misspelled `rro.ammend` assigned the merged
+    table to a local and neither returned it nor mutated `old`. `rro.amend` is
+    now the canonical in-place merge that returns the first argument, and
+    `rro.ammend` is kept as an alias. (LIB)
 
 Still open / needs a decision:
 
