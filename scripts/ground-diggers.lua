@@ -93,10 +93,26 @@ end
 
 local mining_drill_prototypes = prototypes.get_entity_filtered{{filter="type",type="mining-drill"}}
 
+---Returns a prototype's actual footprint size in tiles from its selection box.
+-- LuaEntityPrototype::tile_width/tile_height describe the placement grid, not the
+-- entity's collision footprint; most entities use a 1x1 placement grid even when
+-- their selection box is larger.
+-- @param prototype LuaEntityPrototype
+-- @return number|nil width
+-- @return number|nil height
+local function get_selection_box_size(prototype)
+	local selection_box = prototype and prototype.selection_box
+	if not selection_box then
+		return nil, nil
+	end
+	return math.abs(selection_box.right_bottom.x - selection_box.left_top.x),
+		math.abs(selection_box.right_bottom.y - selection_box.left_top.y)
+end
+
 ---Entities that block placing a ground digger at a position.
--- The checked area is the digger's square collision footprint around the tile the
--- build input targets. Corpses and characters do not block construction, so they
--- are removed from the result.
+-- The checked area is the digger's square collision footprint around the build
+-- position. Corpses and characters do not block construction, so they are removed
+-- from the result.
 -- @param surface LuaSurface
 -- @param position MapPosition
 -- @param digger_prototype LuaEntityPrototype|string A prototype or a prototype name.
@@ -110,34 +126,51 @@ function Public.find_build_collisions(surface, position, digger_prototype)
 	end
 
 	-- If the digger is not square, this code can't cleanly handle the collision box.
-	local width = digger_prototype.tile_width
-	local height = digger_prototype.tile_height
-	if not width or not height or width ~= height then
+	local selection_box = digger_prototype.selection_box
+	local width, height = get_selection_box_size(digger_prototype)
+	if not selection_box or not width or not height or width <= 0 or height <= 0 or width ~= height then
 		return {}
 	end
 
-	local rounded_position = {
-		x = math.ceil(position.x + 0.5),
-		y = math.ceil(position.y + 0.5),
+	local area = {
+		{
+			position.x + selection_box.left_top.x,
+			position.y + selection_box.left_top.y,
+		},
+		{
+			position.x + selection_box.right_bottom.x,
+			position.y + selection_box.right_bottom.y,
+		},
 	}
 	local collision_mask = digger_prototype.collision_mask
 	local colliding_entities = surface.find_entities_filtered({
-		area = {
-			{
-				rounded_position.x - width / 2,
-				rounded_position.y - height / 2,
-			},
-			{
-				rounded_position.x + width / 2,
-				rounded_position.y + height / 2,
-			},
-		},
+		area = area,
 		to_be_deconstructed = false,
 		-- Only count entities that share a collision layer with the digger. Some planets
 		-- cover their surface with non-colliding visuals (e.g. Maraxsis' water shader),
 		-- which would otherwise block every placement.
 		collision_mask = collision_mask and collision_mask.layers,
 	})
+
+	-- Ghosts do not have a physical collision mask, so the filtered query above
+	-- does not reliably return them. A ground digger must not overlap a ghost
+	-- either; the ghost would otherwise be silently replaced or left conflicted.
+	local seen = {}
+	for _, entity in pairs(colliding_entities) do
+		if entity.unit_number then
+			seen[entity.unit_number] = true
+		end
+	end
+	for _, ghost in pairs(surface.find_entities_filtered({
+		area = area,
+		type = "entity-ghost",
+		to_be_deconstructed = false,
+	})) do
+		if not ghost.unit_number or not seen[ghost.unit_number] then
+			colliding_entities[#colliding_entities + 1] = ghost
+		end
+	end
+
 	for i = #colliding_entities, 1, -1 do
 		local entity = colliding_entities[i]
 		-- Corpses and characters do not block construction: the engine allows
@@ -276,9 +309,8 @@ function Public.construct_ground_digger(event)
 	end
 
 	-- If the mining drill is not square, this code can't cleanly handle the collision box.
-	local width = drill_prototype.tile_width
-	local height = drill_prototype.tile_height
-	if width ~= height then
+	local width, height = get_selection_box_size(drill_prototype)
+	if not width or not height or width <= 0 or height <= 0 or width ~= height then
 		return
 	end
 

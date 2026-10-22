@@ -380,9 +380,11 @@ Fixed while implementing these suites (each has a regression test):
 24. **Ground-digger blacklist and collision footprint** (fixed) —
     `on_entity_built` still assigned and locked the local recipe for a drill on
     a planet that blacklisted it, and the late collision check used a 1.5-tile
-    margin that reduced a 3x3 digger's area to zero size. The blacklist is
-    honored and the collision helper checks the full footprint while ignoring
-    corpses and characters. (GD-10, GD-11)
+    margin that reduced a 3x3 digger's area to zero size. The check also used
+    `tile_width`/`tile_height` (the placement grid) instead of the selection
+    box. The blacklist is honored, the helper checks the actual footprint while
+    ignoring corpses and characters, and it rejects real entities and entity
+    ghosts inside the footprint. (GD-10, GD-11)
 25. **Tier compatibility helpers crashed without PlanetsLib: Tiers** (fixed) —
     `get_planet_tier`/`get_space_location_tier` indexed a missing mod-data
     prototype. They now return nil; a tier value of 0 is also preserved rather

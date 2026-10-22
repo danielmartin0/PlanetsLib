@@ -7,7 +7,7 @@ Date: 2026-10-21
   Bugfixes:
     - PlanetsLib-disable-all-entity-replacements now actually disables all entity replacement rules at runtime, including rules bound to their own startup setting and migrations.
     - Entity replacement migration now reverts rules that were removed between saves, handles belt-like entities (transport belts, underground belts, splitters and loaders) via the engine's fast-replace path, and no longer tries to replace entities while the global entity-replacement setting is disabled.
-    - Ground diggers now respect the per-planet drill blacklist when assigning the locked recipe, and the second placement collision check covers the drill's full 3x3 footprint instead of a zero-size area.
+    - Ground diggers now respect the per-planet drill blacklist when assigning the locked recipe, and placement collision checks use the prototype selection box (the actual footprint) instead of tile_width/tile_height (the placement grid). This covers the full footprint, ignores adjacent entities outside it, and rejects colliding real entities and entity ghosts inside it.
     - The backwards-compatibility tier helpers now return nil when the separate PlanetsLib: Tiers mod is not installed instead of erroring.
     - rro.amend() is now the canonical in-place table merge and returns the mutated table for convenience. The misspelled rro.ammend() remains as an alias for backwards compatibility.
     - get_planet_str_double() now truncates long planet names in its fallback, matching get_planet_str().

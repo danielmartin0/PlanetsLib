@@ -565,6 +565,23 @@ return function(runner)
 					.. " entities in an empty 3x3 digger area"
 			)
 
+			-- An entity just outside the footprint must not block placement. The
+			-- old implementation used tile_width/tile_height (the placement grid)
+			-- instead of the selection box, which can make the checked area too
+			-- small or otherwise incorrect for a given prototype.
+			local adjacent = surface.create_entity({
+				name = "iron-chest",
+				position = { x = position.x + 3, y = position.y },
+				force = game.forces.player,
+			})
+			runner.assert(adjacent, "could not create the adjacent chest")
+			collisions = collisions_at(position)
+			runner.assert(
+				#collisions == 0,
+				"an entity adjacent to, but outside, the digger footprint blocked placement"
+			)
+			adjacent.destroy()
+
 			-- One tile from the centre: inside the 3x3 footprint, but outside the
 			-- degenerate point that the old 1.5 margin produced for this build
 			-- position. A regression to a zero-size area would miss this chest.
@@ -595,6 +612,32 @@ return function(runner)
 					.. " entities, expected only the test chest"
 			)
 			chest.destroy()
+
+			-- Ghosts have no physical collision mask, but placing a digger over
+			-- one must still be rejected.
+			local ghost = surface.create_entity({
+				name = "entity-ghost",
+				inner_name = "iron-chest",
+				position = { x = position.x, y = position.y - 1 },
+				force = game.forces.player,
+			})
+			runner.assert(ghost and ghost.valid, "could not create the collision-test ghost")
+			collisions = collisions_at(position)
+			local found_ghost = false
+			for _, entity in ipairs(collisions) do
+				if entity.unit_number == ghost.unit_number then
+					found_ghost = true
+					break
+				end
+			end
+			runner.assert(found_ghost, "the collision helper missed an entity ghost inside the footprint")
+			runner.assert(
+				#collisions == 1,
+				"the collision helper returned "
+					.. #collisions
+					.. " entities, expected only the test ghost"
+			)
+			ghost.destroy()
 		end)
 	end)
 
