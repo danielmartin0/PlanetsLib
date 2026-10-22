@@ -241,6 +241,10 @@ function Public.construct_ground_digger(event)
         }
     rro.remove(colliding_entities,function(entry) return entry.type == "corpse" end)
 	rro.remove(colliding_entities,function(entry) return entry.type == "character" end)
+	-- Ghosts are handled by the later footprint check. Suppress the custom
+	-- entity-in-the-way label for them so the vanilla build overlay remains
+	-- visible instead of being replaced by a PlanetsLib warning.
+	rro.remove(colliding_entities,function(entry) return entry.type == "entity-ghost" end)
 	rro.remove(colliding_entities,function(entry) return entry.has_flag("not-on-map") end)
 	rro.remove(colliding_entities,function(entry) return entry.name == "maraxsis-water-shader" end)
     if #colliding_entities ~= 0 then 
