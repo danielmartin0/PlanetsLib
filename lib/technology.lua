@@ -65,14 +65,14 @@ function Public.excise_tech_from_tech_tree(tech_name)
 	data.raw.technology[tech_name].hidden = true
 end
 
-function Public.excise_recipe_from_tech_tree(name)
+function Public.excise_recipe_from_tech_tree(name, include_productivity_effects)
 	log("PlanetsLib: Excising recipe " .. name .. " from tech tree")
 
 	for _, tech in pairs(data.raw.technology) do
 		if tech.effects and #tech.effects > 0 then
 			local new_effects = {}
 			for _, effect in ipairs(tech.effects) do
-				if not (effect.type == "unlock-recipe" and effect.recipe == name) then
+				if not (effect.recipe == name and (effect.type == "unlock-recipe" or (include_productivity_effects and effect.type == "change-recipe-productivity"))) then
 					table.insert(new_effects, effect)
 				end
 			end
@@ -82,6 +82,11 @@ function Public.excise_recipe_from_tech_tree(name)
 				Public.excise_tech_from_tech_tree(tech.name)
 			end
 		end
+	end
+	
+	local recipe = include_productivity_effects and PlanetsLib.current_stage ~= "data-final-fixes" and data.raw.recipe[name]
+	if recipe then
+		recipe.PlanetsLib_blacklist_technology_updates = true
 	end
 end
 

@@ -70,7 +70,7 @@ effects not flagged with `PlanetsLib_force_include`.
 #### Tech tree adjustments
 
 * `PlanetsLib.excise_tech_from_tech_tree(tech_name)` — Seamlessly removes a technology from the tech tree by making all its dependencies depend instead on the technology's prerequisites. In addition, `hidden = true` is set on the technology.
-* `PlanetsLib.excise_recipe_from_tech_tree(recipe_name)` — Removes this recipe from all technologies, and if this would cause any technology to have zero effects, the technology is excised using `PlanetsLib.excise_tech_from_tech_tree`.
+* `PlanetsLib.excise_recipe_from_tech_tree(recipe_name, include_productivity_effects)` — Removes unlocking this recipe from all technologies. If `include_productivity_effects` is `true`, also removes any productivity effects of this recipe from all technologies (if called before `data-final-fixes`, also adds `PlanetsLib_blacklist_technology_updates = true` to the recipe). If the effect removal(s) leave any technology with zero effects, the technology is excised using `PlanetsLib.excise_tech_from_tech_tree`.
 * `PlanetsLib.excise_effect_from_tech_tree(effect)` — Similar to `excise_recipe_from_tech_tree`, but any effect can be passed.
     * Example: `PlanetsLib.excise_effect_from_tech_tree({ type = "unlock-quality", quality = "uncommon" })`
 * `PlanetsLib.add_science_packs_from_vanilla_lab_to_technology(technology)` — Adds all science packs that the vanilla lab have slots for to the unit of the given technology. Can be useful when defining endgame technologies.
