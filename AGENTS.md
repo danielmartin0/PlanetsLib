@@ -233,6 +233,8 @@ The body should contain, in order:
      covered. If there is genuinely no direct automated test, say so explicitly and link the closest
      related coverage instead of omitting the line;
    - call out migration, save-compatibility, or event-contract risks rather than hiding them.
+   - when editing an existing pull request checklist, preserve every checkbox that a human has
+     already marked `[x]`. Do not reset user-checked entries unless the user explicitly asks.
 
    Use a GitHub file-diff anchor rather than a generic repository link:
 
