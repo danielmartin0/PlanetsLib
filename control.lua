@@ -56,24 +56,35 @@ PlanetsLib.event_handler.add_lib{on_init = function()
 		storage.old_replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements
 end}
 
-local function replace_entity(surface,old_entity,new_entity)
-	if surface then
-		
-		local entities = surface.find_entities_filtered{name = old_entity}
-		local entity_ghosts = surface.find_entities_filtered{name = "entity-ghost",ghost_name = old_entity}
-			
-		for _,entities in pairs({entities,entity_ghosts}) do
-			if not rro.deep_equals(entities,{}) then
-				game.print({"planetslib.planetslib-entity-migration",old_entity,new_entity})
-			end
-			for _,entity in pairs(entities) do
-				entity_replacement.replace_entity(entity,new_entity,false)
-			end
-		end
-		
-	end
-	
+local function entity_prototype_exists(name)
+	return type(name) == "string" and prototypes.entity[name] ~= nil
+end
 
+local function replace_entity(surface,old_entity,new_entity)
+	if not surface then return end
+
+	-- Migration snapshots in storage.old_replacement_rules outlive prototype
+	-- changes, so a rule can name an entity that a mod update removed (for
+	-- example a generated "<entity>-PlanetsLib-<planet>" variant).
+	-- find_entities_filtered raises "Unknown entity name" for such names, which
+	-- would crash on_configuration_changed and leave the save unloadable.
+	if not entity_prototype_exists(old_entity) or not entity_prototype_exists(new_entity) then
+		log("[PlanetsLib] Skipping entity migration from '"..tostring(old_entity).."' to '"
+			..tostring(new_entity).."': the prototype no longer exists.")
+		return
+	end
+
+	local entities = surface.find_entities_filtered{name = old_entity}
+	local entity_ghosts = surface.find_entities_filtered{name = "entity-ghost",ghost_name = old_entity}
+
+	for _,entities in pairs({entities,entity_ghosts}) do
+		if not rro.deep_equals(entities,{}) then
+			game.print({"planetslib.planetslib-entity-migration",old_entity,new_entity})
+		end
+		for _,entity in pairs(entities) do
+			entity_replacement.replace_entity(entity,new_entity,false)
+		end
+	end
 end
 
 local function entity_replacements_disabled_by_setting()
