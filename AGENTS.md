@@ -191,6 +191,15 @@ syntax-check test files that do not use `goto`.
   rewrites it, so prefer that over editing it by hand, and double-check it whenever you bump the version
   another way.
 
+## AI agent communication
+
+When posting GitHub comments, reviews, or review replies under the repository owner's account,
+end the message with a signature that names the model used, for example:
+
+```
+_Posted by DeepSeek V4.1 Flash._
+```
+
 ## Contribution checklist (from `.github/PULL_REQUEST_TEMPLATE.md`)
 
 Before opening a PR, ensure:
