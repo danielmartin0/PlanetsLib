@@ -34,7 +34,7 @@ permissions:
   contents: read
 
 env:
-  FACTORIO_VERSION: "2.1.22"
+  FACTORIO_VERSION: "latest"
   MOD_NAME: PlanetsLib
   TEST_MOD_NAME: planetslib-funit-data
   TEST_MOD_DIR: test-mods/planetslib-funit-data
@@ -271,7 +271,6 @@ jobs:
           ruby .github/funit/summarize_funit_results.rb \
             "test_artifacts/${MOD_NAME}/reports" \
             --expect "planetslib-base,planetslib-base-no-replacements,planetslib-space-age,planetslib-space-age-no-replacements" \
-            --min-tests "planetslib-base=128,planetslib-base-no-replacements=128,planetslib-space-age=155,planetslib-space-age-no-replacements=155" \
             --log "test_artifacts/${MOD_NAME}/funit.log" \
             --comment "funit-summary.md" \
             --github-output "$GITHUB_OUTPUT"

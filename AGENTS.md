@@ -152,7 +152,8 @@ helper scripts              bump_version.sh, archive.sh, update_documentation.sh
 There is a headless FUnit suite in `test-mods/planetslib-funit-data/tests/` and a GitHub Actions
 workflow (`.github/workflows/funit.yml`) that runs it in a Factorio Docker container in four
 scenarios: base and Space Age + Quality, each with entity replacements on and off. The suite is
-development-only and is not shipped. There is still no general-purpose Lua linter; `luac5.1 -p` can
+development-only and is not shipped. CI should always use the `latest` Factorio image so tests run
+against the newest engine release. There is still no general-purpose Lua linter; `luac5.1 -p` can
 syntax-check test files that do not use `goto`.
 
 - **Testing is mandatory before a PR**: the contributor notes require changes to be tested, ideally with
