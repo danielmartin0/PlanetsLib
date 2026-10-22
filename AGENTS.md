@@ -158,6 +158,26 @@ against the newest engine release. Local headless runs have non-obvious harness 
 harness gotchas" in `test-mods/planetslib-funit-data/AGENTS.md`. There is still no general-purpose Lua
 linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
 
+#### Test-authoring principles
+
+- **A test must be capable of failing.** Do not use `runner.assert(true, ...)`, early returns, or
+  `pairs()` loops over whatever results happen to exist as a substitute for coverage.
+- **Assert documented behavior, not current implementation details.** Derive expected values
+  independently; do not call the helper under test to compute its own expected result.
+- **Use explicit test/fixture IDs and explicit skips.** A missing result or an unexpected skip must
+  fail the suite. Missing coverage is not a pass.
+- **Execute the full scenario matrix.** Syntax checks are not tests. Run base and Space Age with
+  entity replacements both on and off when the change can affect them.
+- **Isolate mutable state.** Clear dedicated test areas, restore storage and migration baselines,
+  and make cleanup run on failure as well as success.
+- **Verify engine semantics before encoding them.** Prototype fields, ghost behavior, fixed-point
+  positions, data/control-stage globals, and `remote.call` limitations are common sources of bogus
+  tests.
+- **Treat test failures as possible test bugs first.** Check fixtures, assumptions, stage ordering,
+  and setup before changing production code.
+- Detailed conventions and known pitfalls are in
+  `test-mods/planetslib-funit-data/AGENTS.md`.
+
 - **Testing is mandatory before a PR**: the contributor notes require changes to be tested, ideally with
   multiple planet mods installed. Add or extend the FUnit suite in
   `test-mods/planetslib-funit-data/` (see its `AGENTS.md` for the plan and conventions) and run it

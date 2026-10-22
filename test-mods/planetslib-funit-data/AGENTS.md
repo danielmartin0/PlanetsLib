@@ -221,15 +221,15 @@ run it). Check the files for the current state.
 | Suite | IDs | What to cover |
 | --- | --- | --- |
 | `entity_replacement_data` | ENT-0..4 | `ENT-0` asserts the CI scenario's `PlanetsLib-enable-entity-replacements` value; `assign_entity_replacement` (rule storage, default bound setting, duplicate error, recursion assertion, variant lists, mass-assignment and planet-table forms); `create_planet_entity_variant` (name suffix, deepcopy, localised fields, flags, Factoriopedia redirect/hide, `placeable_by`, icon corner, order suffix, `do_not_generate_variants`, multi-planet, invalid setting, item inference); rocket lift/part multiplier variant generation. Fixture: `entity_replacement_data`. |
-| `entity_replacement_runtime` | ENT-5..11 | Place → replace; settings/inventory/crafting/health/temperature transfer; ghost preservation; robot-built path; inverse normalisation; modules/spill; fluid transfer; wire connections incl. self-referential; grid contents incl. ghost equipment; `storage.replaced_entities` + `get_replacement`; `PlanetsLib.events.on_entity_replaced`; disabled rule. |
-| `entity_replacement_migration` | ENT-12..13 | Rolling-stock replacement (watch the undefined `rolling_stock_info` path); `on_configuration_changed` migration when a rule is added/disabled. Needs a prebuilt save or a controlled configuration change; if impossible headlessly, test the pure layout helpers and record the limitation. |
+| `entity_replacement_runtime` | ENT-5..11, ENT-14 | Place → replace; settings/inventory/crafting/health/temperature transfer; ghost preservation; robot-built path; inverse normalisation; modules/spill; fluid transfer; wire connections incl. self-referential; grid contents incl. ghost equipment; `storage.replaced_entities` + `get_replacement`; `PlanetsLib.events.on_entity_replaced`; disabled rule. |
+| `entity_replacement_migration` | ENT-12..13f | Rolling-stock replacement (watch the undefined `rolling_stock_info` path); `on_configuration_changed` migration when a rule is added/disabled. Needs a prebuilt save or a controlled configuration change; if impossible headlessly, test the pure layout helpers and record the limitation. |
 
 ### D. Ground diggers
 
 | Suite | IDs | What to cover |
 | --- | --- | --- |
 | `ground_diggers_data` | GD-1..5 | `enable_ground_diggers` validation, option normalisation (array + dictionary), late final-fixes call; `is_eligible_drill` exclusions (fluid output, resource-site-only drills, non-square, no item, quality/resource-named, `do_not_generate_variants`); `create_ground_digger` field mapping/stripping/drain/surface condition/flags; `generate_ground_diggers` shared naming, recipe-category union, planet surface property, Factoriopedia note once, missing planet/recipe errors, `drills`/`blacklist`; mining-productivity effects. Fixtures: `ground_diggers_data`, `ground_diggers_late`. |
-| `ground_diggers_runtime` | GD-6..9 | Built digger gets and locks the planet recipe; non-participating planet not converted; surface conditions respected; `construct_ground_digger` (no resources → convert, resources → no convert, collision, hidden tile, reach, remote-view ghost, wrong quality, cursor consumption + build stats); remote-view ghost without reach. |
+| `ground_diggers_runtime` | GD-6..12 | Built digger gets and locks the planet recipe; non-participating planet not converted; surface conditions respected; `construct_ground_digger` (no resources → convert, resources → no convert, collision, hidden tile, reach, remote-view ghost, wrong quality, cursor consumption + build stats); remote-view ghost without reach. |
 
 ### E. Runtime features and overrides
 
@@ -240,7 +240,54 @@ run it). Check the files for the current state.
 | `unreachable_techs` | URT-1..4 | Hidden-prerequisite warnings + truncation; `warn_unlinked_prerequisites`; author auto-unban vs normal ban; on-join tick-0 warning gated by setting. |
 | `recipe_effects` | REC-1..3 | Data prep (`add_to_stats`, `ignored_by_stats`, `amount_minus_ignored_by_productivity`, `inverse_batch_count`, `no_probability`, tooltip, fluid error); runtime no/shared/independent probability, batching, returned items to crafter input, production stats, `on_crafted_event` assertion; `storage.entity_info` cache create/clear. Fixture: `recipe_effects_setup`. |
 | `remote_interfaces` | REM-1 | `PlanetsLib_transfer_storage` save/get/purge round-trip; missing key. |
-| `smoke` (done) | SMOKE-1..3 | Results bag exists; every `suite` fixture entry passed; expected prototypes present. New fixtures must add their own namespace assertions in their suite (do not overload `smoke`). |
+| `smoke` (done) | SMOKE-1..5 | Results bag exists; every `suite` fixture entry passed; expected prototypes present. New fixtures must add their own namespace assertions in their suite (do not overload `smoke`). |
+
+### Testing principles and pitfalls
+
+These lessons come from hardening this suite. Treat them as requirements when adding or reviewing
+tests.
+
+- **A green test can be vacuous.** `runner.assert(true, ...)`, early `return`s, and `pairs()` loops
+  over whatever fixture entries exist all count as passes without exercising the feature. Make the
+  test fail when the expected entry or behavior is missing.
+- **Do not derive the expected value from the helper under test.** Compute expected values
+  independently, or assert a literal result. RP-3 originally derived its lock expectation from the
+  same heuristic it was testing.
+- **Use explicit fixture IDs.** Pass an expected-ID list to `support.assert_all` and assert the
+  fixture namespace exists. A missing entry must fail; it must not silently disappear from a loop.
+- **Distinguish pass, skip, failure, and note.** Use `results.record`, `results.skip`, and
+  `results.note`. Headless limitations and unavailable expansion features are skips, not passes.
+  The smoke suite must reject unexpected skips.
+- **Data-stage fixtures need runtime contracts.** Wrap fixture assertions in `pcall`, record results
+  into mod-data, and assert both the recorded entries and the resulting runtime prototypes. A
+  fixture that never loads is a missing test, not a success.
+- **Syntax checks are not test runs.** `luac -p` catches syntax errors only. Run Factorio locally
+  across base/Space Age and entity-replacements on/off; many failures only appear in a real engine.
+- **Do not hardcode test counts.** FUnit's report JSON and the JUnit conversion are the source of
+  truth. A separate minimum-count list becomes stale and was removed after review.
+- **Test failures may be test bugs.** Before changing production code, verify fixture timing,
+  `require` paths, stage ordering, settings, and engine semantics. Several apparent production
+  failures were incorrect test assumptions.
+- **Assert values, not object identity, unless identity is contractual.** Prototype tables can be
+  copied across the runtime boundary; compare contents instead of relying on `==` identity.
+- **Use tolerances for engine quantities.** Map positions and native origins have fixed-point
+  precision. Do not use exact floating-point equality for values that pass through the engine.
+  Conversely, document genuinely lossy formats (for example planet-str names longer than six bytes)
+  instead of asserting impossible round-trips.
+- **Verify engine semantics before encoding them.** `LuaEntityPrototype.tile_width`/`tile_height`
+  describe the placement grid, not the collision footprint; use `selection_box` for footprint math.
+  Ghosts do not reliably match physical collision-mask queries, so query them explicitly.
+- **Isolate mutable state.** Clear dedicated test surfaces before and after tests, restore migration
+  and storage baselines even when assertions fail, and do not depend on suite order. Leftover
+  entities and synthetic migration snapshots caused intermittent failures.
+- **Respect the two Lua environments.** Data-stage and control-stage globals differ. `remote.call`
+  deep-copies arguments and cannot carry functions; fake players/surfaces must match the subset of
+  APIs the production code uses. Use direct module loading only when a test-only seam is impossible.
+- **Do not add fake coverage for player-driven paths.** If the headless harness cannot create the
+  condition, assert that limitation explicitly and log it; do not add a headless player or
+  `assert(true, "skipped")`.
+- **Re-run tests after merging upstream.** Merged changes can alter fixtures, helpers, or expected
+  counts. Re-run both base and Space Age scenarios after resolving conflicts.
 
 ---
 
