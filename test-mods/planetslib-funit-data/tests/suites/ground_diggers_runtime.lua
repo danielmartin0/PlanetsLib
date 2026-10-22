@@ -638,6 +638,30 @@ return function(runner)
 					.. " entities, expected only the test ghost"
 			)
 			ghost.destroy()
+
+			-- Directly placing a digger over its own ghost should revive the
+			-- ghost. The seam exercises the same revival helper used by the
+			-- player build path without requiring a connected player.
+			local revive = remote.interfaces["planetslib_funit"]
+				and remote.interfaces["planetslib_funit"]["revive_ground_digger_ghost"]
+			runner.assert(revive, "PlanetsLib did not expose revive_ground_digger_ghost")
+			local digger_ghost = surface.create_entity({
+				name = "entity-ghost",
+				inner_name = DIGGER,
+				position = { x = position.x, y = position.y - 1 },
+				force = game.forces.player,
+			})
+			runner.assert(digger_ghost and digger_ghost.valid, "could not create the ground-digger ghost")
+			local revived = remote.call("planetslib_funit", "revive_ground_digger_ghost", digger_ghost)
+			runner.assert(revived and revived.valid, "the ground-digger ghost was not revived")
+			runner.assert(revived.name == DIGGER, "the revived entity has the wrong prototype")
+			runner.assert(not digger_ghost.valid, "the ground-digger ghost still exists after revival")
+			local revived_recipe = revived.get_recipe()
+			runner.assert(
+				revived_recipe and revived_recipe.name == "funit-gd-recipe-a",
+				"the revived digger did not receive its planet recipe"
+			)
+			revived.destroy()
 		end)
 	end)
 

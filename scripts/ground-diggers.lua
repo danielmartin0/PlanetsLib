@@ -154,7 +154,8 @@ function Public.find_build_collisions(surface, position, digger_prototype)
 
 	-- Ghosts do not have a physical collision mask, so the filtered query above
 	-- does not reliably return them. A ground digger must not overlap a ghost
-	-- either; the ghost would otherwise be silently replaced or left conflicted.
+	-- either, except for the ghost of the digger being placed: the caller revives
+	-- that one instead of creating a second entity.
 	local seen = {}
 	for _, entity in pairs(colliding_entities) do
 		if entity.unit_number then
@@ -180,6 +181,21 @@ function Public.find_build_collisions(surface, position, digger_prototype)
 		end
 	end
 	return colliding_entities
+end
+
+---Revives a ground-digger ghost and assigns its planet recipe.
+-- Exposed through the FUnit seam so the headless suite can exercise the
+-- item-over-ghost path without a connected player.
+function Public.revive_ground_digger_ghost(ghost)
+	if not (ghost and ghost.valid and ghost.type == "entity-ghost") then
+		return nil
+	end
+	local _, revived = ghost.revive({ raise_revive = true })
+	if not (revived and revived.valid) then
+		return nil
+	end
+	Public.on_entity_built({ entity = revived })
+	return revived
 end
 
 function Public.construct_ground_digger(event)
@@ -319,21 +335,39 @@ function Public.construct_ground_digger(event)
 	end
 
 	local colliding_entities = Public.find_build_collisions(surface, position, digger_prototype)
+	local target_ghost
+	if not is_ghost then
+		-- Direct placement over the matching ground-digger ghost builds that
+		-- ghost, matching vanilla item-over-ghost behavior. Other ghosts remain
+		-- blocking.
+		for i = #colliding_entities, 1, -1 do
+			local entity = colliding_entities[i]
+			if entity.type == "entity-ghost" and entity.ghost_name == digger_name then
+				target_ghost = target_ghost or entity
+				table.remove(colliding_entities, i)
+			end
+		end
+	end
 	if #colliding_entities ~= 0 then
 		return
 	end
 
-	local digger = surface.create_entity({
-		name = is_ghost and "entity-ghost" or digger_name,
-		inner_name = is_ghost and digger_name or nil,
-		position = position,
-		force = player.force,
-		player = player,
-		quality = quality,
-		direction = event.cursor_direction,
-		raise_built = true,
-	})
-	if not digger then
+	local digger
+	if target_ghost and target_ghost.valid then
+		digger = Public.revive_ground_digger_ghost(target_ghost)
+	else
+		digger = surface.create_entity({
+			name = is_ghost and "entity-ghost" or digger_name,
+			inner_name = is_ghost and digger_name or nil,
+			position = position,
+			force = player.force,
+			player = player,
+			quality = quality,
+			direction = event.cursor_direction,
+			raise_built = true,
+		})
+	end
+	if not digger or not digger.valid then
 		return
 	end
 

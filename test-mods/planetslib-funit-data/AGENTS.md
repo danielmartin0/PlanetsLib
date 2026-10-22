@@ -385,7 +385,8 @@ Fixed while implementing these suites (each has a regression test):
     box. The blacklist is honored, the helper checks the actual footprint while
     ignoring corpses and characters, and it rejects real entities and entity
     ghosts inside the footprint. Ghost collisions defer to the vanilla build
-    overlay instead of showing the custom entity-in-the-way label. (GD-10, GD-11)
+    overlay instead of showing the custom entity-in-the-way label. Directly
+    placing a digger over its own ghost builds the ghost; other ghosts block. (GD-10, GD-11)
 25. **Tier compatibility helpers crashed without PlanetsLib: Tiers** (fixed) —
     `get_planet_tier`/`get_space_location_tier` indexed a missing mod-data
     prototype. They now return nil; a tier value of 0 is also preserved rather
