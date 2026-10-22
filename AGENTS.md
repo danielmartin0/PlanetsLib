@@ -200,6 +200,8 @@ end the message with a signature that names the model used, for example:
 _Posted by DeepSeek V4.1 Flash._
 ```
 
+When posting Github pull requests, begin the message with a similar signature.
+
 ## Contribution checklist (from `.github/PULL_REQUEST_TEMPLATE.md`)
 
 Before opening a PR, ensure:
