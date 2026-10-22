@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.3.1
+Date: 2026-10-22
+  Bugfixes:
+    - Entity replacement migration no longer aborts game load when a rule recorded in an earlier session refers to an entity prototype that a mod update removed. Such rules are skipped and logged instead of making on_configuration_changed fail with "Unknown entity name". This fixes a regression introduced in 2.3.0.
+---------------------------------------------------------------------------------------------------
 Version: 2.3.0
 Date: 2026-10-21
   Features:
