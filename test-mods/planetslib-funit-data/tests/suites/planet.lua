@@ -2,19 +2,51 @@
 --
 -- The data-stage behavior is exercised by the planet_extend, planet_update and
 -- planet_update_final fixtures; this suite asserts those results plus the pure
--- type predicates and the resulting runtime prototypes.
+-- type predicates, the special-property getters and the resulting runtime
+-- prototypes.
+--
+-- PLAN ids:
+--   PLAN-1..6   extend (valid configs, planet-str copy, validation, borrow_music)
+--   PLAN-7..8   update in data/data-updates (moves descendants, validation)
+--   PLAN-9..10  update in data-final-fixes and the extend guard
+--   PLAN-11     is_space_location / is_space_location_or_space_platform
+--   PLAN-12     final prototype state
+--   PLAN-13     update batch configs and non-orbit fields
+--   PLAN-14     borrow_music from a prototype table to the space platform
+--   PLAN-15     get_special_properties and prototype-table inputs
 
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
-local function assert_fixture_namespace(runner, suite)
-	local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	local entries = mod_data.data[suite]
-	runner.assert(entries, "no data-stage results recorded for '" .. suite .. "'")
-	for id, entry in pairs(entries) do
-		runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
-	end
-end
+-- The fixture ids recorded in each namespace. Keep these explicit so a fixture
+-- that stops recording an id fails here instead of disappearing from a pairs()
+-- loop.
+local PLAN_EXTEND_IDS = {
+	"PLAN-1",
+	"PLAN-5a",
+	"PLAN-5b",
+	"PLAN-5c",
+	"PLAN-5d",
+	"PLAN-5e",
+	"PLAN-5f",
+	"PLAN-5g",
+	"PLAN-6",
+	"PLAN-14",
+}
+local PLAN_UPDATE_IDS = {
+	"PLAN-7",
+	"PLAN-8a",
+	"PLAN-8b",
+	"PLAN-8c",
+	"PLAN-8d",
+	"PLAN-8e",
+	"PLAN-8f",
+	"PLAN-8g",
+	"PLAN-13",
+}
+local PLAN_UPDATE_FINAL_IDS = {
+	"PLAN-9",
+	"PLAN-10",
+}
 
 return function(runner)
 	if not script.active_mods["space-age"] then
@@ -26,16 +58,16 @@ return function(runner)
 	package.loaded["lib.orbits"] = require("__PlanetsLib__.lib.orbits")
 	local planet = require("__PlanetsLib__.lib.planet")
 
-	runner.test("PLAN-1..6 PlanetsLib:extend fixture results", function()
-		assert_fixture_namespace(runner, "planet_extend")
+	runner.test("PLAN-1..6, PLAN-14 PlanetsLib:extend fixture results", function()
+		support.assert_all(runner, "planet_extend", { expected = PLAN_EXTEND_IDS })
 	end)
 
-	runner.test("PLAN-7..8 PlanetsLib:update fixture results", function()
-		assert_fixture_namespace(runner, "planet_update")
+	runner.test("PLAN-7..8, PLAN-13 PlanetsLib:update fixture results", function()
+		support.assert_all(runner, "planet_update", { expected = PLAN_UPDATE_IDS })
 	end)
 
 	runner.test("PLAN-9..10 PlanetsLib:update final-fixes fixture results", function()
-		assert_fixture_namespace(runner, "planet_update_final")
+		support.assert_all(runner, "planet_update_final", { expected = PLAN_UPDATE_FINAL_IDS })
 	end)
 
 	runner.test("PLAN-11 is_space_location and is_space_location_or_space_platform", function()
@@ -73,5 +105,28 @@ return function(runner)
 			child.surface_properties["parent-planet-str"] == parent.surface_properties["planet-str"],
 			"parent-planet-str does not match the parent's planet-str"
 		)
+	end)
+
+	runner.test("PLAN-15 get_special_properties and prototype-table inputs", function()
+		local mod_data = prototypes.mod_data["Planetslib"]
+		runner.assert(mod_data, "Planetslib mod-data is missing")
+		local constants = mod_data.data
+		local stored = constants.planet_special_properties and constants.planet_special_properties["funit-sp"]
+		runner.assert(stored, "the special_properties fixture did not record 'funit-sp'")
+
+		-- lib/planet.lua reads the PlanetsLib global, which is not created by the
+		-- scenario itself. Point it at the real mod-data constants rather than a
+		-- suite-local shim, so the getter reads the same table as the fixture.
+		_G.PlanetsLib = _G.PlanetsLib or {}
+		_G.PlanetsLib.constants = constants
+
+		runner.assert(planet.get_special_properties("funit-sp") == stored,
+			"get_special_properties did not return the stored table")
+		runner.assert(planet.get_special_properties({ name = "funit-sp" }) == stored,
+			"get_special_properties did not accept a prototype table")
+		runner.assert(planet.get_special_property({ name = "funit-sp" }, "custom") == "a",
+			"get_special_property did not accept a prototype table")
+		runner.assert(planet.get_special_properties("funit-sp-unknown") == nil,
+			"an unknown planet should have no special properties")
 	end)
 end

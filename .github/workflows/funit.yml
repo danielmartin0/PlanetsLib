@@ -6,7 +6,8 @@
 # The suite itself lives in test-mods/planetslib-funit-data. This workflow
 # builds the mod archives and four scenarios, runs them in a Factorio job
 # container, writes a failure summary to the run page, then converts FUnit's
-# JSON reports to JUnit XML.
+# JSON reports to JUnit XML. Failing runs on same-repository pull requests also
+# post the summary as a PR comment; a later passing run deletes those comments.
 #
 # Scenarios:
 #   * base (no Space Age/Quality/Elevated Rails), entity replacements on/off
@@ -246,6 +247,10 @@ jobs:
     needs: unit-test-job
     if: ${{ !cancelled() && needs.unit-test-job.result != 'skipped' }}
     runs-on: ubuntu-latest
+    # Needed to post (and later delete) the failure summary on pull requests.
+    permissions:
+      contents: read
+      pull-requests: write
     container:
       image: ruby:4-alpine
     timeout-minutes: 30
@@ -260,12 +265,15 @@ jobs:
       # crashed and produced no report. The step itself never fails the job;
       # the JUnit conversion below is what reports the test result.
       - name: Summarize FUnit results
+        id: summarize
         if: always()
         run: |
           ruby .github/funit/summarize_funit_results.rb \
             "test_artifacts/${MOD_NAME}/reports" \
             --expect "planetslib-base,planetslib-base-no-replacements,planetslib-space-age,planetslib-space-age-no-replacements" \
-            --log "test_artifacts/${MOD_NAME}/funit.log"
+            --log "test_artifacts/${MOD_NAME}/funit.log" \
+            --comment "funit-summary.md" \
+            --github-output "$GITHUB_OUTPUT"
       - name: Fetch FUnit JSON parser
         run: |
           wget -qO parse_funit_json.rb \
@@ -281,3 +289,52 @@ jobs:
           name: parse-results-job
           retention-days: 30
           path: funit-report-*.xml
+      # Pull request feedback. Fork PRs are skipped because their GITHUB_TOKEN
+      # is read-only, so comment creation and deletion would fail. Each failing
+      # run posts a new comment; any later passing run removes them all.
+      - name: Comment FUnit failures on pull request
+        if: >-
+          always() &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          steps.summarize.outputs.failed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- funit-results -->';
+            const summary = fs.readFileSync('funit-summary.md', 'utf8');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `${marker}\n${summary}`
+            });
+      - name: Remove stale FUnit comments after a passing run
+        if: >-
+          always() &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          steps.summarize.outputs.failed == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- funit-results -->';
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100
+            });
+            for (const comment of comments) {
+              const isOurComment =
+                comment.user?.login === 'github-actions[bot]' &&
+                comment.body?.includes(marker);
+              if (isOurComment) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment.id
+                });
+              }
+            }

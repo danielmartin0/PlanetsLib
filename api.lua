@@ -25,7 +25,9 @@ PlanetsLib.excise_recipe_from_tech_tree = technology.excise_recipe_from_tech_tre
 PlanetsLib.excise_effect_from_tech_tree = technology.excise_effect_from_tech_tree
 PlanetsLib.technology_icon_moon = technology.technology_icon_moon
 PlanetsLib.technology_icon_planet = technology.technology_icon_planet
+PlanetsLib.technology_icons_planet_cargo_drops = technology.technology_icons_planet_cargo_drops
 PlanetsLib.cargo_drops_technology_base = technology.cargo_drops_technology_base
+PlanetsLib.technology_effect_cargo_drops = technology.technology_effect_cargo_drops
 
 PlanetsLib.crushing_recipe_icons = recipe.crushing_recipe_icons
 PlanetsLib.asteroid_crushing_recipe_icons = recipe.asteroid_crushing_recipe_icons
@@ -97,8 +99,6 @@ PlanetsLib.check_global_variables = global_variable_checks.check_global_variable
 PlanetsLib.process_technology_recipe_productivity_effects = technology.process_technology_recipe_productivity_effects
 PlanetsLib.technology_icons_moon = technology.technology_icon_moon
 PlanetsLib.technology_icon_constant_planet = technology.technology_icon_planet
-PlanetsLib.technology_icons_planet_cargo_drops = technology.technology_icons_planet_cargo_drops
-PlanetsLib.technology_effect_cargo_drops = technology.technology_effect_cargo_drops
 PlanetsLib.surface_conditions = surface_conditions
 PlanetsLib.restrict_to_planet = surface_conditions.restrict_to_planet
 PlanetsLib.restrict_to_surface = surface_conditions.restrict_to_surface
@@ -110,12 +110,31 @@ PlanetsLib.objects = require("lib.remove-replace-object") --Table manipulation l
 PlanetsLib.rro = PlanetsLib.objects --Alias for PlanetsLib.objects
 
 -- For backwards compatibility (mod-data was not always a thing). NOTE: These functions return numbers, other mods may change the tier prototypes after you call this.
+local function get_tierlist_data()
+	local tierlist = data.raw["mod-data"]["PlanetsLib-tierlist"]
+	return tierlist and tierlist.data
+end
+
 PlanetsLib.get_planet_tier = function(planet_name)
-	return data.raw["mod-data"]["PlanetsLib-tierlist"].data.planet[planet_name]
-		or data.raw["mod-data"]["PlanetsLib-tierlist"].data.default
+	local tierlist = get_tierlist_data()
+	if not tierlist then
+		return nil
+	end
+	local tier = tierlist.planet and tierlist.planet[planet_name]
+	if tier ~= nil then
+		return tier
+	end
+	return tierlist.default
 end
 
 PlanetsLib.get_space_location_tier = function(space_location_name)
-	return data.raw["mod-data"]["PlanetsLib-tierlist"].data["space-location"][space_location_name]
-		or data.raw["mod-data"]["PlanetsLib-tierlist"].data.default
+	local tierlist = get_tierlist_data()
+	if not tierlist then
+		return nil
+	end
+	local tier = tierlist["space-location"] and tierlist["space-location"][space_location_name]
+	if tier ~= nil then
+		return tier
+	end
+	return tierlist.default
 end

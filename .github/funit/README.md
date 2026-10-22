@@ -33,8 +33,9 @@ Project-specific changes:
   the local PlanetsLib, FUnit, fixture mod and settings mod let the script
   resolve their dependencies without querying the mod portal.
 - `test-mods/planetslib-funit-settings` is a checked-in, text-based settings
-  mod that forces `PlanetsLib-enable-entity-replacements = false` for the
-  no-replacements scenarios. It replaces the previous inline generated mod.
+  mod that forces `PlanetsLib-enable-entity-replacements = false` and
+  `PlanetsLib-disable-all-entity-replacements = true` for the no-replacements
+  scenarios. It replaces the previous inline generated mod.
 - `summarize_funit_results.rb` is a project-specific helper (not copied from
   upstream). It reads the per-scenario JSON reports and writes a Markdown
   summary to the GitHub step summary: scenario totals plus every failing test,
@@ -42,8 +43,17 @@ Project-specific changes:
   include the relevant tail of the captured headless log. Failing tests are
   also emitted as `::error` annotations. The helper exits 0 on test failures so
   that the JUnit conversion step remains the single source of the job result.
-- The Factorio image uses the `latest` tag, as recommended by the FUnit
-  template. Local validation used Factorio 2.1.22.
+  `--comment` writes a second copy for a pull request comment, truncated to
+  GitHub's comment size limit, and `--github-output` records `failed=true|false`
+  for the workflow's comment steps.
+- On a failing run of a same-repository pull request, the workflow posts the
+  summary as a new comment on that PR (marked with a hidden
+  `<!-- funit-results -->` tag). A later passing run deletes all such comments,
+  so stale failures do not linger on the PR. Fork PRs are skipped because their
+  `GITHUB_TOKEN` is read-only; their summary remains in the step summary and
+  annotations.
+- The workflow uses the floating `latest` Factorio image, matching the project
+  policy that FUnit CI should always run against the newest Factorio release.
 
 The Space Age, Quality, Elevated Rails and Recycler mods are installed by the
 headless Factorio distribution. They cannot be obtained through the mod portal

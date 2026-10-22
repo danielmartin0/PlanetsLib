@@ -6,17 +6,22 @@
 -- those recorded results and the real prototypes they produced, then re-checks
 -- the pure helpers directly at runtime.
 
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
-local function assert_fixture_namespace(runner, suite)
-	local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	local entries = mod_data.data[suite]
-	runner.assert(entries, "no data-stage results recorded for '" .. suite .. "'")
-	for id, entry in pairs(entries) do
-		runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
-	end
-end
+-- Every id the technology fixture records. Explicit so a missing entry fails
+-- instead of silently dropping out of a pairs() loop.
+local TECHNOLOGY_IDS = {
+	"TECH-0",
+	"TECH-0b",
+	"TECH-1",
+	"TECH-2",
+	"TECH-3",
+	"TECH-4",
+	"TECH-5",
+	"TECH-6",
+	"TECH-7",
+	"TECH-8",
+}
 
 local function contains(list, value)
 	for _, entry in ipairs(list or {}) do
@@ -58,7 +63,7 @@ return function(runner)
 	local technology = require("__PlanetsLib__.lib.technology")
 
 	runner.test("TECH-0 technology fixture results", function()
-		assert_fixture_namespace(runner, "technology")
+		support.assert_all(runner, "technology", { expected = TECHNOLOGY_IDS })
 	end)
 
 	runner.test("TECH-1a get_child_technologies finds the children", function()
@@ -76,6 +81,10 @@ return function(runner)
 			#children == 2 and children[1] == "funit-tech-child-1" and children[2] == "funit-tech-child-2",
 			"unexpected children of funit-tech-parent-1: " .. table.concat(children, ", ")
 		)
+
+		-- The independent scan above proves the fixture data is what the test
+		-- expects; TECH-1 proves get_child_technologies itself returns it.
+		support.assert_entry(runner, "technology", "TECH-1")
 	end)
 
 	runner.test("TECH-2 excise_tech_from_tech_tree promotes prerequisites", function()
@@ -173,8 +182,7 @@ return function(runner)
 	runner.test("TECH-5 sort_science_pack_names sorts by order without mutating", function()
 		-- sort_science_pack_names reads data.raw, so the data-stage fixture is the
 		-- only place it can run. This asserts its recorded result explicitly.
-		local entries = prototypes.mod_data[RESULTS_MOD_DATA].data.technology
-		runner.assert(entries["TECH-5"].ok, tostring(entries["TECH-5"].err))
+		support.assert_entry(runner, "technology", "TECH-5")
 	end)
 
 	runner.test("TECH-6 set_science_packs_from_lab adds inputs and skips unlocked packs", function()
@@ -235,8 +243,7 @@ return function(runner)
 		-- survived and points at the recorded result.
 		runner.assert(prototypes.technology["funit-tech-icon-planet"], "funit-tech-icon-planet is missing")
 		runner.assert(prototypes.technology["funit-tech-icon-moon"], "funit-tech-icon-moon is missing")
-		local entries = prototypes.mod_data[RESULTS_MOD_DATA].data.technology
-		runner.assert(entries["TECH-7"].ok, "the TECH-7 fixture failed: " .. tostring(entries["TECH-7"].err))
+		support.assert_entry(runner, "technology", "TECH-7")
 	end)
 
 	runner.test("TECH-8 cargo_drops_technology_base and its helpers", function()

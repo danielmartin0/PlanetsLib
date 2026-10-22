@@ -200,21 +200,19 @@ results.record("misc_science_lab_final", "MISC-3", ok3, err3)
 
 -- Record which branch of each startup-gated behavior the scenario exercised, so
 -- the runtime report shows what was skipped rather than hiding it.
-results.record(
+results.note(
 	"misc_science_lab_final",
 	"MISC-2-setting",
-	true,
 	unlink_setting
 		and "PlanetsLib-unlink-hidden-prerequisites is ON; the unlink path was exercised"
-		or "SKIP: PlanetsLib-unlink-hidden-prerequisites is OFF (default); the unlink path was not exercised"
+		or "PlanetsLib-unlink-hidden-prerequisites is OFF (default); the unlink path was not exercised"
 )
-results.record(
+results.note(
 	"misc_science_lab_final",
 	"MISC-3-setting",
-	true,
 	preview_setting
 		and "PlanetsLib-enable-lab-science-pack-preview-size-change is ON; the OFF path was skipped"
-		or "SKIP: PlanetsLib-enable-lab-science-pack-preview-size-change is OFF; the ON path was skipped"
+		or "PlanetsLib-enable-lab-science-pack-preview-size-change is OFF; the ON path was skipped"
 )
 
 return true

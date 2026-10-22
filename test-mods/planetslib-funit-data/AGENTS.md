@@ -185,9 +185,9 @@ end
 
 Status: every suite listed in `tests/suites/manifest.lua` is implemented (no
 stubs), and every fixture listed in `prototypes/fixtures/manifest.lua` is
-implemented for its stage. Against Factorio 2.1.22 the suite runs **144 tests
-with 0 failures/errors** with Space Age + Quality and **122 tests with 0
-failures/errors** in a base-only game; Space Age-only fixtures/suites are
+implemented for its stage. Against the latest Factorio release the suite runs
+**158 tests with 0 failures/errors** with Space Age + Quality and **130 tests
+with 0 failures/errors** in a base-only game; Space Age-only fixtures/suites are
 filtered out when `mods["space-age"]` is nil (see `tests/README.md` for how to
 run it). Check the files for the current state.
 
@@ -221,15 +221,15 @@ run it). Check the files for the current state.
 | Suite | IDs | What to cover |
 | --- | --- | --- |
 | `entity_replacement_data` | ENT-0..4 | `ENT-0` asserts the CI scenario's `PlanetsLib-enable-entity-replacements` value; `assign_entity_replacement` (rule storage, default bound setting, duplicate error, recursion assertion, variant lists, mass-assignment and planet-table forms); `create_planet_entity_variant` (name suffix, deepcopy, localised fields, flags, Factoriopedia redirect/hide, `placeable_by`, icon corner, order suffix, `do_not_generate_variants`, multi-planet, invalid setting, item inference); rocket lift/part multiplier variant generation. Fixture: `entity_replacement_data`. |
-| `entity_replacement_runtime` | ENT-5..11 | Place → replace; settings/inventory/crafting/health/temperature transfer; ghost preservation; robot-built path; inverse normalisation; modules/spill; fluid transfer; wire connections incl. self-referential; grid contents incl. ghost equipment; `storage.replaced_entities` + `get_replacement`; `PlanetsLib.events.on_entity_replaced`; disabled rule. |
-| `entity_replacement_migration` | ENT-12..13 | Rolling-stock replacement (watch the undefined `rolling_stock_info` path); `on_configuration_changed` migration when a rule is added/disabled. Needs a prebuilt save or a controlled configuration change; if impossible headlessly, test the pure layout helpers and record the limitation. |
+| `entity_replacement_runtime` | ENT-5..11, ENT-14 | Place → replace; settings/inventory/crafting/health/temperature transfer; ghost preservation; robot-built path; inverse normalisation; modules/spill; fluid transfer; wire connections incl. self-referential; grid contents incl. ghost equipment; `storage.replaced_entities` + `get_replacement`; `PlanetsLib.events.on_entity_replaced`; disabled rule. |
+| `entity_replacement_migration` | ENT-12..13f | Rolling-stock replacement (watch the undefined `rolling_stock_info` path); `on_configuration_changed` migration when a rule is added/disabled. Needs a prebuilt save or a controlled configuration change; if impossible headlessly, test the pure layout helpers and record the limitation. |
 
 ### D. Ground diggers
 
 | Suite | IDs | What to cover |
 | --- | --- | --- |
 | `ground_diggers_data` | GD-1..5 | `enable_ground_diggers` validation, option normalisation (array + dictionary), late final-fixes call; `is_eligible_drill` exclusions (fluid output, resource-site-only drills, non-square, no item, quality/resource-named, `do_not_generate_variants`); `create_ground_digger` field mapping/stripping/drain/surface condition/flags; `generate_ground_diggers` shared naming, recipe-category union, planet surface property, Factoriopedia note once, missing planet/recipe errors, `drills`/`blacklist`; mining-productivity effects. Fixtures: `ground_diggers_data`, `ground_diggers_late`. |
-| `ground_diggers_runtime` | GD-6..9 | Built digger gets and locks the planet recipe; non-participating planet not converted; surface conditions respected; `construct_ground_digger` (no resources → convert, resources → no convert, collision, hidden tile, reach, remote-view ghost, wrong quality, cursor consumption + build stats); remote-view ghost without reach. |
+| `ground_diggers_runtime` | GD-6..12 | Built digger gets and locks the planet recipe; non-participating planet not converted; surface conditions respected; `construct_ground_digger` (no resources → convert, resources → no convert, collision, hidden tile, reach, remote-view ghost, wrong quality, cursor consumption + build stats); remote-view ghost without reach. |
 
 ### E. Runtime features and overrides
 
@@ -240,7 +240,54 @@ run it). Check the files for the current state.
 | `unreachable_techs` | URT-1..4 | Hidden-prerequisite warnings + truncation; `warn_unlinked_prerequisites`; author auto-unban vs normal ban; on-join tick-0 warning gated by setting. |
 | `recipe_effects` | REC-1..3 | Data prep (`add_to_stats`, `ignored_by_stats`, `amount_minus_ignored_by_productivity`, `inverse_batch_count`, `no_probability`, tooltip, fluid error); runtime no/shared/independent probability, batching, returned items to crafter input, production stats, `on_crafted_event` assertion; `storage.entity_info` cache create/clear. Fixture: `recipe_effects_setup`. |
 | `remote_interfaces` | REM-1 | `PlanetsLib_transfer_storage` save/get/purge round-trip; missing key. |
-| `smoke` (done) | SMOKE-1..3 | Results bag exists; every `suite` fixture entry passed; expected prototypes present. New fixtures must add their own namespace assertions in their suite (do not overload `smoke`). |
+| `smoke` (done) | SMOKE-1..5 | Results bag exists; every `suite` fixture entry passed; expected prototypes present. New fixtures must add their own namespace assertions in their suite (do not overload `smoke`). |
+
+### Testing principles and pitfalls
+
+These lessons come from hardening this suite. Treat them as requirements when adding or reviewing
+tests.
+
+- **A green test can be vacuous.** `runner.assert(true, ...)`, early `return`s, and `pairs()` loops
+  over whatever fixture entries exist all count as passes without exercising the feature. Make the
+  test fail when the expected entry or behavior is missing.
+- **Do not derive the expected value from the helper under test.** Compute expected values
+  independently, or assert a literal result. RP-3 originally derived its lock expectation from the
+  same heuristic it was testing.
+- **Use explicit fixture IDs.** Pass an expected-ID list to `support.assert_all` and assert the
+  fixture namespace exists. A missing entry must fail; it must not silently disappear from a loop.
+- **Distinguish pass, skip, failure, and note.** Use `results.record`, `results.skip`, and
+  `results.note`. Headless limitations and unavailable expansion features are skips, not passes.
+  The smoke suite must reject unexpected skips.
+- **Data-stage fixtures need runtime contracts.** Wrap fixture assertions in `pcall`, record results
+  into mod-data, and assert both the recorded entries and the resulting runtime prototypes. A
+  fixture that never loads is a missing test, not a success.
+- **Syntax checks are not test runs.** `luac -p` catches syntax errors only. Run Factorio locally
+  across base/Space Age and entity-replacements on/off; many failures only appear in a real engine.
+- **Do not hardcode test counts.** FUnit's report JSON and the JUnit conversion are the source of
+  truth. A separate minimum-count list becomes stale and was removed after review.
+- **Test failures may be test bugs.** Before changing production code, verify fixture timing,
+  `require` paths, stage ordering, settings, and engine semantics. Several apparent production
+  failures were incorrect test assumptions.
+- **Assert values, not object identity, unless identity is contractual.** Prototype tables can be
+  copied across the runtime boundary; compare contents instead of relying on `==` identity.
+- **Use tolerances for engine quantities.** Map positions and native origins have fixed-point
+  precision. Do not use exact floating-point equality for values that pass through the engine.
+  Conversely, document genuinely lossy formats (for example planet-str names longer than six bytes)
+  instead of asserting impossible round-trips.
+- **Verify engine semantics before encoding them.** `LuaEntityPrototype.tile_width`/`tile_height`
+  describe the placement grid, not the collision footprint; use `selection_box` for footprint math.
+  Ghosts do not reliably match physical collision-mask queries, so query them explicitly.
+- **Isolate mutable state.** Clear dedicated test surfaces before and after tests, restore migration
+  and storage baselines even when assertions fail, and do not depend on suite order. Leftover
+  entities and synthetic migration snapshots caused intermittent failures.
+- **Respect the two Lua environments.** Data-stage and control-stage globals differ. `remote.call`
+  deep-copies arguments and cannot carry functions; fake players/surfaces must match the subset of
+  APIs the production code uses. Use direct module loading only when a test-only seam is impossible.
+- **Do not add fake coverage for player-driven paths.** If the headless harness cannot create the
+  condition, assert that limitation explicitly and log it; do not add a headless player or
+  `assert(true, "skipped")`.
+- **Re-run tests after merging upstream.** Merged changes can alter fixtures, helpers, or expected
+  counts. Re-run both base and Space Age scenarios after resolving conflicts.
 
 ---
 
@@ -365,31 +412,54 @@ Fixed while implementing these suites (each has a regression test):
     existed. It now updates the existing entry in place (inventory index,
     shift, scale and max icons per row), so the lab has exactly one entry.
     (MISC-3)
+21. **Global entity-replacement kill switch** (fixed) —
+    `PlanetsLib-disable-all-entity-replacements` was never consulted, so it did
+    not disable anything. Rules are now created disabled when the switch is on,
+    the runtime handlers return early, and migrations skip replacements. (ENT)
+22. **Removed replacement rules were never reverted** (fixed) — migration
+    iterated only the current rule table, so a rule deleted between saves left
+    its replacements behind forever. It now walks the union of old and new
+    rules and reverts old-only rules. (ENT-13e)
+23. **Belt replacements could not be migrated in place** (fixed) — recreating a
+    transport belt, underground belt, splitter or loader on top of itself
+    returned nil, so migration left the old belt in place. Silent migrations now
+    use the engine's fast-replace path for belt-like entities. (ENT-13d)
+24. **Ground-digger blacklist and collision footprint** (fixed) —
+    `on_entity_built` still assigned and locked the local recipe for a drill on
+    a planet that blacklisted it, and the late collision check used a 1.5-tile
+    margin that reduced a 3x3 digger's area to zero size. The check also used
+    `tile_width`/`tile_height` (the placement grid) instead of the selection
+    box. The blacklist is honored, the helper checks the actual footprint while
+    ignoring corpses and characters, and it rejects real entities and entity
+    ghosts inside the footprint. Ghost collisions defer to the vanilla build
+    overlay instead of showing the custom entity-in-the-way label. Directly
+    placing a digger over its own ghost builds the closest matching ghost;
+    other ghosts block. (GD-10, GD-11, GD-12)
+25. **Tier compatibility helpers crashed without PlanetsLib: Tiers** (fixed) —
+    `get_planet_tier`/`get_space_location_tier` indexed a missing mod-data
+    prototype. They now return nil; a tier value of 0 is also preserved rather
+    than falling back to the default. (API)
+26. **`get_planet_str_double` long-name fallback** (fixed) — it encoded the full
+    planet name while `get_planet_str` truncates to 8 characters, so long names
+    disagreed (and the encoder asserted above 8 characters). It now truncates
+    first. (PSTR)
+27. **`rro.amend`** (fixed) — the misspelled `rro.ammend` assigned the merged
+    table to a local and neither returned it nor mutated `old`. `rro.amend` is
+    now the canonical in-place merge that returns the first argument, and
+    `rro.ammend` is kept as an alias. (LIB)
 
 Still open / needs a decision:
 
-21. **planet-str encoding is lossy beyond 6 bytes** — a double only has 53 bits
+28. **planet-str encoding is lossy beyond 6 bytes** — a double only has 53 bits
     of integer precision, so 7-8 character planet names do not round-trip
     (`decode(encode("funit-a")) == "hunit-a"`; 8 characters decode to `""`). The
     implementation allows up to 8 characters. Tests stay within the safe range.
     Either document a 6-character limit or store the string differently. (PSTR)
-22. **`rro.ammend`** — assigns the merged table to its local and neither returns
-    it nor mutates `old`; effectively a no-op. (LIB)
-23. **`get_planet_str_double` fallback** — encodes the full planet name while
-    `get_planet_str` truncates to 8 characters, so the two fallbacks disagree
-    for long names (and the encoder asserts above 8 characters). (PSTR)
-24. **Ground-digger collision area** — the second collision check subtracts a
-    `1.5` margin from a 3x3 drill, producing a zero-size area, so entities in the
-    way are missed. The first check uses a different rounding convention. Needs
-    a design decision. (GD)
-25. **Ground-digger per-planet config** — `on_entity_built` assigns a recipe to
-    any known digger on a planet with a recipe, even if that planet blacklists
-    the drill; `construct_ground_digger` does check the config. (GD)
-26. **Recipe-effect characterization** — skipped batches bypass production
+29. **Recipe-effect characterization** — skipped batches bypass production
     stats, `add_to_stats` is computed but unused, and the shared/independent
     probability tooltips use different units. These are pinned as
     characterization tests rather than treated as failures. (REC)
-27. **Unreachable-tech warning precedence** — a non-empty
+30. **Unreachable-tech warning precedence** — a non-empty
     `unlinked_prerequisites` list suppresses the hidden-prerequisite warning;
     pinned as current behaviour. (URT)
 
@@ -399,6 +469,20 @@ without an icon, used recipe-level `result_is_always_fresh`/
 and called `PlanetsLib.extend`/`update` with dot syntax instead of method
 syntax. All four were fixture mistakes and are fixed in
 `prototypes/fixtures/`.
+
+A fifth harness-only issue surfaced when all four CI scenarios were run locally
+against Factorio 2.1.23: SFC-5 and SFC-6 errored in the base-only scenarios with
+`lib/surface-property-lib.lua:24: attempt to index global 'data' (a nil value)`.
+`fits_surface_conditions` chooses its data-stage branch from
+`PlanetsLib.stage`, and suites run in the scenario's Lua state, not PlanetsLib's
+control-stage state. The Space Age scenario only passed because the
+`rocket_parts` suite happens to set `_G.PlanetsLib.stage = "runtime"` before
+`surface_conditions` runs; `rocket_parts` returns early without Space Age, so
+the marker was never set in the base scenarios and the helper fell through to
+the data-stage branch. `tests/scenario/control.lua` now recreates the runtime
+`PlanetsLib` shim (`stage` plus the mod-data `constants`) once before loading
+any suite, so suite results no longer depend on manifest order or active DLC.
+This is a harness fix; the library's own control stage already sets the marker.
 
 ---
 
@@ -419,6 +503,89 @@ syntax. All four were fixture mistakes and are fixed in
 6. Run the scenario locally (see `tests/README.md`) or let CI do it.
 7. Update this file only when the plan itself changes (new area, new fixture,
    new seam).
+
+### Local headless harness gotchas
+
+The Lua-side structure — data fixtures recording into
+`PlanetsLib-funit-results`, thin runtime suites asserting them, and the scenario
+launcher requiring the manifest — is described in §1–§4 and was not the
+difficult part. The friction is in the headless harness. These are the
+non-obvious requirements we hit while validating PlanetsLib:
+
+- **Pass `--server-settings` with `auto_pause: false`.** With only
+  `--start-server-load-scenario` and no server settings, Factorio uses its
+  default settings, where `auto_pause` is `true`. The scenario loads, the
+  server stays at tick 0, FUnit never runs, and no report is written. Start
+  from `test/server-settings.json`, set a local `username`, leave `token` empty,
+  and keep `visibility.public`/`visibility.lan` false.
+- **Put `mod-list.json` in the mod directory, not the scenario directory.**
+  `--mod-directory` makes Factorio read `<mods>/mod-list.json`. The checked-in
+  `tests/scenario/mod-list.json` is a template that CI copies into the mod
+  directory; editing only the scenario copy has no effect locally.
+- **Delete `<mods>/mod-settings.dat` between scenarios.** Startup settings are
+  persisted there. After a run with `planetslib-funit-settings` (which forces
+  `PlanetsLib-enable-entity-replacements = false`), merely disabling that mod
+  does not restore `true`; the stale value makes `ENT-0` fail and makes the
+  next scenario write a `...-no-replacements` report even when replacements are
+  meant to be on.
+- **FUnit does not stop the server.** It writes
+  `script-output/funit-report-<report>.json` and logs `====END====`, then keeps
+  ticking. Watch stdout for `====END====` and terminate Factorio yourself,
+  otherwise the run looks hung. This is what the CI entrypoint does.
+- **Report names describe the DLC/replacement axes, not the scenario folder.**
+  Clear `script-output/funit-report-*.json` before each scenario, or a stale
+  report can be mistaken for the current run.
+- **Isolate the write directory.** Scenarios live in
+  `<write-data>/scenarios/<name>` and reports in `<write-data>/script-output`.
+  Use a custom `--config` whose `read-data` points at the Factorio install and
+  whose `write-data` points at a scratch directory, so local runs do not touch
+  the normal user data.
+- **Package local mods as `<name>_<version>.zip`** (or folders with matching
+  names) and put `funit`, PlanetsLib, `planetslib-funit-data`, and
+  `planetslib-funit-settings` in the mod directory. The CI build job creates
+  these archives with `git archive --prefix=...`; use the same layout locally
+  rather than copying loose directories.
+
+A minimal local recipe:
+
+```sh
+FACTORIO=/path/to/factorio
+RUN=/tmp/funit-run
+MOD_VERSION=$(jq -r .version info.json)
+TEST_VERSION=$(jq -r .version test-mods/planetslib-funit-data/info.json)
+SETTINGS_VERSION=$(jq -r .version test-mods/planetslib-funit-settings/info.json)
+
+mkdir -p "$RUN/factorio/scenarios" "$RUN/factorio/script-output" "$RUN/mods"
+cp -a test-mods/planetslib-funit-data/tests/scenario "$RUN/factorio/scenarios/funit"
+cp test-mods/planetslib-funit-data/tests/scenario/mod-list.json "$RUN/mods/mod-list.json"
+git archive --worktree-attributes --format=zip HEAD \
+  -o "$RUN/mods/PlanetsLib_${MOD_VERSION}.zip" --prefix="PlanetsLib_${MOD_VERSION}/"
+git archive --worktree-attributes --format=zip HEAD:test-mods/planetslib-funit-data \
+  -o "$RUN/mods/planetslib-funit-data_${TEST_VERSION}.zip" \
+  --prefix="planetslib-funit-data_${TEST_VERSION}/"
+git archive --worktree-attributes --format=zip HEAD:test-mods/planetslib-funit-settings \
+  -o "$RUN/mods/planetslib-funit-settings_${SETTINGS_VERSION}.zip" \
+  --prefix="planetslib-funit-settings_${SETTINGS_VERSION}/"
+cp /path/to/funit_*.zip "$RUN/mods/"
+
+jq '.username="funit" | .token="" | .auto_pause=false
+    | .visibility={"public":false,"lan":false} | .autosave_interval=0' \
+  test-mods/planetslib-funit-data/test/server-settings.json > "$RUN/server-settings.json"
+printf '[path]\nread-data=%s/data\nwrite-data=%s/factorio\n' "$FACTORIO" "$RUN" > "$RUN/config.ini"
+
+# Edit "$RUN/mods/mod-list.json" for the scenario, then remove stale settings:
+rm -f "$RUN/mods/mod-settings.dat"
+"$FACTORIO/bin/x64/factorio" --config "$RUN/config.ini" \
+  --mod-directory "$RUN/mods" --start-server-load-scenario funit \
+  --server-settings "$RUN/server-settings.json"
+# Wait for "====END====" in the output, then kill the process. Read
+# "$RUN/factorio/script-output/funit-report-*.json".
+```
+
+For the no-replacements scenarios, enable `planetslib-funit-settings` in
+`mod-list.json`; for Space Age, enable `space-age`, `quality`, and
+`elevated-rails`. The CI-generated lists in `.github/workflows/funit.yml` are
+the canonical examples.
 
 ## 7. Definition of done for the suite
 

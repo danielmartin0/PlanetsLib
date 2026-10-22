@@ -10,7 +10,8 @@
 -- runtime prototypes. No real entities are created, so there is nothing to clean
 -- up. The data-stage `rocket_parts_setup` fixture installs the mod-data.
 
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
+local support = require("__planetslib-funit-data__.tests.suites.support")
+
 -- Surface property created by the fixture's PlanetsLib.assign_rocket_part_recipe
 -- call (see rocket_parts_setup.lua). Its default_value is 0.
 local MARKER = "PlanetsLib-is-funit-rocket-planet"
@@ -31,16 +32,6 @@ return function(runner)
 	local surface_properties_lib = require("__PlanetsLib__.lib.surface-property-lib")
 	package.loaded["lib.surface-property-lib"] = surface_properties_lib
 	local rocket_parts = require("__PlanetsLib__.scripts.rocket-parts")
-
-	local function assert_fixture_entry(runner, suite, id)
-		local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-		runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-		local entries = mod_data.data[suite]
-		runner.assert(entries, "no data-stage results recorded for '" .. suite .. "'")
-		local entry = entries[id]
-		runner.assert(entry, "fixture entry '" .. id .. "' is missing")
-		runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
-	end
 
 	-- A stand-in for a surface that only supports get_property (all the handler
 	-- and fits_surface_conditions touch).
@@ -75,8 +66,31 @@ return function(runner)
 		return entity
 	end
 
+	-- The rocket-building recipes that fit a surface, computed independently of
+	-- the auto-lock helper. This is only used to assert the precondition of the
+	-- RP-3 heuristic; the expected lock value itself is written literally.
+	local function fitting_rocket_recipes(surface)
+		local names = {}
+		for _, recipe in pairs(prototypes.get_recipe_filtered({ { filter = "category", category = "rocket-building" } })) do
+			if recipe.surface_conditions == nil or surface_properties_lib.fits_surface_conditions(recipe, surface) then
+				names[#names + 1] = recipe.name
+			end
+		end
+		table.sort(names)
+		return names
+	end
+
+	local function contains_name(names, name)
+		for _, value in ipairs(names) do
+			if value == name then
+				return true
+			end
+		end
+		return false
+	end
+
 	runner.test("RP-1 recipe assignment, default and '_other'", function()
-		assert_fixture_entry(runner, "rocket_parts_setup", "RP-FIXTURE-1")
+		support.assert_entry(runner, "rocket_parts_setup", "RP-FIXTURE-1")
 
 		-- A planet with an assigned recipe.
 		local assigned = make_silo(make_surface("funit-rocket-planet"))
@@ -116,29 +130,63 @@ return function(runner)
 	end)
 
 	runner.test("RP-3 auto-lock heuristic and ghost silos", function()
-		-- At least two rocket-building recipes fit this surface, so locking is
-		-- disabled (more than one recipe can be crafted in the silo).
+		-- Precondition for the multi-recipe case: more than one rocket-building
+		-- recipe fits the surface, including the fixture's own recipes. This is
+		-- counted independently of multiple_rocket_parts_can_be_crafted_in_-
+		-- vanilla_silo(), whose result the assertions below must not reuse.
 		local multi = make_surface("funit-rocket-autolock-multi", { [MARKER] = 1 })
+		local multi_recipes = fitting_rocket_recipes(multi)
+		runner.assert(#multi_recipes >= 2,
+			"fixture error: expected more than one rocket-building recipe to fit the 'multi' surface, got "
+				.. #multi_recipes .. ": " .. table.concat(multi_recipes, ", "))
 		runner.assert(
-			surface_properties_lib.multiple_rocket_parts_can_be_crafted_in_vanilla_silo(multi),
-			"fixture error: expected multiple rocket-building recipes to fit the 'multi' surface"
+			contains_name(multi_recipes, "funit-rocket-recipe-a")
+				and contains_name(multi_recipes, "funit-rocket-recipe-fit-1")
+				and contains_name(multi_recipes, "funit-rocket-recipe-fit-2"),
+			"fixture error: the fixture's rocket recipes do not fit the 'multi' surface: "
+				.. table.concat(multi_recipes, ", ")
 		)
+
 		local multi_silo = make_silo(multi)
 		rocket_parts.on_built_rocket_silo({ entity = multi_silo })
 		runner.assert(multi_silo.recipe == "funit-rocket-recipe-a",
 			"the auto-lock surface did not receive its recipe")
+		-- Literal expectation: with more than one fitting recipe, locking is
+		-- disabled. Do not derive this from the heuristic under test.
 		runner.assert(multi_silo.recipe_locked == false,
 			"the silo must not be locked when multiple rocket-part recipes fit")
 
-		-- When only one recipe can be crafted, the lock follows the heuristic.
+		-- Precondition for the single-recipe case: exactly one rocket-building
+		-- recipe fits (the vanilla rocket-part). The fixture's recipes are
+		-- restricted to the marker=1 planet, and the 'single' surface's marker
+		-- defaults to 0.
 		local single = make_surface("funit-rocket-autolock-single")
+		local single_recipes = fitting_rocket_recipes(single)
+		runner.assert(#single_recipes == 1,
+			"fixture error: expected exactly one rocket-building recipe to fit the 'single' surface, got "
+				.. #single_recipes .. ": " .. table.concat(single_recipes, ", "))
+		runner.assert(single_recipes[1] == "rocket-part",
+			"fixture error: expected 'rocket-part' to be the only recipe fitting the 'single' surface, got "
+				.. tostring(single_recipes[1]))
+
+		-- The heuristic itself must report the literal answers the two surfaces
+		-- were built to produce; this is not used to derive the lock values.
+		runner.assert(
+			surface_properties_lib.multiple_rocket_parts_can_be_crafted_in_vanilla_silo(multi) == true,
+			"the heuristic should report multiple rocket-part recipes for the 'multi' surface"
+		)
+		runner.assert(
+			surface_properties_lib.multiple_rocket_parts_can_be_crafted_in_vanilla_silo(single) == false,
+			"the heuristic should report a single rocket-part recipe for the 'single' surface"
+		)
+
 		local single_silo = make_silo(single)
 		rocket_parts.on_built_rocket_silo({ entity = single_silo })
-		local expected_locked = not surface_properties_lib.multiple_rocket_parts_can_be_crafted_in_vanilla_silo(single)
 		runner.assert(single_silo.recipe == "funit-rocket-recipe-a",
 			"the single-recipe surface did not receive its recipe")
-		runner.assert(single_silo.recipe_locked == expected_locked,
-			"the auto-lock result did not match the 'multiple recipes' heuristic")
+		-- Literal expectation: with exactly one fitting recipe, the silo locks.
+		runner.assert(single_silo.recipe_locked == true,
+			"the silo must be locked when only one rocket-part recipe fits")
 
 		-- Ghost silos use ghost_prototype and still receive the recipe. The double
 		-- models the handler's Lua branch only; whether the engine lets a real

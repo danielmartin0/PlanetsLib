@@ -3,18 +3,23 @@ local icon_entry = require("lib.icon-entry")
 
 local Public = {}
 
+-- The caller-supplied icon is always drawn at this apparent size in pixels (64 * 50/128), so
+-- `scale` is computed from `icon_size` and the layout looks the same for any source icon size.
+local CRUSHING_ICON_DISPLAY_SIZE = 64 * 50 / 128
+
 --- Returns an asteroid crushing icon resembling a basic asteroid crushing icon from vanilla Space Age, using a copper-colored crushing icon. Used by "Muluna, Moon of Nauvis" and "Crushing Industry." 
 --- @param icon_dir string(sprite)
---- @param icon_size integer
+--- @param icon_size integer optional Size of the supplied icon in pixels. Defaults to 64.
 --- @return table(IconData)
 function Public.crushing_recipe_icons(icon_dir,icon_size)
+icon_size = icon_size or 64
 return {
     {
         icon = icon_dir,
-        icon_size=64,
+        icon_size=icon_size,
         --scale=0.3,
         shift = {0,-3},
-        scale=50/128,
+        scale=CRUSHING_ICON_DISPLAY_SIZE/icon_size,
         draw_background = true
     },
     {
@@ -29,16 +34,17 @@ end
 
 --- Returns an asteroid crushing icon resembling a basic asteroid crushing icon from vanilla Space Age. Uses a yellow crushing icon. 
 --- @param icon_dir string(sprite)
---- @param icon_size integer
+--- @param icon_size integer optional Size of the supplied icon in pixels. Defaults to 64.
 --- @return table(IconData)
 function Public.asteroid_crushing_recipe_icons(icon_dir,icon_size)
+icon_size = icon_size or 64
 return {
     {
         icon = icon_dir,
-        icon_size=64,
+        icon_size=icon_size,
         --scale=0.3,
         shift = {0,-3},
-        scale=50/128,
+        scale=CRUSHING_ICON_DISPLAY_SIZE/icon_size,
         draw_background = true
     },
     {
@@ -52,10 +58,15 @@ end
 
 
 --- Returns an asteroid crushing icon resembling an advanced asteroid crushing icon from vanilla Space Age.
---- @param asteroid_icon string(sprite)
---- @param product_1 string(sprite)
---- @param product_2 string(sprite)
---- @param variant string(Union["checkerboard","horizontal","vertical"])
+--- The four product icons are placed in quadrants at scale 0.25, with `asteroid_icon` drawn over them
+--- at scale 0.4.
+--- @param asteroid_icon string(sprite) Sprite path for the asteroid shown on top.
+--- @param product_1 string(sprite) Sprite path for the first product.
+--- @param product_2 string(sprite) Sprite path for the second product.
+--- @param variant string optional One of "checkerboard" (default), "horizontal", or "vertical".
+--- "checkerboard" alternates the products diagonally, "horizontal" puts product_1 in the top row and
+--- product_2 in the bottom row, and "vertical" puts product_1 in the left column and product_2 in the
+--- right column. Any other value raises an error.
 --- @return table(IconData)
 function Public.advanced_crushing_recipe_icons(asteroid_icon,product_1,product_2,variant)
     if not variant then variant = "checkerboard" end

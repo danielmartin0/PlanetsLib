@@ -9,8 +9,8 @@ local results = require("lib.results")
 -- The planet-str surface property only exists with Space Age; a base-only game
 -- cannot assign surface properties at all.
 if not mods["space-age"] then
-	results.record("planet_str", "PSTR-3", true, "space-age not active; planet-str fixtures are skipped")
-	results.record("planet_str_auto", "PSTR-4", true, "space-age not active; planet-str fixtures are skipped")
+	results.skip("planet_str", "PSTR-3", "space-age not active; planet-str fixtures are skipped")
+	results.skip("planet_str_auto", "PSTR-4", "space-age not active; planet-str fixtures are skipped")
 	return true
 end
 
@@ -45,9 +45,27 @@ local ok, err = pcall(function()
 	)
 
 	-- Planets without an explicit value fall back to the first 8 name chars.
-	local fallback = create_planet("funit-b")
-	assert(ps.get_planet_str(fallback) == "funit-b", "fallback should be the first 8 characters of the name")
+	-- Keep this name within the 6-byte round-trip-safe range; 7-8 byte names
+	-- are lossy (see the file header and the documented limitation).
+	local fallback = create_planet("funit6")
+	assert(ps.get_planet_str(fallback) == "funit6", "fallback should be the first 8 characters of the name")
 	assert(type(ps.get_planet_str_double(fallback)) == "number", "fallback double should be a number")
+
+	-- Long names must use the same truncation in both fallbacks. Before this
+	-- regression test, get_planet_str_double() encoded the full name and threw
+	-- the "longer than 8 characters" assertion. The 8-byte result itself is
+	-- lossy, so assert agreement rather than a literal decoded string.
+	local lib = require("__PlanetsLib__.lib.lib")
+	local long_fallback = create_planet("funit-long-name")
+	local expected_double = lib.encode_string_to_double("funit-lo")
+	assert(
+		ps.get_planet_str(long_fallback) == "funit-lo",
+		"long-name fallback should be the first 8 characters"
+	)
+	assert(
+		ps.get_planet_str_double(long_fallback) == expected_double,
+		"get_planet_str_double long-name fallback does not encode the truncated name"
+	)
 
 	local ok_long = pcall(ps.set_planet_str, object_planet, "123456789")
 	assert(not ok_long, "set_planet_str must reject strings longer than 8 characters")

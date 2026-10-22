@@ -23,6 +23,17 @@ if not settings.startup["PlanetsLib-enable-entity-replacements"].value then
 end
 runner.report(report_name)
 
+-- Suites require PlanetsLib modules into the scenario's Lua state, but
+-- PlanetsLib's own control stage runs in a separate per-mod Lua state. Recreate
+-- the runtime marker those modules read once here, instead of relying on an
+-- individual suite to set it. Without this, lib/surface-property-lib.lua takes
+-- its data-stage branch (indexing the absent `data` global) whenever the suites
+-- that set the marker earlier in the manifest are skipped, which is exactly what
+-- happened in the base-only scenarios.
+PlanetsLib = PlanetsLib or {}
+PlanetsLib.stage = "runtime"
+PlanetsLib.constants = prototypes.mod_data["Planetslib"].data
+
 -- Require suites from the companion mod. This is the same mechanism FUnit
 -- itself uses to load "__funit__.test_runner" from a scenario, and avoids
 -- relying on scenario-local require paths.

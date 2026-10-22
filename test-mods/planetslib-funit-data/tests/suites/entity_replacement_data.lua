@@ -36,15 +36,23 @@ local function contains(list, value)
 end
 
 return function(runner)
-	runner.test("ENT-0 entity-replacement default setting matches the CI scenario", function()
-		local forced_off = script.active_mods["planetslib-funit-settings"] ~= nil
-		local actual = settings.startup["PlanetsLib-enable-entity-replacements"].value
+	runner.test("ENT-0 entity-replacement startup settings match the CI scenario", function()
+		local settings_mod = script.active_mods["planetslib-funit-settings"] ~= nil
+		local enable = settings.startup["PlanetsLib-enable-entity-replacements"].value
+		local disable_all = settings.startup["PlanetsLib-disable-all-entity-replacements"].value
 		runner.assert(
-			actual == not forced_off,
+			enable == not settings_mod,
 			"PlanetsLib-enable-entity-replacements is "
-				.. tostring(actual)
+				.. tostring(enable)
 				.. ", but the CI settings mod is "
-				.. (forced_off and "enabled" or "not loaded")
+				.. (settings_mod and "enabled" or "not loaded")
+		)
+		runner.assert(
+			disable_all == settings_mod,
+			"PlanetsLib-disable-all-entity-replacements is "
+				.. tostring(disable_all)
+				.. ", but the CI settings mod is "
+				.. (settings_mod and "enabled" or "not loaded")
 		)
 	end)
 
@@ -119,6 +127,55 @@ return function(runner)
 			"the assembling-machine-3 -> assembling-machine-2 rule is missing")
 		runner.assert(nauvis["transport-belt"] and nauvis["transport-belt"].enabled == false,
 			"the disabled transport-belt rule is missing or enabled")
+
+		-- The global kill switch must override every rule, including rules bound
+		-- to their own (default-on) startup setting. Without it, the per-rule
+		-- settings must be respected.
+		local disable_all = settings.startup["PlanetsLib-disable-all-entity-replacements"].value
+		if disable_all then
+			for planet_name, planet_rules in pairs(replacements) do
+				for entity_name, rule in pairs(planet_rules) do
+					runner.assert(
+						rule.enabled == false,
+						"rule '"
+							.. tostring(entity_name)
+							.. "' on '"
+							.. tostring(planet_name)
+							.. "' is enabled even though PlanetsLib-disable-all-entity-replacements is true"
+					)
+				end
+			end
+		else
+			local default_enabled = settings.startup["PlanetsLib-enable-entity-replacements"].value
+			local fixture_enabled =
+				settings.startup["planetslib-funit-data-enable-entity-replacement-fixture"].value
+			runner.assert(
+				planet_a["funit-ent-old-b"].enabled == default_enabled,
+				"the default-bound rule did not reflect PlanetsLib-enable-entity-replacements"
+			)
+			for _, name in ipairs({
+				"funit-ent-old-a",
+				"funit-ent-suffix-old",
+				"funit-ent-mass-old-1",
+				"funit-ent-mass-old-2",
+				"funit-ent-pt-old",
+				"wooden-chest",
+				"stone-wall",
+				"iron-chest",
+				"gun-turret",
+			}) do
+				runner.assert(
+					planet_a[name] and planet_a[name].enabled == fixture_enabled,
+					"fixture-bound rule '" .. name .. "' did not reflect its own startup setting"
+				)
+			end
+			for _, name in ipairs({ "wooden-chest", "stone-furnace", "assembling-machine-3" }) do
+				runner.assert(
+					nauvis[name] and nauvis[name].enabled == fixture_enabled,
+					"nauvis fixture-bound rule '" .. name .. "' did not reflect its own startup setting"
+				)
+			end
+		end
 	end)
 
 	runner.test("ENT-2 create_planet_entity_variant metadata and generated prototypes", function()
