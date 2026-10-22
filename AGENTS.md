@@ -202,6 +202,47 @@ _Posted by DeepSeek V4.1 Flash._
 
 When posting Github pull requests, begin the message with a similar signature.
 
+### Bugfix pull request format
+
+For pull requests that contain PlanetsLib bugfixes, use the review-oriented format established by
+[PR #130](https://github.com/danielmartin0/PlanetsLib/pull/130). That PR is the canonical example for
+future AI-written bugfix PRs.
+
+The body should contain, in order:
+
+1. **Description** — state the source and target branches, explain that the test suite was hardened
+   first, and summarize the commit structure. Keep the original bugfix commits separate from test
+   infrastructure and CI changes.
+2. **Checklist** — use the repository's pull request checklist. Do not check `README.md` unless the
+   README itself was updated; mention documentation changes in `docs-source/` separately.
+3. **Testing Notes** — list every tested Factorio scenario with the scenario name, test count, and
+   failures/errors. Include the Factorio version used locally and note that CI runs the latest image.
+   Also list syntax, Ruby, and diff checks that were run.
+4. **Bugfix review scope** — identify the bugfix commits explicitly and state that test-only commits
+   are excluded from the bugfix checklist.
+5. **Categorized bugfix checklist** — group entries by area (for example entity replacement, ground
+   diggers, backwards-compatibility helpers). For every entry:
+   - start with an unchecked checkbox;
+   - link each relevant file to its GitHub commit diff;
+   - explain in plain language what behavior changed and what a reviewer should verify;
+   - call out migration, save-compatibility, or event-contract risks rather than hiding them.
+
+   Use a GitHub file-diff anchor rather than a generic repository link:
+
+   ```text
+   https://github.com/<owner>/<repo>/commit/<full-commit-sha>#diff-<sha256-of-file-path>
+   ```
+
+   The `diff-` fragment is the SHA-256 hex digest of the repository-relative file path. Link every
+   file that contains a reviewable part of that bugfix, and use the commit that introduced the
+   change rather than the PR's compare view.
+6. **Review note** — add a short section for any known limitation or follow-up check that does not
+   block the PR but should be considered by a human reviewer.
+7. **Related Issues** — link related PRs or issues.
+
+Titles for AI-generated PRs should start with `(AI-generated)` and describe the change, for example
+`(AI-generated) FUnit hardening and PlanetsLib bugfixes`.
+
 ## Contribution checklist (from `.github/PULL_REQUEST_TEMPLATE.md`)
 
 Before opening a PR, ensure:
