@@ -300,8 +300,9 @@ function rro.util_merge(args)
 end
 
 --- Merges `new` into `old` in place and returns `old`.
--- Kept for backwards compatibility; new code should prefer rro.merge, which
--- does not mutate its first argument.
+-- Callers do not need to assign the return value: the passed table itself is
+-- updated. Kept for backwards compatibility; new code should prefer rro.merge,
+-- which does not mutate its first argument.
 -- @param old table
 -- @param new table
 -- @return old table

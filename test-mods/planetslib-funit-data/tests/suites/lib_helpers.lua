@@ -275,6 +275,15 @@ return function(runner)
 		runner.assert(target.added == 4, "ammend did not copy an added field into its first argument")
 		runner.assert(target.drop == nil, "ammend did not apply the '_nil' sentinel")
 		runner.assert(returned == target, "ammend should return the table it mutated")
+
+		local function_target = { a = 1 }
+		local function_returned = rro.ammend(function_target, {
+			a = function(value)
+				return value + 1
+			end,
+		})
+		runner.assert(function_target.a == 2, "ammend did not apply a function value in place")
+		runner.assert(function_returned == function_target, "ammend should return the table it mutated")
 	end)
 
 	runner.test("LIB-19 rro.get_concatenation copies both lists", function()
