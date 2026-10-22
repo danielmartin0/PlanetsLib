@@ -186,7 +186,7 @@ end
 Status: every suite listed in `tests/suites/manifest.lua` is implemented (no
 stubs), and every fixture listed in `prototypes/fixtures/manifest.lua` is
 implemented for its stage. Against the latest Factorio release the suite runs
-**157 tests with 0 failures/errors** with Space Age + Quality and **130 tests
+**158 tests with 0 failures/errors** with Space Age + Quality and **130 tests
 with 0 failures/errors** in a base-only game; Space Age-only fixtures/suites are
 filtered out when `mods["space-age"]` is nil (see `tests/README.md` for how to
 run it). Check the files for the current state.
@@ -386,7 +386,8 @@ Fixed while implementing these suites (each has a regression test):
     ignoring corpses and characters, and it rejects real entities and entity
     ghosts inside the footprint. Ghost collisions defer to the vanilla build
     overlay instead of showing the custom entity-in-the-way label. Directly
-    placing a digger over its own ghost builds the ghost; other ghosts block. (GD-10, GD-11)
+    placing a digger over its own ghost builds the closest matching ghost;
+    other ghosts block. (GD-10, GD-11, GD-12)
 25. **Tier compatibility helpers crashed without PlanetsLib: Tiers** (fixed) —
     `get_planet_tier`/`get_space_location_tier` indexed a missing mod-data
     prototype. They now return nil; a tier value of 0 is also preserved rather

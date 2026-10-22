@@ -402,6 +402,9 @@ if script.active_mods["funit"] then
 		revive_ground_digger_ghost = function(ghost)
 			return ground_diggers.revive_ground_digger_ghost(ghost)
 		end,
+		select_digger_ghost = function(colliding_entities, digger_name, position)
+			return ground_diggers.select_digger_ghost(colliding_entities, digger_name, position)
+		end,
 		on_configuration_changed = function(configuration_changed_data)
 			return on_configuration_changed(configuration_changed_data)
 		end,

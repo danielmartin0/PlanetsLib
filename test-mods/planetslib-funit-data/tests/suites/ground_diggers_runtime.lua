@@ -665,6 +665,46 @@ return function(runner)
 		end)
 	end)
 
+	runner.test("GD-12 only the ground-digger ghost nearest the cursor is selected", function()
+		local interface = remote.interfaces["planetslib_funit"]
+		runner.assert(
+			interface and interface["select_digger_ghost"],
+			"PlanetsLib did not expose planetslib_funit.select_digger_ghost"
+		)
+
+		local far = {
+			type = "entity-ghost",
+			ghost_name = DIGGER,
+			name = "funit-far-ghost",
+			position = { x = 2.5, y = 0.5 },
+		}
+		local near = {
+			type = "entity-ghost",
+			ghost_name = DIGGER,
+			name = "funit-near-ghost",
+			position = { x = 1.5, y = 1.0 },
+		}
+		local other = {
+			type = "entity-ghost",
+			ghost_name = "iron-chest",
+			name = "funit-other-ghost",
+			position = { x = 1.5, y = 1.5 },
+		}
+
+		local selected = remote.call(
+			"planetslib_funit",
+			"select_digger_ghost",
+			{ far, near, other },
+			DIGGER,
+			{ x = 1.5, y = 1.5 }
+		)
+		runner.assert(selected ~= nil, "no ground-digger ghost was selected")
+		runner.assert(
+			selected.name == "funit-near-ghost",
+			"the selected ground-digger ghost was not the one closest to the cursor"
+		)
+	end)
+
 	runner.test("GD-11 on_entity_built respects the per-planet drill blacklist", function()
 		local created = {}
 		run_with_cleanup(function()

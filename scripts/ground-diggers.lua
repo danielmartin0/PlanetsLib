@@ -183,6 +183,33 @@ function Public.find_build_collisions(surface, position, digger_prototype)
 	return colliding_entities
 end
 
+---Selects the ground-digger ghost closest to the cursor.
+-- Removes every matching candidate from `colliding_entities`; the caller may
+-- revive the returned ghost. Non-matching entities stay in the list so they
+-- continue to block placement.
+-- @param colliding_entities table
+-- @param digger_name string
+-- @param position MapPosition
+-- @return LuaEntity|nil
+function Public.select_digger_ghost(colliding_entities, digger_name, position)
+	local target_ghost
+	local best_distance
+	for i = #colliding_entities, 1, -1 do
+		local entity = colliding_entities[i]
+		if entity.type == "entity-ghost" and entity.ghost_name == digger_name then
+			local dx = entity.position.x - position.x
+			local dy = entity.position.y - position.y
+			local distance = dx * dx + dy * dy
+			if not target_ghost or distance < best_distance then
+				target_ghost = entity
+				best_distance = distance
+			end
+			table.remove(colliding_entities, i)
+		end
+	end
+	return target_ghost
+end
+
 ---Revives a ground-digger ghost and assigns its planet recipe.
 -- Exposed through the FUnit seam so the headless suite can exercise the
 -- item-over-ghost path without a connected player.
@@ -337,16 +364,10 @@ function Public.construct_ground_digger(event)
 	local colliding_entities = Public.find_build_collisions(surface, position, digger_prototype)
 	local target_ghost
 	if not is_ghost then
-		-- Direct placement over the matching ground-digger ghost builds that
-		-- ghost, matching vanilla item-over-ghost behavior. Other ghosts remain
-		-- blocking.
-		for i = #colliding_entities, 1, -1 do
-			local entity = colliding_entities[i]
-			if entity.type == "entity-ghost" and entity.ghost_name == digger_name then
-				target_ghost = target_ghost or entity
-				table.remove(colliding_entities, i)
-			end
-		end
+		-- Direct placement over matching ground-digger ghosts builds the one
+		-- closest to the cursor, matching vanilla item-over-ghost behavior.
+		-- Other ghosts and real entities remain blocking.
+		target_ghost = Public.select_digger_ghost(colliding_entities, digger_name, position)
 	end
 	if #colliding_entities ~= 0 then
 		return
