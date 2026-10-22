@@ -45,8 +45,8 @@ return function(runner)
 		runner.assert(#icons == 2, "expected 2 icon entries")
 
 		runner.assert(icons[1].icon == "funit/ore.png", "first icon should be the supplied sprite")
-		runner.assert(icons[1].icon_size == 64, "first icon size should be 64")
-		runner.assert(icons[1].scale == 50 / 128, "first icon scale should be 50/128")
+		runner.assert(icons[1].icon_size == 128, "first icon size should use the supplied icon_size")
+		runner.assert(icons[1].scale == 25 / 128, "first icon scale should keep the 25 pixel apparent size")
 		runner.assert(icons[1].draw_background == true, "first icon should draw a background")
 		assert_shift(runner, icons[1], 0, -3, "first icon")
 
@@ -55,19 +55,35 @@ return function(runner)
 			"second icon should be the generic crushing sprite"
 		)
 		runner.assert(icons[2].scale == 0.5 and icons[2].icon_size == 64, "second icon layout is wrong")
+
+		-- icon_size defaults to 64, which is the size the helper was originally hard-coded to.
+		local defaulted = recipe.crushing_recipe_icons("funit/ore.png")
+		runner.assert(
+			defaulted[1].icon_size == 64 and defaulted[1].scale == 50 / 128,
+			"default icon_size should preserve the original 64 pixel layout"
+		)
 	end)
 
 	runner.test("RCP-2 asteroid_crushing_recipe_icons layout", function()
 		local icons = recipe.asteroid_crushing_recipe_icons("funit/asteroid.png", 128)
 		runner.assert(#icons == 2, "expected 2 icon entries")
 		runner.assert(icons[1].icon == "funit/asteroid.png", "first icon should be the supplied sprite")
-		runner.assert(icons[1].scale == 50 / 128 and icons[1].icon_size == 64, "first icon layout is wrong")
+		runner.assert(
+			icons[1].scale == 25 / 128 and icons[1].icon_size == 128,
+			"first icon should honour icon_size while keeping its apparent size"
+		)
 		assert_shift(runner, icons[1], 0, -3, "first icon")
 		runner.assert(
 			icons[2].icon == "__PlanetsLib__/graphics/icons/asteroid-crushing.png",
 			"second icon should be the asteroid crushing sprite"
 		)
 		runner.assert(icons[2].scale == 0.5, "second icon scale is wrong")
+
+		local defaulted = recipe.asteroid_crushing_recipe_icons("funit/asteroid.png")
+		runner.assert(
+			defaulted[1].icon_size == 64 and defaulted[1].scale == 50 / 128,
+			"default icon_size should preserve the original 64 pixel layout"
+		)
 	end)
 
 	runner.test("RCP-3 advanced_crushing_recipe_icons variants", function()
@@ -89,9 +105,25 @@ return function(runner)
 
 		local horizontal = recipe.advanced_crushing_recipe_icons("a", "p1", "p2", "horizontal")
 		runner.assert(product_order(horizontal) == "p2,p1,p1,p2", "horizontal order is wrong")
+		runner.assert(
+			horizontal[2].shift[2] == -8 and horizontal[3].shift[2] == -8,
+			"horizontal should put product_1 in the top row"
+		)
+		runner.assert(
+			horizontal[1].shift[2] == 8 and horizontal[4].shift[2] == 8,
+			"horizontal should put product_2 in the bottom row"
+		)
 
 		local vertical = recipe.advanced_crushing_recipe_icons("a", "p1", "p2", "vertical")
 		runner.assert(product_order(vertical) == "p1,p2,p1,p2", "vertical order is wrong")
+		runner.assert(
+			vertical[1].shift[1] == -8 and vertical[3].shift[1] == -8,
+			"vertical should put product_1 in the left column"
+		)
+		runner.assert(
+			vertical[2].shift[1] == 8 and vertical[4].shift[1] == 8,
+			"vertical should put product_2 in the right column"
+		)
 
 		runner.assert(
 			not pcall(recipe.advanced_crushing_recipe_icons, "a", "p1", "p2", "diagonal"),

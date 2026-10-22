@@ -4,6 +4,8 @@ Date: 2026-10-21
   Features:
   Changes:
     - Ground diggers are no longer generated for mining drills that can only mine specific resource sites, such as pumpjacks or anomaly collectors. Such drills must be able to mine ordinary solid resources (their resource_categories must include basic-solid, or be unset).
+  Bugfixes:
+    - PlanetsLib.crushing_recipe_icons() and PlanetsLib.asteroid_crushing_recipe_icons() now use their icon_size argument instead of always declaring the supplied icon as 64 pixels. The icon keeps its previous apparent size, so existing icons look unchanged.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.2
 Date: 2026-10-20
