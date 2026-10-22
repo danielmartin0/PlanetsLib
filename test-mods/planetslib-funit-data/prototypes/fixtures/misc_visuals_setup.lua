@@ -161,10 +161,9 @@ local ok, err = pcall(function()
 	assert(data.raw["assembling-machine"]["funit-visual-centrifuge"], "the centrifuge clone was not created")
 end)
 results.record("misc_visuals_setup", "SETUP-1", ok, err)
-results.record(
+results.note(
 	"misc_visuals_setup",
 	"SETUP-2",
-	true,
 	SPACE_AGE and "space-age active"
 		or "space-age not active; star/is-freezing/weight/gas tests will be skipped"
 )

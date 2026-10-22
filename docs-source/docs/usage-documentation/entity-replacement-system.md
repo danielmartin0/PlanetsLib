@@ -49,13 +49,15 @@ PlanetsLib.assign_entity_replacement("vulcanus","chemical-plant",replacement_ent
 
 ## Entity variant migrations
 
-On adding new entity replacement rules to an existing save or disabling old replacement rules, PlanetsLib will perform a runtime migration on all entities in violation of the current ruleset to comply with the new ruleset. This process includes copying the settings, wire connections, inventories, fluidbox contents, health, crafting progress, and a myriad of other settings associated with entities. This process is not perfect, so reports of incomplete migrations are welcome. 
+On adding new entity replacement rules to an existing save, disabling old replacement rules, or removing rules entirely from the rule table, PlanetsLib will perform a runtime migration on all entities in violation of the current ruleset to comply with the new ruleset. This process includes copying the settings, wire connections, inventories, fluidbox contents, health, crafting progress, and a myriad of other settings associated with entities. This process is not perfect, so reports of incomplete migrations are welcome.
 
 ## Safely disabling an entity replacement rule
 
 Each entity replacement rule must be associated with a startup setting, defined with `bound_setting`. When this setting is enabled, entity replacements are active. When this setting is disabled, variant entities are generated in data, allowing saves with obsolete rules to load without deleting any entities. However, on loading a save, all variant entities that should not exist under the current ruleset are replaced with their original entity, reverting all replacements performed under that rule.
 
 To safely remove an entity replacement from the game, disable the associated startup setting, load the save to allow the migration to occur, then remove the mod. When updating a mod to revert an entity replacement rule, apply a conventional migration to all affected entities, or if not possible, hide and force disable the associated setting, rather than deleting code adding the replacement rule. After you are ready to make old saves break their migration, you can delete the associated code.
+
+PlanetsLib also exposes the player-facing startup setting `PlanetsLib-disable-all-entity-replacements`. It overrides every rule's own `bound_setting`: when it is enabled, no replacement is performed at runtime and migrations do not replace entities. This is a global emergency switch for players; mods should keep using their own `bound_setting` for normal uninstallation.
 
 ### Making your entity compatible with PlanetsLib's entity replacement script
 

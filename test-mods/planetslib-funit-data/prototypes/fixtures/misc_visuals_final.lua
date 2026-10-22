@@ -71,7 +71,13 @@ else
 		assert(#dedupe_fields == 1, "soft_insert duplicated an identical tooltip field")
 	end)
 end
-results.record("misc_visuals_final", "MISC-4", tooltip_ok, tooltip_err)
+if not SPACE_AGE then
+	results.skip("misc_visuals_final", "MISC-4", "space-age not active; spoilable tooltip fixtures are skipped")
+elseif settings.startup["PlanetsLib-enhanced-tooltips"].value ~= true then
+	results.skip("misc_visuals_final", "MISC-4", "PlanetsLib-enhanced-tooltips is disabled; skipped")
+else
+	results.record("misc_visuals_final", "MISC-4", tooltip_ok, tooltip_err)
+end
 
 -- MISC-5: PlanetsLib_pipette_result.
 local pipette_ok, pipette_err = pcall(function()
@@ -88,10 +94,9 @@ local pipette_ok, pipette_err = pcall(function()
 	assert(data.raw["container"]["funit-visual-pipette-target"], "the pipette target entity is missing")
 end)
 results.record("misc_visuals_final", "MISC-5", pipette_ok, pipette_err)
-results.record(
+results.note(
 	"misc_visuals_final",
 	"MISC-5-note",
-	true,
 	"the both-fields assertion cannot be exercised from the data stage without aborting prototype loading"
 )
 
@@ -147,13 +152,18 @@ then
 		)
 	end)
 else
-	tint_ok, tint_err = true, "the centrifuge graphics shape did not match the tint guard; tint check skipped"
+	results.skip(
+		"misc_visuals_final",
+		"MISC-6-tint",
+		"the centrifuge graphics shape did not match the tint guard; tint check skipped"
+	)
 end
-results.record("misc_visuals_final", "MISC-6-tint", tint_ok, tint_err)
-results.record(
+if tint_ok ~= nil then
+	results.record("misc_visuals_final", "MISC-6-tint", tint_ok, tint_err)
+end
+results.note(
 	"misc_visuals_final",
 	"MISC-6-note",
-	true,
 	settings.startup["PlanetsLib-enable-additional-centrifuge-fluidboxes"].value
 			and "additional centrifuge fluid boxes enabled"
 		or "additional centrifuge fluid boxes disabled by setting; hidden extra boxes not exercised"
@@ -183,10 +193,9 @@ if SPACE_AGE then
 	end)
 	results.record("misc_visuals_final", "MISC-7", weight_ok, weight_err)
 else
-	results.record(
+	results.skip(
 		"misc_visuals_final",
 		"MISC-7",
-		true,
 		"space-age not active; PlanetsLib does not set default weights"
 	)
 end
@@ -200,10 +209,9 @@ if SPACE_AGE then
 		assert(planet.surface_properties.nitrogen == 60, "the nitrogen property is missing")
 	end)
 	results.record("misc_visuals_final", "MISC-8-gas", gas_ok, gas_err)
-	results.record(
+	results.note(
 		"misc_visuals_final",
 		"MISC-8-gas-note",
-		true,
 		"a gas sum of exactly 100 passed the assertion; the >100 failure path cannot be exercised without aborting prototype loading"
 	)
 
@@ -221,10 +229,9 @@ if SPACE_AGE then
 	end)
 	results.record("misc_visuals_final", "MISC-8-freezing", freeze_ok, freeze_err)
 else
-	results.record(
+	results.skip(
 		"misc_visuals_final",
 		"MISC-8",
-		true,
 		"space-age not active; gas and is-freezing checks are skipped"
 	)
 end
@@ -259,7 +266,7 @@ if SPACE_AGE then
 	end)
 	results.record("misc_visuals_final", "MISC-9-cleanup", cleanup_ok, cleanup_err)
 else
-	results.record("misc_visuals_final", "MISC-9", true, "space-age not active; the star does not exist")
+	results.skip("misc_visuals_final", "MISC-9", "space-age not active; the star does not exist")
 end
 
 return true

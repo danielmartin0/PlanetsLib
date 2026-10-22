@@ -4,8 +4,8 @@ Headless [FUnit](https://mods.factorio.com/mod/funit) test suite for PlanetsLib.
 
 Current status (Factorio 2.1.23, both entity-replacements axes):
 
-- **155 tests** with Space Age + Quality, **0 failures, 0 errors**.
-- **133 tests** in a base-only game, **0 failures, 0 errors**. Space Age-only
+- **169 tests** with Space Age + Quality, **0 failures, 0 errors**.
+- **143 tests** in a base-only game, **0 failures, 0 errors**. Space Age-only
   fixtures and suites are skipped dynamically (`mods["space-age"]` at the data
   stage, `script.active_mods["space-age"]` at runtime). The base scenario keeps
   the built-in `recycler` mod enabled but disables Space Age, Quality and
@@ -16,7 +16,7 @@ with entity replacements on and off. The CI-only
 `test-mods/planetslib-funit-settings` mod forces
 `PlanetsLib-enable-entity-replacements = false` for the no-replacements
 scenarios; `ENT-0` asserts that the setting matches the scenario. All four
-scenario runs were validated locally against Factorio 2.1.22; the container
+scenario runs were validated locally against Factorio 2.1.23; the container
 workflow itself is exercised by GitHub Actions.
 
 Everything lives inside the `planetslib-funit-data` companion mod so the tests
@@ -89,7 +89,10 @@ remote.call("planetslib_funit", "replace_entity", entity, "new-entity", false)
 ```
 
 Available seam functions: `replace_entity`, `on_built_entity`,
-`construct_ground_digger`, `on_entity_built`, `on_configuration_changed`,
+`construct_ground_digger`, `on_entity_built`, `ground_digger_collisions`,
+`revive_ground_digger_ghost`, `select_digger_ghost`,
+`on_configuration_changed`, `migrate_entity_replacement_rules`,
+`warn_on_join`, `should_warn_on_join`, `warn_cargo_pod_canceled`,
 `pod_contents_is_allowed`, `examine_cargo_pods`.
 
 ## Data-stage fixtures
@@ -99,3 +102,18 @@ records pass/fail into the `PlanetsLib-funit-results` mod-data prototype. Suite
 files assert on that bag at runtime. Fixtures are split across the `data`,
 `data-updates` and `data-final-fixes` stages via separate lists under
 `../prototypes/fixtures/manifest.lua`.
+
+Use `lib/results.lua` deliberately:
+
+* `results.record(suite, id, ok, err)` for a real check.
+* `results.skip(suite, id, reason)` when the check cannot run in this scenario
+  (for example, a Space-Age-only fixture in a base game). Skips are recorded as
+  `skipped = true`; `tests/suites/smoke.lua` fails on any skip that is not in
+  its scenario-specific allowlist, so a scenario cannot pass by skipping the
+  feature it was meant to test.
+* `results.note(suite, id, text)` for information that is not a check.
+
+Prefer `tests/suites/support.lua` when asserting fixture results. Pass an
+explicit `expected` id list so a fixture that silently stops recording an id
+fails the suite; a `pairs()` loop over whatever happens to be present cannot
+detect that.

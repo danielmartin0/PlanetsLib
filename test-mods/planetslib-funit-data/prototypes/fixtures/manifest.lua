@@ -39,6 +39,7 @@ return {
 		"planet_str",
 		"technology",
 		"technology_productivity_setup",
+		"api_coverage",
 		"surface_conditions",
 		"mod_data",
 		"achievements",

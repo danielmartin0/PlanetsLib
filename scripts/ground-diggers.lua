@@ -56,6 +56,19 @@ function Public.on_entity_built(event)
 	if not config or not config.recipe then
 		return
 	end
+	-- A drill may be blacklisted on this planet while being allowed on another
+	-- planet (the generated digger prototype and `digger_names` are shared).
+	-- Only lock the recipe when this planet actually configured this digger.
+	local allowed_on_planet = false
+	for _, info in pairs(config.diggers or {}) do
+		if info.digger == entity.name then
+			allowed_on_planet = true
+			break
+		end
+	end
+	if not allowed_on_planet then
+		return
+	end
 	entity.set_recipe(config.recipe, "normal")
 	entity.recipe_locked = true
 end
@@ -79,6 +92,138 @@ local function surface_conditions_met(surface, prototype)
 end
 
 local mining_drill_prototypes = prototypes.get_entity_filtered{{filter="type",type="mining-drill"}}
+
+---Returns a prototype's actual footprint size in tiles from its selection box.
+-- LuaEntityPrototype::tile_width/tile_height describe the placement grid, not the
+-- entity's collision footprint; most entities use a 1x1 placement grid even when
+-- their selection box is larger.
+-- @param prototype LuaEntityPrototype
+-- @return number|nil width
+-- @return number|nil height
+local function get_selection_box_size(prototype)
+	local selection_box = prototype and prototype.selection_box
+	if not selection_box then
+		return nil, nil
+	end
+	return math.abs(selection_box.right_bottom.x - selection_box.left_top.x),
+		math.abs(selection_box.right_bottom.y - selection_box.left_top.y)
+end
+
+---Entities that block placing a ground digger at a position.
+-- The checked area is the digger's square collision footprint around the build
+-- position. Corpses and characters do not block construction, so they are removed
+-- from the result.
+-- @param surface LuaSurface
+-- @param position MapPosition
+-- @param digger_prototype LuaEntityPrototype|string A prototype or a prototype name.
+-- @return table List of LuaEntity
+function Public.find_build_collisions(surface, position, digger_prototype)
+	if type(digger_prototype) == "string" then
+		digger_prototype = prototypes.entity[digger_prototype]
+	end
+	if not (surface and surface.valid and position and digger_prototype) then
+		return {}
+	end
+
+	-- If the digger is not square, this code can't cleanly handle the collision box.
+	local selection_box = digger_prototype.selection_box
+	local width, height = get_selection_box_size(digger_prototype)
+	if not selection_box or not width or not height or width <= 0 or height <= 0 or width ~= height then
+		return {}
+	end
+
+	local area = {
+		{
+			position.x + selection_box.left_top.x,
+			position.y + selection_box.left_top.y,
+		},
+		{
+			position.x + selection_box.right_bottom.x,
+			position.y + selection_box.right_bottom.y,
+		},
+	}
+	local collision_mask = digger_prototype.collision_mask
+	local colliding_entities = surface.find_entities_filtered({
+		area = area,
+		to_be_deconstructed = false,
+		-- Only count entities that share a collision layer with the digger. Some planets
+		-- cover their surface with non-colliding visuals (e.g. Maraxsis' water shader),
+		-- which would otherwise block every placement.
+		collision_mask = collision_mask and collision_mask.layers,
+	})
+
+	-- Ghosts do not have a physical collision mask, so the filtered query above
+	-- does not reliably return them. A ground digger must not overlap a ghost
+	-- either, except for the ghost of the digger being placed: the caller revives
+	-- that one instead of creating a second entity.
+	local seen = {}
+	for _, entity in pairs(colliding_entities) do
+		if entity.unit_number then
+			seen[entity.unit_number] = true
+		end
+	end
+	for _, ghost in pairs(surface.find_entities_filtered({
+		area = area,
+		type = "entity-ghost",
+		to_be_deconstructed = false,
+	})) do
+		if not ghost.unit_number or not seen[ghost.unit_number] then
+			colliding_entities[#colliding_entities + 1] = ghost
+		end
+	end
+
+	for i = #colliding_entities, 1, -1 do
+		local entity = colliding_entities[i]
+		-- Corpses and characters do not block construction: the engine allows
+		-- building under the player, and the character itself is not an obstacle.
+		if entity.type == "corpse" or entity.type == "character" then
+			table.remove(colliding_entities, i)
+		end
+	end
+	return colliding_entities
+end
+
+---Selects the ground-digger ghost closest to the cursor.
+-- Removes every matching candidate from `colliding_entities`; the caller may
+-- revive the returned ghost. Non-matching entities stay in the list so they
+-- continue to block placement.
+-- @param colliding_entities table
+-- @param digger_name string
+-- @param position MapPosition
+-- @return LuaEntity|nil
+function Public.select_digger_ghost(colliding_entities, digger_name, position)
+	local target_ghost
+	local best_distance
+	for i = #colliding_entities, 1, -1 do
+		local entity = colliding_entities[i]
+		if entity.type == "entity-ghost" and entity.ghost_name == digger_name then
+			local dx = entity.position.x - position.x
+			local dy = entity.position.y - position.y
+			local distance = dx * dx + dy * dy
+			if not target_ghost or distance < best_distance then
+				target_ghost = entity
+				best_distance = distance
+			end
+			table.remove(colliding_entities, i)
+		end
+	end
+	return target_ghost
+end
+
+---Revives a ground-digger ghost and assigns its planet recipe.
+-- Exposed through the FUnit seam so the headless suite can exercise the
+-- item-over-ghost path without a connected player.
+function Public.revive_ground_digger_ghost(ghost)
+	if not (ghost and ghost.valid and ghost.type == "entity-ghost") then
+		return nil
+	end
+	local _, revived = ghost.revive({ raise_revive = true })
+	if not (revived and revived.valid) then
+		return nil
+	end
+	Public.on_entity_built({ entity = revived })
+	return revived
+end
 
 function Public.construct_ground_digger(event)
 	
@@ -138,6 +283,11 @@ function Public.construct_ground_digger(event)
             to_be_deconstructed = false,
         }
     rro.remove(colliding_entities,function(entry) return entry.type == "corpse" end)
+	rro.remove(colliding_entities,function(entry) return entry.type == "character" end)
+	-- Ghosts are handled by the later footprint check. Suppress the custom
+	-- entity-in-the-way label for them so the vanilla build overlay remains
+	-- visible instead of being replaced by a PlanetsLib warning.
+	rro.remove(colliding_entities,function(entry) return entry.type == "entity-ghost" end)
 	rro.remove(colliding_entities,function(entry) return entry.has_flag("not-on-map") end)
 	rro.remove(colliding_entities,function(entry) return entry.name == "maraxsis-water-shader" end)
     if #colliding_entities ~= 0 then 
@@ -206,54 +356,39 @@ function Public.construct_ground_digger(event)
 	end
 
 	-- If the mining drill is not square, this code can't cleanly handle the collision box.
-	local width = drill_prototype.tile_width
-	local height = drill_prototype.tile_height
-	if width ~= height then
+	local width, height = get_selection_box_size(drill_prototype)
+	if not width or not height or width <= 0 or height <= 0 or width ~= height then
 		return
 	end
 
-	local margin = 1.5
-	local rounded_position = {
-		x = math.ceil(position.x + 0.5),
-		y = math.ceil(position.y + 0.5),
-	}
-	local colliding_entities = surface.find_entities_filtered({
-		area = {
-			{
-				rounded_position.x - width / 2 + margin,
-				rounded_position.y - height / 2 + margin,
-			},
-			{
-				rounded_position.x + width / 2 - margin,
-				rounded_position.y + height / 2 - margin,
-			},
-		},
-		to_be_deconstructed = false,
-		-- Only count entities that share a collision layer with the digger. Some planets
-		-- cover their surface with non-colliding visuals (e.g. Maraxsis' water shader),
-		-- which would otherwise block every placement.
-		collision_mask = digger_prototype.collision_mask.layers,
-	})
-	for i = #colliding_entities, 1, -1 do
-		if colliding_entities[i].type == "corpse" then
-			table.remove(colliding_entities, i)
-		end
+	local colliding_entities = Public.find_build_collisions(surface, position, digger_prototype)
+	local target_ghost
+	if not is_ghost then
+		-- Direct placement over matching ground-digger ghosts builds the one
+		-- closest to the cursor, matching vanilla item-over-ghost behavior.
+		-- Other ghosts and real entities remain blocking.
+		target_ghost = Public.select_digger_ghost(colliding_entities, digger_name, position)
 	end
 	if #colliding_entities ~= 0 then
 		return
 	end
 
-	local digger = surface.create_entity({
-		name = is_ghost and "entity-ghost" or digger_name,
-		inner_name = is_ghost and digger_name or nil,
-		position = position,
-		force = player.force,
-		player = player,
-		quality = quality,
-		direction = event.cursor_direction,
-		raise_built = true,
-	})
-	if not digger then
+	local digger
+	if target_ghost and target_ghost.valid then
+		digger = Public.revive_ground_digger_ghost(target_ghost)
+	else
+		digger = surface.create_entity({
+			name = is_ghost and "entity-ghost" or digger_name,
+			inner_name = is_ghost and digger_name or nil,
+			position = position,
+			force = player.force,
+			player = player,
+			quality = quality,
+			direction = event.cursor_direction,
+			raise_built = true,
+		})
+	end
+	if not digger or not digger.valid then
 		return
 	end
 

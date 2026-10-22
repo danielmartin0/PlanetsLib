@@ -4,28 +4,24 @@
 -- exercised by the `mod_data` fixture and asserted here.
 
 local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
-
-local function get_results(runner)
-	local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	return mod_data.data
-end
-
-local function assert_fixture_namespace(runner, suite)
-	local entries = get_results(runner)[suite]
-	runner.assert(entries, "no data-stage results recorded for '" .. suite .. "'")
-	for id, entry in pairs(entries) do
-		runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
-	end
-end
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
 return function(runner)
 	runner.test("MD-1 rocket-part and cargo-whitelist fixture results", function()
-		assert_fixture_namespace(runner, "mod_data")
+		support.assert_all(runner, "mod_data", { expected = { "MD-1" } })
 	end)
 
 	runner.test("MD-2 assignments survive into the runtime prototypes", function()
 		if not script.active_mods["space-age"] then
+			-- The fixture intentionally only exercises rocket-part assignment
+			-- with Space Age. Assert the base-game expectation rather than
+			-- returning as an unmarked pass.
+			local recipe_map = prototypes.mod_data["Planetslib-planet-rocket-part-recipe"]
+			runner.assert(recipe_map, "rocket-part recipe mod-data is missing in base")
+			runner.assert(
+				recipe_map.data["funit-md-1"] == nil,
+				"the Space-Age-only rocket-part fixture leaked into the base-game mod-data"
+			)
 			return
 		end
 

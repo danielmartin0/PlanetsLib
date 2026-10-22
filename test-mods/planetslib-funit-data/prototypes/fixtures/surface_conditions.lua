@@ -5,7 +5,7 @@ local results = require("lib.results")
 -- Surface conditions require the space-travel feature, so this fixture cannot
 -- create a valid condition in a base-only game.
 if not mods["space-age"] then
-	results.record("surface_conditions", "SFC-DATA-1", true, "space-age not active; surface-condition fixtures are skipped")
+	results.skip("surface_conditions", "SFC-DATA-1", "space-age not active; surface-condition fixtures are skipped")
 	return true
 end
 

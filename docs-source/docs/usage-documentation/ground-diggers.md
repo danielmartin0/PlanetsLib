@@ -58,7 +58,7 @@ Because ground diggers can replace a mining drill placed without nearby resource
 
 ### Known limitations
 
-* `drills` and `blacklist` control which digger prototypes are generated and which drills the custom build path converts. Because the prototypes are shared, a digger generated for another planet can still be built on a planet that blacklists that drill (for example, from a blueprint or by script). The built digger still receives and locks the local recipe; filter such placements in your own scripts if this matters.
+* `drills` and `blacklist` control which digger prototypes are generated and which drills the custom build path converts. Because the prototypes are shared, a digger generated for another planet can still be built on a planet that blacklists that drill (for example, from a blueprint or by script). PlanetsLib will not assign or lock a recipe for such a blacklisted placement, so filter those placements in your own scripts if they need a recipe.
 * Placement collision checks are best effort. PlanetsLib combines a prototype collision check with an area scan, but some collisions, especially for non-standard drill sizes, may not be detected. Script-created diggers should not rely on PlanetsLib to validate their placement.
 
 ## Example

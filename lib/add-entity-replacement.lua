@@ -23,6 +23,12 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
 
     local planet_name = (type(planet) == "table" and planet.name) or planet
 
+    local rule_enabled = settings.startup[bound_setting].value
+    local disable_all = settings.startup["PlanetsLib-disable-all-entity-replacements"]
+    if disable_all and disable_all.value then
+        rule_enabled = false
+    end
+
     if not PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name] then PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name] = {} end
 
     if type(entity) == "table" and new_entity == nil then
@@ -34,7 +40,7 @@ function Public.assign_entity_replacement(planet,entity,new_entity,bound_setting
     if PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name][entity] then
         error("PlanetsLib.assign_entity_replacement(planet,entity,new_entity,bound_setting) - Assigning an entity variant of the same entity on the same planet more than once is currently not possible.")
     end
-    PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name][entity] = {old_entity=entity,entity=new_entity,enabled=settings.startup[bound_setting].value}
+    PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name][entity] = {old_entity=entity,entity=new_entity,enabled=rule_enabled}
     
     
     

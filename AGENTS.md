@@ -153,8 +153,31 @@ helper scripts              bump_version.sh, archive.sh, update_documentation.sh
 There is a headless FUnit suite in `test-mods/planetslib-funit-data/tests/` and a GitHub Actions
 workflow (`.github/workflows/funit.yml`) that runs it in a Factorio Docker container in four
 scenarios: base and Space Age + Quality, each with entity replacements on and off. The suite is
-development-only and is not shipped. There is still no general-purpose Lua linter; `luac5.1 -p` can
-syntax-check test files that do not use `goto`.
+development-only and is not shipped. CI should always use the `latest` Factorio image so tests run
+against the newest engine release. Local headless runs have non-obvious harness requirements
+(`auto_pause`, `mod-settings.dat`, the `====END====` signal, and report cleanup); see "Local headless
+harness gotchas" in `test-mods/planetslib-funit-data/AGENTS.md`. There is still no general-purpose Lua
+linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
+
+#### Test-authoring principles
+
+- **A test must be capable of failing.** Do not use `runner.assert(true, ...)`, early returns, or
+  `pairs()` loops over whatever results happen to exist as a substitute for coverage.
+- **Assert documented behavior, not current implementation details.** Derive expected values
+  independently; do not call the helper under test to compute its own expected result.
+- **Use explicit test/fixture IDs and explicit skips.** A missing result or an unexpected skip must
+  fail the suite. Missing coverage is not a pass.
+- **Execute the full scenario matrix.** Syntax checks are not tests. Run base and Space Age with
+  entity replacements both on and off when the change can affect them.
+- **Isolate mutable state.** Clear dedicated test areas, restore storage and migration baselines,
+  and make cleanup run on failure as well as success.
+- **Verify engine semantics before encoding them.** Prototype fields, ghost behavior, fixed-point
+  positions, data/control-stage globals, and `remote.call` limitations are common sources of bogus
+  tests.
+- **Treat test failures as possible test bugs first.** Check fixtures, assumptions, stage ordering,
+  and setup before changing production code.
+- Detailed conventions and known pitfalls are in
+  `test-mods/planetslib-funit-data/AGENTS.md`.
 
 - **Testing is mandatory before a PR**: the contributor notes require changes to be tested, ideally with
   multiple planet mods installed. Add or extend the FUnit suite in
@@ -190,6 +213,65 @@ syntax-check test files that do not use `goto`.
 - `archive.sh` is not fully generic: it hard-codes the version in its zip prefix/name. `./bump_version.sh`
   rewrites it, so prefer that over editing it by hand, and double-check it whenever you bump the version
   another way.
+
+## AI agent communication
+
+When posting GitHub comments, reviews, or review replies under the repository owner's account,
+end the message with a signature that names the model used, for example:
+
+```
+_Posted by DeepSeek V4.1 Flash._
+```
+
+When posting Github pull requests, begin the message with a similar signature.
+
+### Bugfix pull request format
+
+For pull requests that contain PlanetsLib bugfixes, use the review-oriented format established by
+[PR #130](https://github.com/danielmartin0/PlanetsLib/pull/130). That PR is the canonical example for
+future AI-written bugfix PRs.
+
+The body should contain, in order:
+
+1. **Description** — state the source and target branches, explain that the test suite was hardened
+   first, and summarize the commit structure. Keep the original bugfix commits separate from test
+   infrastructure and CI changes.
+2. **Checklist** — use the repository's pull request checklist. Do not check `README.md` unless the
+   README itself was updated; mention documentation changes in `docs-source/` separately.
+3. **Testing Notes** — list every tested Factorio scenario with the scenario name, test count, and
+   failures/errors. Include the Factorio version used locally and note that CI runs the latest image.
+   Also list syntax, Ruby, and diff checks that were run.
+4. **Bugfix review scope** — identify the bugfix commits explicitly and state that test-only commits
+   are excluded from the bugfix checklist.
+5. **Categorized bugfix checklist** — group entries by area (for example entity replacement, ground
+   diggers, backwards-compatibility helpers). For every entry:
+   - start with an unchecked checkbox;
+   - link each relevant file to its GitHub commit diff;
+   - explain in plain language what behavior changed and what a reviewer should verify;
+   - include a **Tests:** line linking every relevant automated test, preferably to the test
+     file/section with a commit-pinned `blob` URL such as
+     `https://github.com/<owner>/<repo>/blob/<full-commit-sha>/<path>#L10-L25`; list the test IDs
+     covered. If there is genuinely no direct automated test, say so explicitly and link the closest
+     related coverage instead of omitting the line;
+   - call out migration, save-compatibility, or event-contract risks rather than hiding them.
+   - when editing an existing pull request checklist, preserve every checkbox that a human has
+     already marked `[x]`. Do not reset user-checked entries unless the user explicitly asks.
+
+   Use a GitHub file-diff anchor rather than a generic repository link:
+
+   ```text
+   https://github.com/<owner>/<repo>/commit/<full-commit-sha>#diff-<sha256-of-file-path>
+   ```
+
+   The `diff-` fragment is the SHA-256 hex digest of the repository-relative file path. Link every
+   file that contains a reviewable part of that bugfix, and use the commit that introduced the
+   change rather than the PR's compare view.
+6. **Review note** — add a short section for any known limitation or follow-up check that does not
+   block the PR but should be considered by a human reviewer.
+7. **Related Issues** — link related PRs or issues.
+
+Titles for AI-generated PRs should start with `(AI-generated)` and describe the change, for example
+`(AI-generated) FUnit hardening and PlanetsLib bugfixes`.
 
 ## Contribution checklist (from `.github/PULL_REQUEST_TEMPLATE.md`)
 

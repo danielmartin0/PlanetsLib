@@ -295,10 +295,8 @@ check("TECH-9-catbl", function()
 end)
 
 -- Documented behavior: a recipe with PlanetsLib_blacklist_technology_updates
--- set is skipped. The implementation reads the misspelled
--- `Planetslib_blacklist_technology_updates` (lower-case "l", lib/technology.lua
--- line 415), so this check exposes that bug rather than encoding the current
--- behavior.
+-- set is skipped. The implementation reads the correctly-spelled field in
+-- lib/technology.lua; this check guards that behavior.
 check("TECH-9-blacklist", function()
 	local tech = make_tech("funit-techprod-blacklist", {}, {
 		effects = { { type = "item", name = "funit-techprod-e", change = 0.1 } },
@@ -445,32 +443,35 @@ check("TECH-10-category", function()
 	assert(effect.change == 0.15, "the category effect's change was not propagated")
 end)
 
-check("TECH-10-vanilla", function()
-	local setting = settings.startup["PlanetsLib-update-vanilla-recipe-productivity-techs"]
-	if not (setting and setting.value) then
-		return
-	end
-
-	local tech = data.raw.technology["steel-plate-productivity"]
-	if not tech then
-		return
-	end
-
-	local config = tech.PlanetsLib_recipe_productivity_effects
-	assert(
-		config and config.effects and config.effects[1],
-		"the vanilla override did not configure steel-plate-productivity"
+local vanilla_tech = data.raw.technology["steel-plate-productivity"]
+if not vanilla_tech then
+	-- Base Factorio has no steel-plate-productivity technology; this check is
+	-- meaningful only with Space Age's productivity technologies.
+	results.skip(
+		SUITE,
+		"TECH-10-vanilla",
+		"the active prototype set has no steel-plate-productivity technology"
 	)
+else
+	check("TECH-10-vanilla", function()
+		local setting = settings.startup["PlanetsLib-update-vanilla-recipe-productivity-techs"]
+		assert(setting, "the PlanetsLib-update-vanilla-recipe-productivity-techs setting is missing")
+		assert(setting.value, "the vanilla productivity update setting must be enabled in the test scenario")
 
-	local inherited = tech.effects and tech.effects[1] and tech.effects[1].change
-	if not inherited then
-		return
-	end
+		local tech = data.raw.technology["steel-plate-productivity"]
+		local config = tech.PlanetsLib_recipe_productivity_effects
+		assert(
+			config and config.effects and config.effects[1],
+			"the vanilla override did not configure steel-plate-productivity"
+		)
 
-	assert(
-		config.effects[1].change == inherited,
-		"the vanilla productivity technology did not inherit its change value"
-	)
-end)
+		local inherited = tech.effects and tech.effects[1] and tech.effects[1].change
+		assert(inherited, "steel-plate-productivity has no inherited effect")
+		assert(
+			config.effects[1].change == inherited,
+			"the vanilla productivity technology did not inherit its change value"
+		)
+	end)
+end
 
 return true

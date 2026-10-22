@@ -252,7 +252,7 @@ return function(runner)
 		runner.assert(#list == 2 and list[2] == "b", "soft_insert duplicated or reordered")
 	end)
 
-	runner.test("LIB-18 rro.merge, util_merge and ammend", function()
+	runner.test("LIB-18 rro.merge, util_merge and amend", function()
 		local old = { a = 1, drop = "x", keep = true }
 		local merged = rro.merge(old, {
 			a = function(value)
@@ -269,9 +269,23 @@ return function(runner)
 		local util_merged = rro.util_merge({ { a = 1 }, { a = 2 } })
 		runner.assert(util_merged.a == 2, "util_merge did not delegate to merge")
 
-		local target = { a = 1 }
-		rro.ammend(target, { a = 3 })
-		runner.assert(target.a == 1, "ammend returns the merged table; it cannot mutate its first argument")
+		local target = { a = 1, drop = "x" }
+		local returned = rro.amend(target, { a = 3, drop = "_nil", added = 4 })
+		runner.assert(target.a == 3, "amend did not mutate its first argument")
+		runner.assert(target.added == 4, "amend did not copy an added field into its first argument")
+		runner.assert(target.drop == nil, "amend did not apply the '_nil' sentinel")
+		runner.assert(returned == target, "amend should return the table it mutated")
+
+		local function_target = { a = 1 }
+		local function_returned = rro.amend(function_target, {
+			a = function(value)
+				return value + 1
+			end,
+		})
+		runner.assert(function_target.a == 2, "amend did not apply a function value in place")
+		runner.assert(function_returned == function_target, "amend should return the table it mutated")
+
+		runner.assert(rro.ammend == rro.amend, "rro.ammend should remain an alias of rro.amend")
 	end)
 
 	runner.test("LIB-19 rro.get_concatenation copies both lists", function()

@@ -23,6 +23,7 @@ return {
 		"special_properties",
 		"technology",
 		"technology_productivity",
+		"api_coverage",
 		"surface_conditions",
 		"mod_data",
 		"achievements",
