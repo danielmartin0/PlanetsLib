@@ -152,7 +152,8 @@ helper scripts              bump_version.sh, archive.sh, update_documentation.sh
 There is a headless FUnit suite in `test-mods/planetslib-funit-data/tests/` and a GitHub Actions
 workflow (`.github/workflows/funit.yml`) that runs it in a Factorio Docker container in four
 scenarios: base and Space Age + Quality, each with entity replacements on and off. The suite is
-development-only and is not shipped. Local headless runs have non-obvious harness requirements
+development-only and is not shipped. CI should always use the `latest` Factorio image so tests run
+against the newest engine release. Local headless runs have non-obvious harness requirements
 (`auto_pause`, `mod-settings.dat`, the `====END====` signal, and report cleanup); see "Local headless
 harness gotchas" in `test-mods/planetslib-funit-data/AGENTS.md`. There is still no general-purpose Lua
 linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
@@ -226,6 +227,11 @@ The body should contain, in order:
    - start with an unchecked checkbox;
    - link each relevant file to its GitHub commit diff;
    - explain in plain language what behavior changed and what a reviewer should verify;
+   - include a **Tests:** line linking every relevant automated test, preferably to the test
+     file/section with a commit-pinned `blob` URL such as
+     `https://github.com/<owner>/<repo>/blob/<full-commit-sha>/<path>#L10-L25`; list the test IDs
+     covered. If there is genuinely no direct automated test, say so explicitly and link the closest
+     related coverage instead of omitting the line;
    - call out migration, save-compatibility, or event-contract risks rather than hiding them.
 
    Use a GitHub file-diff anchor rather than a generic repository link:

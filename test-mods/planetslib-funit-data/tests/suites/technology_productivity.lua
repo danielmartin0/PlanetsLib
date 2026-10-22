@@ -6,27 +6,30 @@
 -- check. This suite asserts those results plus the runtime technology
 -- prototypes they produced.
 
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
 local SUITE = "technology_productivity_setup"
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
-local function get_namespace(runner)
-	local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	local namespace = mod_data.data[SUITE]
-	runner.assert(namespace, "no data-stage results recorded for '" .. SUITE .. "'")
-	return namespace
-end
-
-local function assert_prefix(runner, namespace, prefix)
-	local found = false
-	for id, entry in pairs(namespace) do
-		if id:sub(1, #prefix) == prefix then
-			found = true
-			runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
-		end
-	end
-	runner.assert(found, "no data-stage results recorded for '" .. prefix .. "'")
-end
+local TECH_9_IDS = {
+	"TECH-9-purge",
+	"TECH-9-nopurge",
+	"TECH-9-clears-input",
+	"TECH-9-guard",
+	"TECH-9-guard-match",
+	"TECH-9-name-type",
+	"TECH-9-recycling",
+	"TECH-9-catbl",
+	"TECH-9-blacklist",
+	"TECH-9-ignored",
+	"TECH-9-xor",
+}
+local TECH_10_IDS = {
+	"TECH-10-single",
+	"TECH-10-multiple",
+	"TECH-10-dedupe",
+	"TECH-10-noprod",
+	"TECH-10-category",
+	"TECH-10-vanilla",
+}
 
 local function effect_for(tech, recipe_name)
 	for _, effect in ipairs(tech.effects or {}) do
@@ -39,11 +42,18 @@ end
 
 return function(runner)
 	runner.test("TECH-9 recipe productivity effects: purge, guards, selection, blacklists", function()
-		assert_prefix(runner, get_namespace(runner), "TECH-9")
+		support.assert_all(runner, SUITE, { expected = TECH_9_IDS })
 	end)
 
 	runner.test("TECH-10 recipe productivity effects: results, allow flags, category, change", function()
-		assert_prefix(runner, get_namespace(runner), "TECH-10")
+		local allow_skips = {}
+		if not support.has_space_age() then
+			allow_skips["TECH-10-vanilla"] = true
+		end
+		support.assert_all(runner, SUITE, {
+			expected = TECH_10_IDS,
+			allow_skips = allow_skips,
+		})
 	end)
 
 	runner.test("TECH-9a processed technology prototypes are present", function()

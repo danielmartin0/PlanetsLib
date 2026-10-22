@@ -5,17 +5,16 @@
 -- data.raw (detect_type/get_prototype/dual_icon/melting_icon) are covered by the
 -- `icons` data fixture instead.
 
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
-local function assert_fixture_namespace(runner, suite)
-	local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	local entries = mod_data.data[suite]
-	runner.assert(entries, "no data-stage results recorded for '" .. suite .. "'")
-	for id, entry in pairs(entries) do
-		runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
-	end
-end
+-- Every id the icons fixture records.
+local ICONS_IDS = {
+	"RCP-ICONS-1",
+	"RCP-ICONS-2",
+	"RCP-ICONS-3",
+	"RCP-ICONS-4",
+	"RCP-ICONS-5",
+}
 
 local function assert_shift(runner, entry, expected_x, expected_y, label)
 	runner.assert(entry.shift ~= nil, label .. " has no shift")
@@ -220,6 +219,6 @@ return function(runner)
 	end)
 
 	runner.test("RCP-8 data-stage icon fixture results", function()
-		assert_fixture_namespace(runner, "icons")
+		support.assert_all(runner, "icons", { expected = ICONS_IDS })
 	end)
 end

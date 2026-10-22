@@ -5,17 +5,7 @@
 -- the implementation is therefore not round-trip safe. Tests here stay within
 -- the safe range (see the known-limitations list in ../AGENTS.md).
 
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
-
-local function assert_fixture_namespace(runner, suite)
-	local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	local entries = mod_data.data[suite]
-	runner.assert(entries, "no data-stage results recorded for '" .. suite .. "'")
-	for id, entry in pairs(entries) do
-		runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
-	end
-end
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
 return function(runner)
 	package.loaded["util"] = require("__core__.lualib.util")
@@ -50,10 +40,24 @@ return function(runner)
 	end)
 
 	runner.test("PSTR-3 set/get/fallback data-stage behavior", function()
-		assert_fixture_namespace(runner, "planet_str")
+		local allow_skips = {}
+		if not support.has_space_age() then
+			allow_skips["PSTR-3"] = true
+		end
+		support.assert_all(runner, "planet_str", {
+			expected = { "PSTR-3" },
+			allow_skips = allow_skips,
+		})
 	end)
 
 	runner.test("PSTR-4 data-final-fixes auto-assignment", function()
-		assert_fixture_namespace(runner, "planet_str_auto")
+		local allow_skips = {}
+		if not support.has_space_age() then
+			allow_skips["PSTR-4"] = true
+		end
+		support.assert_all(runner, "planet_str_auto", {
+			expected = { "PSTR-4" },
+			allow_skips = allow_skips,
+		})
 	end)
 end

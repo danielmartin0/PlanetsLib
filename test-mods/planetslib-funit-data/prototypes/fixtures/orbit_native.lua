@@ -146,7 +146,8 @@ local ensure_ok, ensure_err = pcall(function()
 end)
 results.record("orbit_native", "ORB-11", ensure_ok, ensure_err)
 
--- ORB-12..15: apply_native_orbit.
+-- ORB-12: apply_native_orbit sets the origin to the parent's absolute position
+-- and rebases distance/orientation onto it.
 local native_ok, native_err = pcall(function()
 	local parent = data.raw.planet["funit-parent-str"]
 	local parent_x, parent_y = orbits.get_absolute_position(parent)
@@ -167,13 +168,31 @@ local native_ok, native_err = pcall(function()
 		"the origin should be the parent's absolute position")
 	assert(approx(native.distance, native.orbit.distance), string.format("distance was not rebased onto the origin: got %.9f, expected %.9f", native.distance, native.orbit.distance))
 	assert(approx(native.orientation, native.orbit.orientation), string.format("orientation was not rebased onto the origin: got %.9f, expected %.9f", native.orientation, native.orbit.orientation))
+end)
+results.record("orbit_native", "ORB-12", native_ok, native_err)
 
-	-- A pre-existing origin makes the call a no-op.
-	native.origin = { x = 9, y = -9 }
-	orbits.apply_native_orbit(native)
-	assert(native.origin.x == 9 and native.origin.y == -9, "apply_native_orbit must not modify an existing origin")
+-- ORB-13: a pre-existing origin makes apply_native_orbit a no-op.
+local noop_ok, noop_err = pcall(function()
+	local with_origin = create_planet("funit-native-existing")
+	with_origin.orbit = {
+		parent = { type = "space-location", name = "star" },
+		distance = 3,
+		orientation = 0.5,
+	}
+	with_origin.distance, with_origin.orientation = 3, 0.5
+	with_origin.origin = { x = 9, y = -9 }
 
-	-- orbit.sprite forces the orbit to be drawn.
+	orbits.apply_native_orbit(with_origin)
+	assert(with_origin.origin.x == 9 and with_origin.origin.y == -9,
+		"apply_native_orbit must not modify an existing origin")
+	assert(with_origin.distance == 3 and with_origin.orientation == 0.5,
+		"apply_native_orbit must not rebase a location that already has an origin")
+end)
+results.record("orbit_native", "ORB-13", noop_ok, noop_err)
+
+-- ORB-14: orbit.sprite enables draw_orbit, a location without an orbit gains no
+-- origin, and an unknown parent raises an error.
+local sprite_ok, sprite_err = pcall(function()
 	local sprite_planet = create_planet("funit-native-sprite")
 	sprite_planet.orbit = {
 		parent = { type = "planet", name = "funit-parent-str" },
@@ -184,6 +203,7 @@ local native_ok, native_err = pcall(function()
 	sprite_planet.distance, sprite_planet.orientation = 6, 0.1
 	orbits.apply_native_orbit(sprite_planet)
 	assert(sprite_planet.draw_orbit == true, "orbit.sprite should enable draw_orbit")
+	assert(sprite_planet.origin, "orbit.sprite must not suppress the origin")
 
 	-- No orbit: nothing happens.
 	local plain = create_planet("funit-native-plain")
@@ -200,7 +220,49 @@ local native_ok, native_err = pcall(function()
 	assert(not pcall(orbits.apply_native_orbit, broken),
 		"apply_native_orbit should error when the parent is missing")
 end)
-results.record("orbit_native", "ORB-12", native_ok, native_err)
+results.record("orbit_native", "ORB-14", sprite_ok, sprite_err)
+
+-- ORB-15: update_positions_of_all_children_via_orbits moves descendants by the
+-- same absolute delta as their parent, and leaves unrelated locations alone.
+local movement_ok, movement_err = pcall(function()
+	local parent = create_planet("funit-native-parent")
+	parent.orbit = {
+		parent = { type = "space-location", name = "star" },
+		distance = 10,
+		orientation = 0,
+	}
+	parent.distance, parent.orientation = 10, 0
+
+	local child = create_planet("funit-native-child")
+	child.orbit = {
+		parent = { type = "planet", name = "funit-native-parent" },
+		distance = 2,
+		orientation = 0.25,
+	}
+	child.distance, child.orientation = 12, 0.25
+
+	local unrelated = data.raw.planet["funit-parent-str"]
+	local unrelated_distance, unrelated_orientation = unrelated.distance, unrelated.orientation
+
+	orbits.update_positions_of_all_children_via_orbits(parent)
+	local before_x, before_y = orbits.get_rectangular_position_from_polar(child.distance, child.orientation)
+
+	-- Move the parent through the same fields PlanetsLib:update() changes: the
+	-- orbit structure and the resulting absolute position.
+	parent.orbit.distance, parent.orbit.orientation = 20, 0
+	parent.distance, parent.orientation = 20, 0
+	orbits.update_positions_of_all_children_via_orbits(parent)
+	local after_x, after_y = orbits.get_rectangular_position_from_polar(child.distance, child.orientation)
+
+	assert(approx(after_x, before_x), string.format("the child moved in x: got %.9f, expected %.9f", after_x, before_x))
+	assert(approx(after_y, before_y - 10), string.format("the child did not follow the parent's move: got %.9f, expected %.9f", after_y, before_y - 10))
+	assert(child.orbit.distance == 2 and child.orbit.orientation == 0.25, "the child's orbit was rewritten")
+	assert(
+		unrelated.distance == unrelated_distance and unrelated.orientation == unrelated_orientation,
+		"an unrelated location was moved"
+	)
+end)
+results.record("orbit_native", "ORB-15", movement_ok, movement_err)
 
 -- ORB-16: the star survives and stays hidden (Space Age only).
 local star_survival_ok, star_survival_err = pcall(function()
@@ -214,5 +276,35 @@ local star_survival_ok, star_survival_err = pcall(function()
 	end
 end)
 results.record("orbit_native", "ORB-16", star_survival_ok, star_survival_err)
+
+-- ORB-20: locations_ordered_by_orbits rejects a cycle (only the star's
+-- self-parent is allowed). Use the existing parent/child pair and restore the
+-- orbit structure before returning, so later checks and the runtime prototypes
+-- are unaffected.
+local cycle_ok, cycle_err = pcall(function()
+	local parent = data.raw.planet["funit-parent-nostr"]
+	local child = data.raw.planet["funit-child-nostr"]
+	assert(parent and child, "the parent/child test planets are missing")
+	assert(
+		child.orbit and child.orbit.parent and child.orbit.parent.name == "funit-parent-nostr",
+		"the fixture expected funit-child-nostr to orbit funit-parent-nostr"
+	)
+
+	local saved_orbit = parent.orbit
+	parent.orbit = {
+		parent = { type = "planet", name = "funit-child-nostr" },
+		distance = 1,
+		orientation = 0,
+	}
+	local ordered_ok, ordered_err = pcall(orbits.locations_ordered_by_orbits, { parent, child })
+	parent.orbit = saved_orbit
+
+	assert(not ordered_ok, "a circular orbit dependency must raise an error")
+	assert(
+		tostring(ordered_err):find("Circular orbit dependency", 1, true),
+		"the cycle error should say that the orbit dependency is circular: " .. tostring(ordered_err)
+	)
+end)
+results.record("orbit_native", "ORB-20", cycle_ok, cycle_err)
 
 return true

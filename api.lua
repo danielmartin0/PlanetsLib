@@ -110,12 +110,31 @@ PlanetsLib.objects = require("lib.remove-replace-object") --Table manipulation l
 PlanetsLib.rro = PlanetsLib.objects --Alias for PlanetsLib.objects
 
 -- For backwards compatibility (mod-data was not always a thing). NOTE: These functions return numbers, other mods may change the tier prototypes after you call this.
+local function get_tierlist_data()
+	local tierlist = data.raw["mod-data"]["PlanetsLib-tierlist"]
+	return tierlist and tierlist.data
+end
+
 PlanetsLib.get_planet_tier = function(planet_name)
-	return data.raw["mod-data"]["PlanetsLib-tierlist"].data.planet[planet_name]
-		or data.raw["mod-data"]["PlanetsLib-tierlist"].data.default
+	local tierlist = get_tierlist_data()
+	if not tierlist then
+		return nil
+	end
+	local tier = tierlist.planet and tierlist.planet[planet_name]
+	if tier ~= nil then
+		return tier
+	end
+	return tierlist.default
 end
 
 PlanetsLib.get_space_location_tier = function(space_location_name)
-	return data.raw["mod-data"]["PlanetsLib-tierlist"].data["space-location"][space_location_name]
-		or data.raw["mod-data"]["PlanetsLib-tierlist"].data.default
+	local tierlist = get_tierlist_data()
+	if not tierlist then
+		return nil
+	end
+	local tier = tierlist["space-location"] and tierlist["space-location"][space_location_name]
+	if tier ~= nil then
+		return tier
+	end
+	return tierlist.default
 end

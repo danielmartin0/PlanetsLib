@@ -185,9 +185,9 @@ end
 
 Status: every suite listed in `tests/suites/manifest.lua` is implemented (no
 stubs), and every fixture listed in `prototypes/fixtures/manifest.lua` is
-implemented for its stage. Against Factorio 2.1.22 the suite runs **144 tests
-with 0 failures/errors** with Space Age + Quality and **122 tests with 0
-failures/errors** in a base-only game; Space Age-only fixtures/suites are
+implemented for its stage. Against the latest Factorio release the suite runs
+**158 tests with 0 failures/errors** with Space Age + Quality and **130 tests
+with 0 failures/errors** in a base-only game; Space Age-only fixtures/suites are
 filtered out when `mods["space-age"]` is nil (see `tests/README.md` for how to
 run it). Check the files for the current state.
 
@@ -365,31 +365,54 @@ Fixed while implementing these suites (each has a regression test):
     existed. It now updates the existing entry in place (inventory index,
     shift, scale and max icons per row), so the lab has exactly one entry.
     (MISC-3)
+21. **Global entity-replacement kill switch** (fixed) —
+    `PlanetsLib-disable-all-entity-replacements` was never consulted, so it did
+    not disable anything. Rules are now created disabled when the switch is on,
+    the runtime handlers return early, and migrations skip replacements. (ENT)
+22. **Removed replacement rules were never reverted** (fixed) — migration
+    iterated only the current rule table, so a rule deleted between saves left
+    its replacements behind forever. It now walks the union of old and new
+    rules and reverts old-only rules. (ENT-13e)
+23. **Belt replacements could not be migrated in place** (fixed) — recreating a
+    transport belt, underground belt, splitter or loader on top of itself
+    returned nil, so migration left the old belt in place. Silent migrations now
+    use the engine's fast-replace path for belt-like entities. (ENT-13d)
+24. **Ground-digger blacklist and collision footprint** (fixed) —
+    `on_entity_built` still assigned and locked the local recipe for a drill on
+    a planet that blacklisted it, and the late collision check used a 1.5-tile
+    margin that reduced a 3x3 digger's area to zero size. The check also used
+    `tile_width`/`tile_height` (the placement grid) instead of the selection
+    box. The blacklist is honored, the helper checks the actual footprint while
+    ignoring corpses and characters, and it rejects real entities and entity
+    ghosts inside the footprint. Ghost collisions defer to the vanilla build
+    overlay instead of showing the custom entity-in-the-way label. Directly
+    placing a digger over its own ghost builds the closest matching ghost;
+    other ghosts block. (GD-10, GD-11, GD-12)
+25. **Tier compatibility helpers crashed without PlanetsLib: Tiers** (fixed) —
+    `get_planet_tier`/`get_space_location_tier` indexed a missing mod-data
+    prototype. They now return nil; a tier value of 0 is also preserved rather
+    than falling back to the default. (API)
+26. **`get_planet_str_double` long-name fallback** (fixed) — it encoded the full
+    planet name while `get_planet_str` truncates to 8 characters, so long names
+    disagreed (and the encoder asserted above 8 characters). It now truncates
+    first. (PSTR)
+27. **`rro.amend`** (fixed) — the misspelled `rro.ammend` assigned the merged
+    table to a local and neither returned it nor mutated `old`. `rro.amend` is
+    now the canonical in-place merge that returns the first argument, and
+    `rro.ammend` is kept as an alias. (LIB)
 
 Still open / needs a decision:
 
-21. **planet-str encoding is lossy beyond 6 bytes** — a double only has 53 bits
+28. **planet-str encoding is lossy beyond 6 bytes** — a double only has 53 bits
     of integer precision, so 7-8 character planet names do not round-trip
     (`decode(encode("funit-a")) == "hunit-a"`; 8 characters decode to `""`). The
     implementation allows up to 8 characters. Tests stay within the safe range.
     Either document a 6-character limit or store the string differently. (PSTR)
-22. **`rro.ammend`** — assigns the merged table to its local and neither returns
-    it nor mutates `old`; effectively a no-op. (LIB)
-23. **`get_planet_str_double` fallback** — encodes the full planet name while
-    `get_planet_str` truncates to 8 characters, so the two fallbacks disagree
-    for long names (and the encoder asserts above 8 characters). (PSTR)
-24. **Ground-digger collision area** — the second collision check subtracts a
-    `1.5` margin from a 3x3 drill, producing a zero-size area, so entities in the
-    way are missed. The first check uses a different rounding convention. Needs
-    a design decision. (GD)
-25. **Ground-digger per-planet config** — `on_entity_built` assigns a recipe to
-    any known digger on a planet with a recipe, even if that planet blacklists
-    the drill; `construct_ground_digger` does check the config. (GD)
-26. **Recipe-effect characterization** — skipped batches bypass production
+29. **Recipe-effect characterization** — skipped batches bypass production
     stats, `add_to_stats` is computed but unused, and the shared/independent
     probability tooltips use different units. These are pinned as
     characterization tests rather than treated as failures. (REC)
-27. **Unreachable-tech warning precedence** — a non-empty
+30. **Unreachable-tech warning precedence** — a non-empty
     `unlinked_prerequisites` list suppresses the hidden-prerequisite warning;
     pinned as current behaviour. (URT)
 
@@ -399,6 +422,20 @@ without an icon, used recipe-level `result_is_always_fresh`/
 and called `PlanetsLib.extend`/`update` with dot syntax instead of method
 syntax. All four were fixture mistakes and are fixed in
 `prototypes/fixtures/`.
+
+A fifth harness-only issue surfaced when all four CI scenarios were run locally
+against Factorio 2.1.23: SFC-5 and SFC-6 errored in the base-only scenarios with
+`lib/surface-property-lib.lua:24: attempt to index global 'data' (a nil value)`.
+`fits_surface_conditions` chooses its data-stage branch from
+`PlanetsLib.stage`, and suites run in the scenario's Lua state, not PlanetsLib's
+control-stage state. The Space Age scenario only passed because the
+`rocket_parts` suite happens to set `_G.PlanetsLib.stage = "runtime"` before
+`surface_conditions` runs; `rocket_parts` returns early without Space Age, so
+the marker was never set in the base scenarios and the helper fell through to
+the data-stage branch. `tests/scenario/control.lua` now recreates the runtime
+`PlanetsLib` shim (`stage` plus the mod-data `constants`) once before loading
+any suite, so suite results no longer depend on manifest order or active DLC.
+This is a harness fix; the library's own control stage already sets the marker.
 
 ---
 

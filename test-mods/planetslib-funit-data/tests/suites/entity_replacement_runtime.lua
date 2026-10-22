@@ -1,31 +1,27 @@
--- Entity replacement: runtime behavior (ENT-5..ENT-11).
+-- Entity replacement: runtime behavior (ENT-5..ENT-14).
 --
 -- These tests build real entities on nauvis, drive PlanetsLib's control-stage
 -- handler through the `planetslib_funit` seam, and assert the transfer of
 -- state. Every test prepares its own landfill area and clears it afterwards.
+-- In the CI no-replacements scenario the global kill switch is on, so the
+-- tests that normally expect a replacement instead assert the entity was left
+-- untouched (ENT-14 pins the kill switch itself).
 
 -- `require` is only allowed while the scenario's control.lua is parsed, not
 -- from inside an on_tick test callback.
 local mock = require("__funit__.mock")
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
 local FIXTURE_SUITE = "entity_replacement_data"
 local SURFACE_NAME = "nauvis"
+local DISABLE_ALL_SETTING = "PlanetsLib-disable-all-entity-replacements"
 local AREA_STEP = 80
 local AREA_RADIUS = 8
 local next_area = 0
 
 local function fixture_entries(runner)
-	local bag = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(bag, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	local entries = bag.data[FIXTURE_SUITE]
-	runner.assert(entries, "no data-stage results recorded for '" .. FIXTURE_SUITE .. "'")
-	for _, id in ipairs({ "ENT-1g", "ENT-2e" }) do
-		local entry = entries[id]
-		runner.assert(entry, "missing data fixture entry " .. id)
-		runner.assert(entry.ok, "data fixture " .. id .. " failed: " .. tostring(entry.err))
-	end
-	return entries
+	support.assert_all(runner, FIXTURE_SUITE, { expected = { "ENT-1g", "ENT-2e" } })
+	return support.entries(runner, FIXTURE_SUITE)
 end
 
 local function seam(name)
@@ -84,6 +80,9 @@ local function with_area(runner, body)
 
 	local ok, err = pcall(function()
 		prepare_area(surface, center, AREA_RADIUS)
+		-- Map generation can leave trees, rocks or cliffs inside the landfill
+		-- area; clear them before each test so entity placement is deterministic.
+		clear_area(surface, center, AREA_RADIUS)
 		body(surface, center)
 	end)
 	pcall(clear_area, surface, center, AREA_RADIUS + 4)
@@ -116,6 +115,11 @@ local function find(surface, name, position, radius)
 		radius = radius or 1.5,
 	})
 	return entities[1]
+end
+
+local function replacements_disabled()
+	local setting = settings.startup[DISABLE_ALL_SETTING]
+	return setting ~= nil and setting.value == true
 end
 
 local function count_ground_items(surface, position, radius, item_name)
@@ -157,6 +161,19 @@ return function(runner)
 
 			on_built_entity({ entity = old }, nil, false)
 
+			if replacements_disabled() then
+				runner.assert(old.valid, "the global kill switch should leave the wooden chest in place")
+				runner.assert(
+					old.get_inventory(defines.inventory.chest).get_item_count("iron-plate") == 17,
+					"the global kill switch should preserve the chest inventory"
+				)
+				runner.assert(
+					find(surface, "iron-chest", position) == nil,
+					"the global kill switch still replaced the wooden chest"
+				)
+				return
+			end
+
 			runner.assert(not old.valid, "the source wooden chest was not destroyed")
 			local new = find(surface, "iron-chest", position)
 			runner.assert(new and new.valid, "the wooden chest was not replaced by an iron chest")
@@ -183,6 +200,15 @@ return function(runner)
 			runner.assert(ghost.ghost_name == "wooden-chest", "the test ghost has the wrong inner name")
 
 			on_built_entity({ entity = ghost }, nil, false)
+
+			if replacements_disabled() then
+				runner.assert(ghost.valid, "the global kill switch should leave the wooden-chest ghost in place")
+				runner.assert(
+					ghost.ghost_name == "wooden-chest",
+					"the global kill switch changed the ghost's inner name"
+				)
+				return
+			end
 
 			runner.assert(not ghost.valid, "the source ghost was not destroyed")
 			local new = find(surface, "entity-ghost", position)
@@ -211,6 +237,16 @@ return function(runner)
 				entity = old,
 			})
 			runner.assert(ok, "mocking on_robot_built_entity raised: " .. tostring(err))
+
+			if replacements_disabled() then
+				runner.assert(old.valid, "the global kill switch should leave the robot-built chest in place")
+				runner.assert(
+					find(surface, "iron-chest", position) == nil,
+					"the global kill switch still replaced the robot-built chest"
+				)
+				return
+			end
+
 			runner.assert(not old.valid, "the robot-built chest was not replaced")
 			local new = find(surface, "iron-chest", position)
 			runner.assert(new and new.valid, "the robot-built chest was not replaced by an iron chest")
@@ -240,6 +276,12 @@ return function(runner)
 			)
 
 			on_built_entity({ entity = ghost }, nil, false)
+
+			if replacements_disabled() then
+				runner.assert(ghost.valid, "the global kill switch should leave the car ghost in place")
+				runner.assert(ghost.ghost_name == "car", "the global kill switch changed the car ghost's inner name")
+				return
+			end
 
 			runner.assert(not ghost.valid, "the source car ghost was not destroyed")
 			local new = find(surface, "entity-ghost", position)
@@ -271,6 +313,15 @@ return function(runner)
 
 			on_built_entity({ entity = old }, nil, false)
 
+			if replacements_disabled() then
+				runner.assert(old.valid, "the global kill switch should leave the assembling machine in place")
+				runner.assert(
+					find(surface, "assembling-machine-2", position) == nil,
+					"the global kill switch still replaced the assembling machine"
+				)
+				return
+			end
+
 			runner.assert(not old.valid, "the source assembling machine was not destroyed")
 			local new = find(surface, "assembling-machine-2", position)
 			runner.assert(new and new.valid, "the assembling machine was not replaced")
@@ -294,6 +345,16 @@ return function(runner)
 			old.temperature = 500
 
 			on_built_entity({ entity = old }, nil, false)
+
+			if replacements_disabled() then
+				runner.assert(old.valid, "the global kill switch should leave the heat pipe in place")
+				runner.assert(math.abs(old.temperature - 500) < 1e-4, "the kill switch changed the heat pipe temperature")
+				runner.assert(
+					find(surface, "heat-pipe-PlanetsLib-nauvis", position) == nil,
+					"the global kill switch still replaced the heat pipe"
+				)
+				return
+			end
 
 			runner.assert(not old.valid, "the source heat pipe was not destroyed")
 			local new = find(surface, "heat-pipe-PlanetsLib-nauvis", position)
@@ -336,6 +397,19 @@ return function(runner)
 
 			on_built_entity({ entity = old }, nil, false)
 
+			if replacements_disabled() then
+				runner.assert(old.valid, "the global kill switch should leave the assembling machine in place")
+				runner.assert(
+					old.get_module_inventory().get_item_count("speed-module") == 3,
+					"the global kill switch should preserve the inserted modules"
+				)
+				runner.assert(
+					find(surface, "assembling-machine-2", position) == nil,
+					"the global kill switch still replaced the assembling machine"
+				)
+				return
+			end
+
 			runner.assert(not old.valid, "the source assembling machine was not destroyed")
 			local new = find(surface, "assembling-machine-2", position)
 			runner.assert(new and new.valid, "the assembling machine was not replaced")
@@ -365,6 +439,18 @@ return function(runner)
 
 			on_built_entity({ entity = old }, nil, false)
 
+			if replacements_disabled() then
+				runner.assert(old.valid, "the global kill switch should leave the chest in place")
+				runner.assert(find(surface, "iron-chest", position) == nil,
+					"the global kill switch still replaced the chest")
+				local replacement = remote.call("planetslib_entity_replacement", "get_replacement", old_unit_number)
+				runner.assert(
+					replacement == nil,
+					"get_replacement returned an entity although the global kill switch prevented replacement"
+				)
+				return
+			end
+
 			local new = find(surface, "iron-chest", position)
 			runner.assert(new and new.valid, "the chest was not replaced")
 			local replacement = remote.call("planetslib_entity_replacement", "get_replacement", old_unit_number)
@@ -387,6 +473,17 @@ return function(runner)
 			old.insert_fluid({ name = "water", amount = 1234 })
 
 			on_built_entity({ entity = old }, nil, false)
+
+			if replacements_disabled() then
+				runner.assert(old.valid, "the global kill switch should leave the storage tank in place")
+				local fluid = old.get_fluid(1)
+				runner.assert(fluid and fluid.name == "water", "the kill switch lost the stored fluid")
+				runner.assert(
+					find(surface, "storage-tank-PlanetsLib-nauvis", position) == nil,
+					"the global kill switch still replaced the storage tank"
+				)
+				return
+			end
 
 			runner.assert(not old.valid, "the source storage tank was not destroyed")
 			local new = find(surface, "storage-tank-PlanetsLib-nauvis", position)
@@ -419,6 +516,24 @@ return function(runner)
 			runner.assert(output.connect_to(input, true), "could not connect the self-referential red wire")
 
 			on_built_entity({ entity = old }, nil, false)
+
+			if replacements_disabled() then
+				runner.assert(old.valid, "the global kill switch should leave the combinator in place")
+				runner.assert(other.valid, "the global kill switch destroyed the other combinator")
+				runner.assert(
+					connector_has(output, other, defines.wire_connector_id.combinator_input_red),
+					"the kill switch lost the external red wire"
+				)
+				runner.assert(
+					connector_has(output, old, defines.wire_connector_id.combinator_input_red),
+					"the kill switch lost the self-referential red wire"
+				)
+				runner.assert(
+					find(surface, "arithmetic-combinator-PlanetsLib-nauvis", position) == nil,
+					"the global kill switch still replaced the combinator"
+				)
+				return
+			end
 
 			runner.assert(not old.valid, "the source combinator was not destroyed")
 			local new = find(surface, "arithmetic-combinator-PlanetsLib-nauvis", position)
@@ -459,6 +574,19 @@ return function(runner)
 			runner.assert(ghost, "could not insert the ghost solar panel equipment")
 
 			on_built_entity({ entity = old }, nil, false)
+
+			if replacements_disabled() then
+				runner.assert(old.valid, "the global kill switch should leave the spidertron in place")
+				runner.assert(
+					old.grid.count("solar-panel-equipment") >= 1,
+					"the global kill switch lost the grid equipment"
+				)
+				runner.assert(
+					find(surface, "spidertron-PlanetsLib-nauvis", position, 2) == nil,
+					"the global kill switch still replaced the spidertron"
+				)
+				return
+			end
 
 			runner.assert(not old.valid, "the source spidertron was not destroyed")
 			local new = find(surface, "spidertron-PlanetsLib-nauvis", position, 2)
@@ -502,6 +630,19 @@ return function(runner)
 
 				on_built_entity({ entity = old }, nil, false)
 
+				if replacements_disabled() then
+					runner.assert(old.valid, "the global kill switch should leave the chest in place")
+					runner.assert(
+						find(surface, "iron-chest", position) == nil,
+						"the global kill switch still replaced the chest"
+					)
+					runner.assert(
+						captured == nil,
+						"PlanetsLib-on-entity-replaced fired although the global kill switch is on"
+					)
+					return
+				end
+
 				local new = find(surface, "iron-chest", position)
 				runner.assert(new and new.valid, "the chest was not replaced")
 				runner.assert(captured, "the PlanetsLib-on-entity-replaced event did not fire")
@@ -540,6 +681,33 @@ return function(runner)
 				find(surface, "fast-transport-belt", position) == nil,
 				"the disabled rule still produced a fast transport belt"
 			)
+		end)
+	end)
+
+	runner.test("ENT-14 the global kill switch disables on_built_entity replacement", function()
+		local on_built_entity = require_seam(runner, "on_built_entity")
+		local disable_all = replacements_disabled()
+
+		with_area(runner, function(surface, center)
+			local chest, position = create_at(surface, "wooden-chest", center)
+			runner.assert(chest and chest.valid, "could not create the source wooden chest")
+
+			on_built_entity({ entity = chest })
+
+			if disable_all then
+				runner.assert(
+					chest.valid and chest.name == "wooden-chest",
+					"PlanetsLib-disable-all-entity-replacements did not stop the replacement"
+				)
+				runner.assert(
+					find(surface, "iron-chest", position) == nil,
+					"the global kill switch still produced an iron chest"
+				)
+			else
+				runner.assert(not chest.valid, "the wooden chest was not replaced although replacements are enabled")
+				local new = find(surface, "iron-chest", position)
+				runner.assert(new and new.valid, "the wooden chest was not replaced by an iron chest")
+			end
 		end)
 	end)
 end

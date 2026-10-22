@@ -8,6 +8,7 @@
 -- recorded outcomes plus the resulting runtime prototypes.
 
 local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
 local function fixture(runner, suite)
 	local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
@@ -20,7 +21,11 @@ end
 local function assert_namespace(runner, suite)
 	local entries = fixture(runner, suite)
 	for id, entry in pairs(entries) do
-		runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
+		if entry.note and entry.ok == nil then
+			-- Informational note, not a check.
+		else
+			runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
+		end
 	end
 	return entries
 end
@@ -61,14 +66,19 @@ end
 
 return function(runner)
 	runner.test("MISC-2a data-stage setup and final-fixes fixture results", function()
-		assert_namespace(runner, "misc_science_lab")
+		support.assert_all(runner, "misc_science_lab", {
+			expected = { "MISC-2-setup", "MISC-3-setup" },
+		})
+		support.assert_all(runner, "misc_science_lab_final", {
+			expected = { "MISC-2", "MISC-3" },
+		})
 		local final_entries = assert_namespace(runner, "misc_science_lab_final")
 		runner.assert(
-			type(final_entries["MISC-2-setting"].err) == "string",
+			type(final_entries["MISC-2-setting"].note) == "string",
 			"the hidden-prerequisite setting note was not recorded"
 		)
 		runner.assert(
-			type(final_entries["MISC-3-setting"].err) == "string",
+			type(final_entries["MISC-3-setting"].note) == "string",
 			"the lab preview-size-change setting note was not recorded"
 		)
 	end)

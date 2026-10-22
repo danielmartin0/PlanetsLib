@@ -299,9 +299,26 @@ function rro.util_merge(args)
     return rro.merge(args[1],args[2])
 end
 
-function rro.ammend(old, new)
-    old = rro.merge(old, new)
+--- Merges `new` into `old` in place and returns `old`.
+-- Callers do not need to assign the return value: the passed table itself is
+-- updated. Kept for backwards compatibility; new code should prefer rro.merge,
+-- which does not mutate its first argument.
+-- @param old table
+-- @param new table
+-- @return old table
+function rro.amend(old, new)
+    local merged = rro.merge(old, new)
+    for key in pairs(old) do
+        old[key] = nil
+    end
+    for key, value in pairs(merged) do
+        old[key] = value
+    end
+    return old
 end
+
+-- Deprecated misspelling kept as an alias for backwards compatibility.
+rro.ammend = rro.amend
 
 --- Returns a concatenation of the contents of two tables.
 -- @param first table

@@ -6,6 +6,13 @@ Date: 2026-10-21
     - Ground diggers are no longer generated for mining drills that can only mine specific resource sites, such as pumpjacks or anomaly collectors. Such drills must be able to mine ordinary solid resources (their resource_categories must include basic-solid, or be unset).
   Bugfixes:
     - PlanetsLib.crushing_recipe_icons() and PlanetsLib.asteroid_crushing_recipe_icons() now use their icon_size argument instead of always declaring the supplied icon as 64 pixels. The icon keeps its previous apparent size, so existing icons look unchanged.
+    - PlanetsLib-disable-all-entity-replacements now actually disables all entity replacement rules at runtime, including rules bound to their own startup setting and migrations.
+    - Entity replacement migration now reverts rules that were removed between saves, handles belt-like entities (transport belts, underground belts, splitters and loaders) via the engine's fast-replace path, and no longer tries to replace entities while the global entity-replacement setting is disabled.
+    - Ground diggers now respect the per-planet drill blacklist when assigning the locked recipe, and placement collision checks use the prototype selection box (the actual footprint) instead of tile_width/tile_height (the placement grid). This covers the full footprint, ignores adjacent entities outside it, and rejects colliding real entities and entity ghosts inside it. Ghost collisions no longer show the custom entity-in-the-way label, allowing the vanilla build overlay to remain visible. Directly placing a ground digger over its own ghost now builds the matching ghost closest to the cursor, while other entity ghosts still block placement.
+    - The backwards-compatibility tier helpers now return nil when the separate PlanetsLib: Tiers mod is not installed instead of erroring.
+    - rro.amend() is now the canonical in-place table merge and returns the mutated table for convenience. The misspelled rro.ammend() remains as an alias for backwards compatibility.
+    - get_planet_str_double() now truncates long planet names in its fallback, matching get_planet_str().
+    - Removed a leftover entity-replacement debug print that wrote to the log for every replacement.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.2
 Date: 2026-10-20

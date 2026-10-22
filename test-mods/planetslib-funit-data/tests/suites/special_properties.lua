@@ -4,17 +4,7 @@
 -- `special_properties` and `special_properties_final` fixtures exercise them, and
 -- the runtime reads the resulting mod-data.
 
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
-
-local function assert_fixture_namespace(runner, suite)
-	local mod_data = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(mod_data, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	local entries = mod_data.data[suite]
-	runner.assert(entries, "no data-stage results recorded for '" .. suite .. "'")
-	for id, entry in pairs(entries) do
-		runner.assert(entry.ok, "data fixture '" .. id .. "' failed: " .. tostring(entry.err))
-	end
-end
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
 return function(runner)
 	-- lib/planet.lua is loaded into the scenario's Lua state, so it needs the
@@ -31,11 +21,11 @@ return function(runner)
 	_G.PlanetsLib.get_special_properties = planet.get_special_properties
 
 	runner.test("SP-1 set_special_properties data-stage behavior", function()
-		assert_fixture_namespace(runner, "special_properties")
+		support.assert_all(runner, "special_properties", { expected = { "SP-1" } })
 	end)
 
 	runner.test("SP-2 set_special_properties is rejected in data-final-fixes", function()
-		assert_fixture_namespace(runner, "special_properties_final")
+		support.assert_all(runner, "special_properties_final", { expected = { "SP-2" } })
 	end)
 
 	runner.test("SP-3 runtime get_special_property reads the stored values", function()

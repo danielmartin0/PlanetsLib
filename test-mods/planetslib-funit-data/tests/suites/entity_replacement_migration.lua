@@ -1,34 +1,50 @@
 -- Entity replacement: migration behavior (ENT-12..ENT-13).
 --
--- ENT-12 drives the live rolling-stock upgrade path. ENT-13 exercises the
--- on_configuration_changed entry point and the silent (raise_built = false)
--- replacement path used by migrations. A real "rule added/disabled" migration
--- needs a data-stage change between two saves, so it is recorded as a
--- limitation rather than simulated by mutating PlanetsLib's storage from this
--- mod's Lua environment.
+-- ENT-12 drives the live rolling-stock upgrade path. ENT-13a/ENT-13b exercise
+-- the on_configuration_changed entry point and the silent (raise_built = false)
+-- replacement path used by migrations. ENT-13c..ENT-13e drive the real rule
+-- migration through the `migrate_entity_replacement_rules` seam with a complete
+-- old-rule snapshot, covering re-enabled, disabled and removed rules.
 
 -- `require` is only allowed while the scenario's control.lua is parsed, not
 -- from inside an on_tick test callback.
 local mock = require("__funit__.mock")
+local support = require("__planetslib-funit-data__.tests.suites.support")
 
-local RESULTS_MOD_DATA = "PlanetsLib-funit-results"
 local FIXTURE_SUITE = "entity_replacement_data"
 local SURFACE_NAME = "nauvis"
+local DISABLE_ALL_SETTING = "PlanetsLib-disable-all-entity-replacements"
 local AREA_STEP = 80
 local AREA_RADIUS = 8
 local next_area = 0
 
 local function fixture_entries(runner)
-	local bag = prototypes.mod_data[RESULTS_MOD_DATA]
-	runner.assert(bag, "mod-data prototype '" .. RESULTS_MOD_DATA .. "' is missing")
-	local entries = bag.data[FIXTURE_SUITE]
-	runner.assert(entries, "no data-stage results recorded for '" .. FIXTURE_SUITE .. "'")
-	for _, id in ipairs({ "ENT-1g", "ENT-2e" }) do
-		local entry = entries[id]
-		runner.assert(entry, "missing data fixture entry " .. id)
-		runner.assert(entry.ok, "data fixture " .. id .. " failed: " .. tostring(entry.err))
+	support.assert_all(runner, FIXTURE_SUITE, { expected = { "ENT-1g", "ENT-2e" } })
+	return support.entries(runner, FIXTURE_SUITE)
+end
+
+local function deep_copy(value)
+	if type(value) ~= "table" then
+		return value
 	end
-	return entries
+	local copy = {}
+	for key, entry in pairs(value) do
+		copy[key] = deep_copy(entry)
+	end
+	return copy
+end
+
+local function copy_current_rules(runner)
+	local planetslib = prototypes.mod_data["Planetslib"]
+	runner.assert(planetslib and planetslib.data, "the PlanetsLib mod-data prototype is missing")
+	local rules = planetslib.data.on_entity_placed_on_planet_replacements
+	runner.assert(rules, "PlanetsLib has no on_entity_placed_on_planet_replacements table")
+	return deep_copy(rules)
+end
+
+local function replacements_disabled()
+	local setting = settings.startup[DISABLE_ALL_SETTING]
+	return setting ~= nil and setting.value == true
 end
 
 local function require_seam(runner, name)
@@ -78,12 +94,27 @@ local function with_area(runner, body)
 
 	local ok, err = pcall(function()
 		prepare_area(surface, center, AREA_RADIUS)
+		-- Map generation can leave trees, rocks or cliffs inside the landfill
+		-- area; clear them before each test so entity placement is deterministic.
+		clear_area(surface, center, AREA_RADIUS)
 		body(surface, center)
 	end)
 	pcall(clear_area, surface, center, AREA_RADIUS + 6)
 	if not ok then
 		error(err, 0)
 	end
+end
+
+local function with_migration_area(runner, migrate, body)
+	with_area(runner, function(surface, center)
+		local ok, err = pcall(body, surface, center)
+		-- Restore PlanetsLib's migration baseline even when an assertion fails,
+		-- so later suites never inherit this test's synthetic old snapshot.
+		pcall(migrate, copy_current_rules(runner))
+		if not ok then
+			error(err, 0)
+		end
+	end)
 end
 
 local function create_at(surface, name, center)
@@ -266,13 +297,151 @@ return function(runner)
 		end)
 	end)
 
-	runner.test("ENT-13c added/disabled rule migration requires a second save", function()
-		fixture_entries(runner)
-		runner.log(
-			"ENT-13c limitation: exercising a real added/disabled entity replacement rule requires two saves with "
-				.. "different startup settings; this scenario only loads one. The rule-change comparison and the "
-				.. "silent migration replacement path are covered by ENT-13a and ENT-13b."
-		)
-		runner.assert(true)
+	runner.test("ENT-13c re-enabling a disabled rule migrates existing entities", function()
+		local migrate = require_seam(runner, "migrate_entity_replacement_rules")
+
+		with_migration_area(runner, migrate, function(surface, center)
+			local current = copy_current_rules(runner)
+			local new_rule = current["nauvis"] and current["nauvis"]["wooden-chest"]
+			runner.assert(new_rule, "the nauvis wooden-chest rule is missing")
+			runner.assert(new_rule.entity == "iron-chest", "the nauvis wooden-chest rule has the wrong target")
+
+			-- Start from a complete snapshot so every other rule is unchanged;
+			-- only the target rule was disabled in the old save.
+			local old_rules = copy_current_rules(runner)
+			local old_rule = old_rules["nauvis"]["wooden-chest"]
+			old_rule.enabled = false
+			old_rule.entity = "wooden-chest"
+
+			local chest, position = create_at(surface, "wooden-chest", center)
+			runner.assert(chest and chest.valid, "could not create the source wooden chest")
+
+			migrate(old_rules)
+
+			if new_rule.enabled == true then
+				runner.assert(not chest.valid, "the re-enabled rule did not migrate the wooden chest")
+				local replacement = find(surface, "iron-chest", position)
+				runner.assert(replacement and replacement.valid, "the wooden chest was not replaced by an iron chest")
+			else
+				runner.assert(chest.valid, "the global kill switch should leave the wooden chest in place")
+				runner.assert(
+					find(surface, "iron-chest", position) == nil,
+					"the global kill switch still migrated the wooden chest"
+				)
+			end
+		end)
+	end)
+
+	runner.test("ENT-13d disabling a rule reverts its replaced entities", function()
+		local migrate = require_seam(runner, "migrate_entity_replacement_rules")
+
+		with_migration_area(runner, migrate, function(surface, center)
+			local current = copy_current_rules(runner)
+			local new_rule = current["nauvis"] and current["nauvis"]["transport-belt"]
+			runner.assert(new_rule, "the nauvis transport-belt rule is missing")
+			runner.assert(new_rule.entity == "fast-transport-belt", "the transport-belt rule has the wrong target")
+			runner.assert(new_rule.enabled == false, "the fixture transport-belt rule should be disabled")
+
+			-- The old save had the same rule enabled.
+			local old_rules = copy_current_rules(runner)
+			local old_rule = old_rules["nauvis"]["transport-belt"]
+			old_rule.enabled = true
+			old_rule.entity = "fast-transport-belt"
+
+			local belt, position = create_at(surface, "fast-transport-belt", center)
+			runner.assert(belt and belt.valid, "could not create the fast transport belt")
+
+			migrate(old_rules)
+
+			if replacements_disabled() then
+				runner.assert(
+					belt.valid,
+					"the global kill switch should leave the fast transport belt in place"
+				)
+				runner.assert(
+					find(surface, "transport-belt", position) == nil,
+					"the global kill switch still reverted the fast transport belt"
+				)
+			else
+				runner.assert(not belt.valid, "the disabled rule did not revert the fast transport belt")
+				local reverted = find(surface, "transport-belt", position)
+				runner.assert(reverted and reverted.valid, "the fast transport belt was not reverted to a transport belt")
+			end
+		end)
+	end)
+
+	runner.test("ENT-13e removing a rule reverts its replaced entities", function()
+		local migrate = require_seam(runner, "migrate_entity_replacement_rules")
+
+		with_migration_area(runner, migrate, function(surface, center)
+			local current = copy_current_rules(runner)
+			runner.assert(current["nauvis"], "nauvis has no replacement rules")
+			runner.assert(
+				current["nauvis"]["funit-ent-removed-rule"] == nil,
+				"the removal fixture key unexpectedly exists in the live rules"
+			)
+
+			-- A rule that was removed between saves exists only in the old
+			-- snapshot. The live `prototypes` table is read-only, so the removal
+			-- is modelled by an old-only rule rather than mutating the new table.
+			local old_rules = copy_current_rules(runner)
+			old_rules["nauvis"]["funit-ent-removed-rule"] = {
+				old_entity = "fast-transport-belt",
+				entity = "express-transport-belt",
+				enabled = true,
+			}
+
+			local belt, position = create_at(surface, "express-transport-belt", center)
+			runner.assert(belt and belt.valid, "could not create the removed rule's variant")
+
+			migrate(old_rules)
+
+			if replacements_disabled() then
+				runner.assert(belt.valid, "the global kill switch should leave the express transport belt in place")
+				runner.assert(
+					find(surface, "fast-transport-belt", position) == nil,
+					"the global kill switch still reverted the removed rule's variant"
+				)
+			else
+				runner.assert(not belt.valid, "the removed rule did not revert its variant")
+				local reverted = find(surface, "fast-transport-belt", position)
+				runner.assert(
+					reverted and reverted.valid,
+					"the removed rule's variant was not reverted to fast-transport-belt"
+				)
+			end
+		end)
+	end)
+
+	runner.test("ENT-13f a rule missing from the old snapshot is applied", function()
+		local migrate = require_seam(runner, "migrate_entity_replacement_rules")
+
+		with_migration_area(runner, migrate, function(surface, center)
+			local current = copy_current_rules(runner)
+			local new_rule = current["nauvis"] and current["nauvis"]["wooden-chest"]
+			runner.assert(new_rule, "the nauvis wooden-chest rule is missing")
+
+			-- The rule did not exist in the old save: delete it from the old
+			-- snapshot to exercise the new-only migration branch.
+			local old_rules = copy_current_rules(runner)
+			old_rules["nauvis"]["wooden-chest"] = nil
+
+			local chest, position = create_at(surface, "wooden-chest", center)
+			runner.assert(chest and chest.valid, "could not create the source wooden chest")
+
+			migrate(old_rules)
+
+			if new_rule.enabled == true then
+				runner.assert(not chest.valid, "the newly added rule did not migrate the wooden chest")
+				local replacement = find(surface, "iron-chest", position)
+				runner.assert(replacement and replacement.valid, "the wooden chest was not replaced by an iron chest")
+			else
+				runner.assert(chest.valid, "the global kill switch should leave the wooden chest in place")
+				runner.assert(
+					find(surface, "iron-chest", position) == nil,
+					"the global kill switch still applied the newly added rule"
+				)
+			end
+		end)
 	end)
 end

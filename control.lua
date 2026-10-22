@@ -31,12 +31,17 @@ if cargo_pods then
 	
 end
 
+local function warn_on_join_if_due()
+	local setting = settings.startup["PlanetsLib-warn-on-hidden-prerequisites"]
+	if not unreachable_techs.should_warn_on_join(game.tick, setting and setting.value) then
+		return false
+	end
+	unreachable_techs.warn_unreachable_techs()
+	return true
+end
+
 if settings.startup["PlanetsLib-warn-on-hidden-prerequisites"].value then
-	script.on_event(defines.events.on_player_joined_game, function()
-		if game.tick == 0 then
-			unreachable_techs.warn_unreachable_techs()
-		end
-	end)
+	script.on_event(defines.events.on_player_joined_game, warn_on_join_if_due)
 end
 
 local function init_storage()
@@ -71,42 +76,100 @@ local function replace_entity(surface,old_entity,new_entity)
 
 end
 
-local function migrate_surface(planet_name,surface,planet_rules,replacement_rules)
-	if not storage.old_replacement_rules[planet_name] then storage.old_replacement_rules[planet_name] = {} end
-		for entity_name,entity_table in pairs(planet_rules) do
-			local new_rule = PlanetsLib.constants.on_entity_placed_on_planet_replacements[planet_name][entity_name]
-			if storage.old_replacement_rules[planet_name][entity_name] then 
-				local old_rule = storage.old_replacement_rules[planet_name][entity_name]
-				
+local function entity_replacements_disabled_by_setting()
+	local setting = settings.startup["PlanetsLib-disable-all-entity-replacements"]
+	return setting and setting.value == true
+end
 
-				if new_rule.enabled ~= old_rule.enabled or new_rule.entity ~= old_rule.entity then
-					game.print({"planetslib.planetslib-entity-replacement-rule-changed"})
+local function migrate_surface(planet_name,surface,planet_rules,replacement_rules)
+	storage.old_replacement_rules[planet_name] = storage.old_replacement_rules[planet_name] or {}
+	local old_planet_rules = storage.old_replacement_rules[planet_name]
+	local replacements_disabled = entity_replacements_disabled_by_setting()
+
+	-- Iterate the union of old and new rules. A rule that was removed entirely
+	-- between saves is absent from the new table, so iterating only
+	-- `planet_rules` would leave its entities replaced forever.
+	local entity_names = {}
+	for entity_name in pairs(planet_rules or {}) do
+		entity_names[entity_name] = true
+	end
+	for entity_name in pairs(old_planet_rules) do
+		entity_names[entity_name] = true
+	end
+
+	for entity_name in pairs(entity_names) do
+		local new_rule = planet_rules and planet_rules[entity_name]
+		local old_rule = old_planet_rules[entity_name]
+
+		if old_rule and new_rule then
+			if new_rule.enabled ~= old_rule.enabled or new_rule.entity ~= old_rule.entity then
+				game.print({"planetslib.planetslib-entity-replacement-rule-changed"})
+				if not replacements_disabled then
 					if new_rule.enabled == false then
 						--Revert changes previously made. Search for old_rule.entity and new_rule.entity and replace both with new_rule.old_entity
-						--game.print("[PlanetsLib]: Entity replacement rule change detected:\n Migrating __1__ to __3__\nMigrating __2__ to __3__")
 						replace_entity(surface,old_rule.entity,new_rule.old_entity)
 						replace_entity(surface,new_rule.entity,new_rule.old_entity)
-						storage.old_replacement_rules[planet_name][entity_name] = new_rule
 					elseif new_rule.enabled == true then
-						--Make overdue changes. Search for new_rule.old_entity, old_rule.old_entity, and old_rule.entity and replace them with new_rule.entity 
+						--Make overdue changes. Search for new_rule.old_entity, old_rule.old_entity, and old_rule.entity and replace them with new_rule.entity
 						replace_entity(surface,old_rule.old_entity,new_rule.entity)
 						replace_entity(surface,new_rule.old_entity,new_rule.entity)
 						replace_entity(surface,old_rule.entity,new_rule.entity)
-						storage.old_replacement_rules[planet_name][entity_name] = new_rule
 					end
-
 				end
-			else
-				storage.old_replacement_rules[planet_name][entity_name] = replacement_rules[planet_name][entity_name]
-				if new_rule.enabled == true then
-					--Make overdue changes. Search for new_rule.old_entity and replace them with new_rule.entity 
-					replace_entity(surface,new_rule.old_entity,new_rule.entity)
-				end
-				
-				
+				old_planet_rules[entity_name] = new_rule
+			end
+		elseif old_rule and not new_rule then
+			--The rule was removed. Put any previously replaced entities back.
+			if old_rule.enabled and not replacements_disabled
+				and old_rule.entity and old_rule.old_entity then
+				replace_entity(surface,old_rule.entity,old_rule.old_entity)
+			end
+			old_planet_rules[entity_name] = nil
+		elseif new_rule and not old_rule then
+			old_planet_rules[entity_name] = new_rule
+			if new_rule.enabled == true and not replacements_disabled
+				and new_rule.old_entity and new_rule.entity then
+				--Make overdue changes. Search for new_rule.old_entity and replace it with new_rule.entity
+				replace_entity(surface,new_rule.old_entity,new_rule.entity)
 			end
 		end
+	end
+end
 
+local function migrate_all_entity_replacement_rules()
+	local replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements
+	if not storage.old_replacement_rules then storage.old_replacement_rules = {} end
+	if not replacement_rules then
+		return
+	end
+
+	-- Search for changes to entity replacement rules and replace existing
+	-- entities when the rules changed since the last load. Walk the union of
+	-- planet keys: a mod may remove every rule for a planet, not just one rule.
+	local planet_names = {}
+	for planet_name in pairs(replacement_rules) do
+		planet_names[planet_name] = true
+	end
+	for planet_name in pairs(storage.old_replacement_rules or {}) do
+		planet_names[planet_name] = true
+	end
+
+	for planet_name in pairs(planet_names) do
+		local planet_rules = replacement_rules[planet_name] or {}
+		local is_space_platform = planet_name == "space-platform"
+
+		if is_space_platform then --Migrate each space platform using space platform rules
+			for _,surface in pairs(game.surfaces) do
+				if surface.platform then
+					migrate_surface(planet_name,surface,planet_rules,replacement_rules)
+				end
+			end
+		else
+			local surface --Migrate the one planet these rules apply to.
+			if game.planets[planet_name] then surface = game.planets[planet_name].surface end
+			migrate_surface(planet_name,surface,planet_rules,replacement_rules)
+		end
+	end
 end
 
 local function on_configuration_changed(configuration_changed_data)
@@ -121,28 +184,7 @@ local function on_configuration_changed(configuration_changed_data)
 		break
 	end
 
-	local replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements
-	if not storage.old_replacement_rules then storage.old_replacement_rules = {} end
-	
-	if replacement_rules then
-		--Search for changes to entity replacement rules, and replace existing entities if the entity rules changed since last load
-		for planet_name,planet_rules in pairs(replacement_rules) do
-			local is_space_platform = planet_name == "space-platform"
-			
-			if is_space_platform then --Migrate each space platform using space platform rules
-				for _,surface in pairs(game.surfaces) do
-					if surface.platform then
-						migrate_surface(planet_name,surface,planet_rules,replacement_rules)
-					end
-				end
-			else
-				local surface --Migrate the one planet these rules apply to.
-				if game.planets[planet_name] then surface = game.planets[planet_name].surface end
-				migrate_surface(planet_name,surface,planet_rules,replacement_rules)
-			end
-			
-		end
-	end
+	migrate_all_entity_replacement_rules()
 
 	-- local rocket_part_recipe_rules = data.raw["mod-data"]["Planetslib-planet-rocket-part-recipe"].data
 	-- local lock_rocket_part_rules = 
@@ -196,8 +238,6 @@ for _,config in pairs(PlanetsLib.constants.ground_diggers) do
 	end
 end
 
-print(serpent.block(on_built_filters))
-
 local on_built_entity_combined
 
 if is_cargo_pods and is_entity_replacements then
@@ -227,8 +267,8 @@ if next(ground_digger_names) then
 end
 
 
-script.on_event(defines.events.on_built_entity,on_built_entity_combined,on_built_filters_and_silos)
-if true or is_entity_replacements then
+if on_built_entity_combined then
+	script.on_event(defines.events.on_built_entity,on_built_entity_combined,on_built_filters_and_silos)
 	script.on_event(defines.events.on_robot_built_entity,on_built_entity_combined,on_built_filters_and_silos)
 	script.on_event(defines.events.script_raised_built,on_built_entity_combined,on_built_filters_and_silos) 
 	script.on_event(defines.events.script_raised_revive,on_built_entity_combined,on_built_filters_and_silos)
@@ -356,8 +396,33 @@ if script.active_mods["funit"] then
 		on_entity_built = function(event)
 			return ground_diggers.on_entity_built(event)
 		end,
+		ground_digger_collisions = function(surface, position, digger_prototype_name)
+			return ground_diggers.find_build_collisions(surface, position, digger_prototype_name)
+		end,
+		revive_ground_digger_ghost = function(ghost)
+			return ground_diggers.revive_ground_digger_ghost(ghost)
+		end,
+		select_digger_ghost = function(colliding_entities, digger_name, position)
+			return ground_diggers.select_digger_ghost(colliding_entities, digger_name, position)
+		end,
 		on_configuration_changed = function(configuration_changed_data)
 			return on_configuration_changed(configuration_changed_data)
+		end,
+		migrate_entity_replacement_rules = function(old_rules)
+			storage.old_replacement_rules = old_rules or storage.old_replacement_rules
+			return migrate_all_entity_replacement_rules()
+		end,
+		warn_on_join = function()
+			return warn_on_join_if_due()
+		end,
+		should_warn_on_join = function(tick, setting_value)
+			return unreachable_techs.should_warn_on_join(tick, setting_value)
+		end,
+		warn_cargo_pod_canceled = function(player, platform, planet_name)
+			if not cargo_pods then
+				return nil
+			end
+			return cargo_pods.warn_player_of_canceled_pod(player, platform, planet_name)
 		end,
 		pod_contents_is_allowed = function(pod_contents, planet_name)
 			if not cargo_pods then

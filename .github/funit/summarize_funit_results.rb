@@ -18,6 +18,11 @@
 #                    shown when a scenario produced no usable report.
 #   --output FILE    Append the Markdown to FILE (default:
 #                    $GITHUB_STEP_SUMMARY, or stdout when unset).
+#   --comment FILE   Also write the Markdown to FILE, for posting as a pull
+#                    request comment. Truncated to fit GitHub's comment limit.
+#   --github-output FILE
+#                    Write failed=true|false and summary counts to FILE, in the
+#                    NAME=VALUE format expected by $GITHUB_OUTPUT.
 #   --[no-]annotate  Emit GitHub error annotations for failures (default: on
 #                    when GITHUB_ACTIONS is set).
 #
@@ -31,6 +36,9 @@ require 'optparse'
 MAX_TEST_DETAIL_CHARS = 4_000
 MAX_LOG_LINES = 80
 MAX_ANNOTATION_CHARS = 1_500
+# GitHub rejects issue/PR comments longer than 65,536 characters. Leave room
+# for the hidden marker and the truncation notice added by the workflow.
+MAX_COMMENT_CHARS = 60_000
 
 Report = Struct.new(:name, :path, :data, :load_error, keyword_init: true) do
   def testcases
@@ -220,6 +228,8 @@ options = {
   expected: [],
   log: nil,
   output: ENV['GITHUB_STEP_SUMMARY'],
+  comment: nil,
+  github_output: nil,
   annotate: ENV['GITHUB_ACTIONS'] == 'true'
 }
 
@@ -238,6 +248,14 @@ parser = OptionParser.new do |opts|
   opts.on('--output FILE',
           'Append Markdown to FILE (default: $GITHUB_STEP_SUMMARY)') do |value|
     options[:output] = value
+  end
+  opts.on('--comment FILE',
+          'Also write the Markdown to FILE for a pull request comment') do |value|
+    options[:comment] = value
+  end
+  opts.on('--github-output FILE',
+          'Write failed=true|false and counts to FILE for $GITHUB_OUTPUT') do |value|
+    options[:github_output] = value
   end
   opts.on('--[no-]annotate',
           'Emit GitHub error annotations for failures') do |value|
@@ -398,6 +416,31 @@ if options[:output] && !options[:output].empty?
   puts "FUnit summary written to #{options[:output]}"
 else
   puts markdown
+end
+
+# A separate copy for the pull request comment. The comment is a fresh file
+# (not appended) and must be truncated: GitHub rejects comments over 65,536
+# characters, and a run with many failures can produce a much longer summary.
+if options[:comment] && !options[:comment].empty?
+  comment_markdown = markdown
+  if comment_markdown.length > MAX_COMMENT_CHARS
+    comment_markdown = "#{comment_markdown[0, MAX_COMMENT_CHARS]}\n\n" \
+                       '_Comment truncated. See the workflow run for the full summary._'
+  end
+  File.write(options[:comment], comment_markdown)
+  puts "FUnit comment written to #{options[:comment]}"
+end
+
+# Tell the workflow whether the run was clean. The JUnit conversion step
+# remains responsible for failing the job, but the comment steps use this to
+# decide whether to post a failure or delete stale failure comments.
+if options[:github_output] && !options[:github_output].empty?
+  File.open(options[:github_output], 'a') do |file|
+    file.puts "failed=#{all_passed ? 'false' : 'true'}"
+    file.puts "failures=#{total_failures}"
+    file.puts "errors=#{total_errors}"
+    file.puts "missing=#{incomplete.size}"
+  end
 end
 
 # Annotations show up next to the workflow run and in the pull request checks
