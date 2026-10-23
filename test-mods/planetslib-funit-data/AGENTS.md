@@ -186,7 +186,7 @@ end
 Status: every suite listed in `tests/suites/manifest.lua` is implemented (no
 stubs), and every fixture listed in `prototypes/fixtures/manifest.lua` is
 implemented for its stage. Against the latest Factorio release the suite runs
-**158 tests with 0 failures/errors** with Space Age + Quality and **130 tests
+**160 tests with 0 failures/errors** with Space Age + Quality and **134 tests
 with 0 failures/errors** in a base-only game; Space Age-only fixtures/suites are
 filtered out when `mods["space-age"]` is nil (see `tests/README.md` for how to
 run it). Check the files for the current state.
@@ -222,7 +222,7 @@ run it). Check the files for the current state.
 | --- | --- | --- |
 | `entity_replacement_data` | ENT-0..4 | `ENT-0` asserts the CI scenario's `PlanetsLib-enable-entity-replacements` value; `assign_entity_replacement` (rule storage, default bound setting, duplicate error, recursion assertion, variant lists, mass-assignment and planet-table forms); `create_planet_entity_variant` (name suffix, deepcopy, localised fields, flags, Factoriopedia redirect/hide, `placeable_by`, icon corner, order suffix, `do_not_generate_variants`, multi-planet, invalid setting, item inference); rocket lift/part multiplier variant generation. Fixture: `entity_replacement_data`. |
 | `entity_replacement_runtime` | ENT-5..11, ENT-14 | Place → replace; settings/inventory/crafting/health/temperature transfer; ghost preservation; robot-built path; inverse normalisation; modules/spill; fluid transfer; wire connections incl. self-referential; grid contents incl. ghost equipment; `storage.replaced_entities` + `get_replacement`; `PlanetsLib.events.on_entity_replaced`; disabled rule. |
-| `entity_replacement_migration` | ENT-12..13f | Rolling-stock replacement (watch the undefined `rolling_stock_info` path); `on_configuration_changed` migration when a rule is added/disabled. Needs a prebuilt save or a controlled configuration change; if impossible headlessly, test the pure layout helpers and record the limitation. |
+| `entity_replacement_migration` | ENT-12..13h | Rolling-stock replacement (watch the undefined `rolling_stock_info` path); `on_configuration_changed` migration when a rule is added, removed, changed or disabled; stale rule snapshots whose entity prototypes no longer exist. Needs a prebuilt save or a controlled configuration change; if impossible headlessly, test the pure layout helpers and record the limitation. |
 
 ### D. Ground diggers
 
@@ -447,19 +447,27 @@ Fixed while implementing these suites (each has a regression test):
     table to a local and neither returned it nor mutated `old`. `rro.amend` is
     now the canonical in-place merge that returns the first argument, and
     `rro.ammend` is kept as an alias. (LIB)
+28. **Stale entity-replacement rules crashed game load** (fixed) — the 2.3.0
+    migration reverted rules removed between saves, but passed prototype names
+    from the save's rule snapshot to `find_entities_filtered`. A mod update can
+    remove the prototype a rule points at (for example a generated
+    `<entity>-PlanetsLib-<planet>` variant), and the engine raises
+    "Unknown entity name", aborting `on_configuration_changed`. Rule names are
+    now validated against `prototypes.entity`; stale rules are skipped and
+    logged. (ENT-13g, ENT-13h)
 
 Still open / needs a decision:
 
-28. **planet-str encoding is lossy beyond 6 bytes** — a double only has 53 bits
+29. **planet-str encoding is lossy beyond 6 bytes** — a double only has 53 bits
     of integer precision, so 7-8 character planet names do not round-trip
     (`decode(encode("funit-a")) == "hunit-a"`; 8 characters decode to `""`). The
     implementation allows up to 8 characters. Tests stay within the safe range.
     Either document a 6-character limit or store the string differently. (PSTR)
-29. **Recipe-effect characterization** — skipped batches bypass production
+30. **Recipe-effect characterization** — skipped batches bypass production
     stats, `add_to_stats` is computed but unused, and the shared/independent
     probability tooltips use different units. These are pinned as
     characterization tests rather than treated as failures. (REC)
-30. **Unreachable-tech warning precedence** — a non-empty
+31. **Unreachable-tech warning precedence** — a non-empty
     `unlinked_prerequisites` list suppresses the hidden-prerequisite warning;
     pinned as current behaviour. (URT)
 

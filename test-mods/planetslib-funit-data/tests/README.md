@@ -2,10 +2,10 @@
 
 Headless [FUnit](https://mods.factorio.com/mod/funit) test suite for PlanetsLib.
 
-Current status (Factorio 2.1.22, both entity-replacements axes):
+Current status (Factorio 2.1.23, both entity-replacements axes):
 
-- **144 tests** with Space Age + Quality, **0 failures, 0 errors**.
-- **122 tests** in a base-only game, **0 failures, 0 errors**. Space Age-only
+- **160 tests** with Space Age + Quality, **0 failures, 0 errors**.
+- **134 tests** in a base-only game, **0 failures, 0 errors**. Space Age-only
   fixtures and suites are skipped dynamically (`mods["space-age"]` at the data
   stage, `script.active_mods["space-age"]` at runtime). The base scenario keeps
   the built-in `recycler` mod enabled but disables Space Age, Quality and
@@ -16,7 +16,7 @@ with entity replacements on and off. The CI-only
 `test-mods/planetslib-funit-settings` mod forces
 `PlanetsLib-enable-entity-replacements = false` for the no-replacements
 scenarios; `ENT-0` asserts that the setting matches the scenario. All four
-scenario runs were validated locally against Factorio 2.1.22; the container
+scenario runs were validated locally against Factorio 2.1.23; the container
 workflow itself is exercised by GitHub Actions.
 
 Everything lives inside the `planetslib-funit-data` companion mod so the tests

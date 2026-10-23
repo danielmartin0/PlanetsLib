@@ -4,7 +4,9 @@
 -- the on_configuration_changed entry point and the silent (raise_built = false)
 -- replacement path used by migrations. ENT-13c..ENT-13e drive the real rule
 -- migration through the `migrate_entity_replacement_rules` seam with a complete
--- old-rule snapshot, covering re-enabled, disabled and removed rules.
+-- old-rule snapshot, covering re-enabled, disabled and removed rules. ENT-13g
+-- and ENT-13h cover stale rule snapshots whose entity prototypes no longer
+-- exist after a mod update.
 
 -- `require` is only allowed while the scenario's control.lua is parsed, not
 -- from inside an on_tick test callback.
@@ -440,6 +442,83 @@ return function(runner)
 				runner.assert(
 					find(surface, "iron-chest", position) == nil,
 					"the global kill switch still applied the newly added rule"
+				)
+			end
+		end)
+	end)
+
+	runner.test("ENT-13g a removed rule with a missing variant prototype is skipped", function()
+		local migrate = require_seam(runner, "migrate_entity_replacement_rules")
+		local missing = "funit-ent-missing-variant"
+		runner.assert(
+			prototypes.entity[missing] == nil,
+			missing .. " unexpectedly exists; this test needs a name that is not a prototype"
+		)
+
+		with_migration_area(runner, migrate, function(surface, center)
+			-- A rule saved by an older mod version can name a generated variant
+			-- (for example "foo-PlanetsLib-<planet>") that the current data
+			-- stage no longer contains. Reverting that rule must not query the
+			-- engine for the unknown name.
+			local old_rules = copy_current_rules(runner)
+			old_rules["nauvis"]["funit-ent-removed-missing-variant"] = {
+				old_entity = "iron-chest",
+				entity = missing,
+				enabled = true,
+			}
+
+			local chest, position = create_at(surface, "iron-chest", center)
+			runner.assert(chest and chest.valid, "could not create the control iron chest")
+
+			local ok, err = pcall(migrate, old_rules)
+			runner.assert(
+				ok,
+				"migrating a removed rule with a missing variant prototype raised: " .. tostring(err)
+			)
+			runner.assert(chest.valid, "the migration destroyed an unrelated entity")
+			runner.assert(find(surface, "iron-chest", position) ~= nil, "the control iron chest moved")
+		end)
+	end)
+
+	runner.test("ENT-13h a changed rule with a missing previous target is skipped", function()
+		local migrate = require_seam(runner, "migrate_entity_replacement_rules")
+		local missing = "funit-ent-missing-variant"
+		runner.assert(
+			prototypes.entity[missing] == nil,
+			missing .. " unexpectedly exists; this test needs a name that is not a prototype"
+		)
+
+		with_migration_area(runner, migrate, function(surface, center)
+			local current = copy_current_rules(runner)
+			local new_rule = current["nauvis"] and current["nauvis"]["wooden-chest"]
+			runner.assert(new_rule, "the nauvis wooden-chest rule is missing")
+			runner.assert(new_rule.entity == "iron-chest", "the nauvis wooden-chest rule has the wrong target")
+
+			-- The previous save recorded a target prototype that a mod update
+			-- removed. Re-enabling (or disabling) the rule must still work.
+			local old_rules = copy_current_rules(runner)
+			local old_rule = old_rules["nauvis"]["wooden-chest"]
+			old_rule.entity = missing
+			old_rule.enabled = true
+
+			local chest, position = create_at(surface, "wooden-chest", center)
+			runner.assert(chest and chest.valid, "could not create the source wooden chest")
+
+			local ok, err = pcall(migrate, old_rules)
+			runner.assert(
+				ok,
+				"migrating a changed rule with a missing previous target raised: " .. tostring(err)
+			)
+
+			if new_rule.enabled == true then
+				runner.assert(not chest.valid, "the changed rule did not migrate the wooden chest")
+				local replacement = find(surface, "iron-chest", position)
+				runner.assert(replacement and replacement.valid, "the wooden chest was not replaced by an iron chest")
+			else
+				runner.assert(chest.valid, "the global kill switch should leave the wooden chest in place")
+				runner.assert(
+					find(surface, "iron-chest", position) == nil,
+					"the global kill switch still migrated the wooden chest"
 				)
 			end
 		end)

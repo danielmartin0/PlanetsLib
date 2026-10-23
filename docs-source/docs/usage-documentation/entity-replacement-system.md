@@ -51,6 +51,8 @@ PlanetsLib.assign_entity_replacement("vulcanus","chemical-plant",replacement_ent
 
 On adding new entity replacement rules to an existing save, disabling old replacement rules, or removing rules entirely from the rule table, PlanetsLib will perform a runtime migration on all entities in violation of the current ruleset to comply with the new ruleset. This process includes copying the settings, wire connections, inventories, fluidbox contents, health, crafting progress, and a myriad of other settings associated with entities. This process is not perfect, so reports of incomplete migrations are welcome.
 
+A save records the entity names used by its rules. If a mod update removes one of those prototypes (for example a generated `"<entity>-PlanetsLib-<planet>"` variant), migration skips and logs the affected rule instead of failing to load the save.
+
 ## Safely disabling an entity replacement rule
 
 Each entity replacement rule must be associated with a startup setting, defined with `bound_setting`. When this setting is enabled, entity replacements are active. When this setting is disabled, variant entities are generated in data, allowing saves with obsolete rules to load without deleting any entities. However, on loading a save, all variant entities that should not exist under the current ruleset are replaced with their original entity, reverting all replacements performed under that rule.
