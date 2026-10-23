@@ -189,13 +189,13 @@ linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
   `cd docs-source && npm install && npm start` (or `npm run build`).
   `./update_documentation.sh` rebuilds the committed `docs/` output (`rm -rf ../docs && mv build ../docs`)
   and writes the `CNAME`.
-- **Release**: run `./bump_version.sh <minor|feature|major>` first. It bumps the version in `info.json`,
-  rewrites the hard-coded zip prefix/name in `archive.sh`, and prepends a `changelog.txt` entry with empty
-  section headings for the release type (`minor`/`bugfix`/`patch` bump the patch digit and write `Bugfixes`;
+- **Release**: run `./bump_version.sh <minor|feature|major>` first. It bumps the version in `info.json`
+  and prepends a `changelog.txt` entry with empty section headings for the release type
+  (`minor`/`bugfix`/`patch` bump the patch digit and write `Bugfixes`;
   `feature` bumps the minor digit and writes `Features`, `Changes`; `major` bumps the major digit and writes
   `Features`, `Changes`, `Bugfixes`). It supports `--date YYYY-MM-DD|????` and `--dry-run`, and does not
-  commit. Then fill in the changelog, and `./archive.sh` creates a versioned zip (`git archive`) and
-  regenerates the docs.
+  commit. `archive.sh` reads the version from `info.json`, so it needs no version update. Then fill in the
+  changelog, and `./archive.sh` creates a versioned zip (`git archive`) and regenerates the docs.
 - **Packaging ignore**: `info.json`'s `package.ignore` and `.gitattributes` `export-ignore` exclude
   `*.py`, `*.bat`, `*.sh`, `*.exe`, `*.ps1`, and `test-mods/` from the release. Python helper scripts
   and development test mods must never ship.
@@ -209,9 +209,8 @@ linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
 - `api.lua`'s header comment says API docs live in `README.md`, but the README now only links to the docs
   site. When documenting a new API, update `docs-source/docs/usage-documentation/*` and/or `README.md`.
 - `helper_scripts/*.py` are standalone; they manage their own dependencies and are excluded from releases.
-- `archive.sh` is not fully generic: it hard-codes the version in its zip prefix/name. `./bump_version.sh`
-  rewrites it, so prefer that over editing it by hand, and double-check it whenever you bump the version
-  another way.
+- `archive.sh` derives the release archive name from `info.json`, so only `info.json` and the newest
+  `changelog.txt` entry need to be updated when releasing.
 
 ## AI agent communication
 
