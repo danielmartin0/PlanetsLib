@@ -56,6 +56,93 @@ return function(runner)
 		})
 	end)
 
+	runner.test("TECH-18 processing excises technologies that end up with no effects", function()
+		support.assert_entry(runner, SUITE, "TECH-18")
+
+		local no_match = prototypes.technology["funit-techprod-excise-no-match"]
+		runner.assert(no_match and no_match.hidden, "a no-op technology was not excised")
+		runner.assert(#no_match.effects == 0, "the excised technology should have no effects")
+		local child = prototypes.technology["funit-techprod-excise-no-match-child"]
+		runner.assert(child, "funit-techprod-excise-no-match-child is missing")
+		runner.assert(
+			child.prerequisites["funit-techprod-excise-root"] ~= nil
+				and child.prerequisites["funit-techprod-excise-no-match"] == nil,
+			"prerequisites were not promoted when the no-op technology was excised"
+		)
+
+		local empty = prototypes.technology["funit-techprod-excise-empty"]
+		runner.assert(empty and empty.hidden, "an empty effects list did not result in excision")
+
+		local purged = prototypes.technology["funit-techprod-excise-purged"]
+		runner.assert(purged and purged.hidden, "a technology emptied by purge_other_effects was not excised")
+		runner.assert(#purged.effects == 0, "the purged technology should have no effects")
+	end)
+
+	runner.test("TECH-19 force_do_not_excise keeps an empty technology", function()
+		support.assert_entry(runner, SUITE, "TECH-19")
+		local forced = prototypes.technology["funit-techprod-excise-forced"]
+		runner.assert(forced, "funit-techprod-excise-forced is missing")
+		runner.assert(forced.hidden ~= true, "force_do_not_excise did not prevent excision")
+		runner.assert(#forced.effects == 0, "the forced technology should still have no effects")
+	end)
+
+	runner.test("TECH-20 technologies with remaining effects are not excised", function()
+		support.assert_entry(runner, SUITE, "TECH-20")
+		local kept = prototypes.technology["funit-techprod-excise-kept"]
+		runner.assert(kept, "funit-techprod-excise-kept is missing")
+		runner.assert(kept.hidden ~= true, "a technology with remaining effects was hidden")
+		runner.assert(
+			effect_for(kept, "funit-techprod-recipe-single"),
+			"the remaining unlock effect was lost"
+		)
+		runner.assert(#kept.effects == 1, "the technology should keep exactly its original effect")
+	end)
+
+	runner.test("TECH-21 technology_name mismatch clears the config without excision", function()
+		support.assert_entry(runner, SUITE, "TECH-21")
+		local guarded = prototypes.technology["funit-techprod-excise-guarded"]
+		runner.assert(guarded, "funit-techprod-excise-guarded is missing")
+		runner.assert(guarded.hidden ~= true, "a technology_name mismatch must not excise the technology")
+		runner.assert(#guarded.effects == 0, "a technology_name mismatch must not add effects")
+	end)
+
+	runner.test("TECH-22 automatic final-fixes pass excises no-op technologies", function()
+		support.assert_entry(runner, "technology_final", "TECH-22")
+		local tech = prototypes.technology["funit-techprod-auto-excise"]
+		runner.assert(tech and tech.hidden, "the no-op technology was not excised by the final-fixes pass")
+		runner.assert(#tech.effects == 0, "the excised technology should have no effects")
+
+		local child = prototypes.technology["funit-techprod-auto-excise-child"]
+		runner.assert(child, "funit-techprod-auto-excise-child is missing")
+		runner.assert(
+			child.prerequisites["funit-techprod-auto-root"] ~= nil
+				and child.prerequisites["funit-techprod-auto-excise"] == nil,
+			"prerequisites were not promoted by the automatic excision"
+		)
+	end)
+
+	runner.test("TECH-23 automatic final-fixes pass keeps non-empty technologies", function()
+		support.assert_entry(runner, "technology_final", "TECH-23")
+		local keep = prototypes.technology["funit-techprod-auto-keep"]
+		runner.assert(keep, "funit-techprod-auto-keep is missing")
+		runner.assert(keep.hidden ~= true, "a technology that gained an effect was hidden")
+		runner.assert(
+			effect_for(keep, "funit-techprod-recipe-single"),
+			"the automatic pass did not add the configured productivity effect"
+		)
+
+		local root = prototypes.technology["funit-techprod-auto-root"]
+		runner.assert(root and root.hidden ~= true, "an unconfigured technology was hidden")
+	end)
+
+	runner.test("TECH-24 force_do_not_excise survives the automatic pass", function()
+		support.assert_entry(runner, "technology_final", "TECH-24")
+		local force = prototypes.technology["funit-techprod-auto-force"]
+		runner.assert(force, "funit-techprod-auto-force is missing")
+		runner.assert(force.hidden ~= true, "force_do_not_excise did not prevent the automatic excision")
+		runner.assert(#force.effects == 0, "the forced technology should still have no effects")
+	end)
+
 	runner.test("TECH-9a processed technology prototypes are present", function()
 		local purge = prototypes.technology["funit-techprod-purge"]
 		runner.assert(purge, "funit-techprod-purge is missing")
