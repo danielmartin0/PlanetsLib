@@ -90,7 +90,7 @@ scripts/                    Runtime helpers required by control.lua (cargo-pods,
                             recipe-effects, rocket-parts, unreachable-techs, player-effects, custom-events)
 locale/<lang>/              Localisation (.cfg). Add keys to existing files.
 graphics/                   Shared icons/entities (entity/, icons/)
-helper_scripts/             Standalone Python asset generators + source PNGs (NOT shipped; see below)
+helper_scripts/             Standalone dev helpers: asset generators, local FUnit runner, PR worktree helper (NOT shipped)
 test-mods/                  Development test mods written while testing a feature (NOT shipped);
                             planetslib-funit-data/ also holds the FUnit suite and scenario
 docs-source/                Docusaurus documentation site — the canonical user-facing docs
@@ -208,7 +208,8 @@ linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
   docs are the Docusaurus site; don't spend time on LDoc.
 - `api.lua`'s header comment says API docs live in `README.md`, but the README now only links to the docs
   site. When documenting a new API, update `docs-source/docs/usage-documentation/*` and/or `README.md`.
-- `helper_scripts/*.py` are standalone; they manage their own dependencies and are excluded from releases.
+- `helper_scripts/` contains standalone development tools (asset generators, local test runners
+  and shell helpers); they manage their own dependencies and are excluded from releases.
 - `archive.sh` derives the release archive name from `info.json`, so only `info.json` and the newest
   `changelog.txt` entry need to be updated when releasing.
 

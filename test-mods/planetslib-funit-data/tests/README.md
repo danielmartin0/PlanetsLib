@@ -44,6 +44,19 @@ list of known bugs the suite pins down.
 
 ## Running locally
 
+For the full four-scenario matrix, use the local runner:
+
+```sh
+helper_scripts/run_funit_local.py \
+  --factorio /path/to/factorio \
+  --funit-zip /path/to/funit_1.1.0.zip
+```
+
+It packages the working tree (including uncommitted changes), runs base and
+Space Age with entity replacements on and off, stops Factorio after FUnit's
+`====END====` signal, and prints a report summary. The manual steps below are
+useful when debugging the harness itself.
+
 1. Install [FUnit](https://mods.factorio.com/mod/funit).
 2. Put `PlanetsLib` and `test-mods/planetslib-funit-data` in your mods directory.
 3. Copy `scenario/` to `<Factorio user data>/scenarios/funit`.

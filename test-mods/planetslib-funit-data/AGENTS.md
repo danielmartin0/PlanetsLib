@@ -554,6 +554,18 @@ non-obvious requirements we hit while validating PlanetsLib:
   these archives with `git archive --prefix=...`; use the same layout locally
   rather than copying loose directories.
 
+`helper_scripts/run_funit_local.py` automates the whole recipe below. It packages
+the working tree (including uncommitted changes), runs all four scenarios, waits
+for FUnit's `====END====` signal, and summarizes the reports:
+
+```sh
+helper_scripts/run_funit_local.py \
+  --factorio /path/to/factorio \
+  --funit-zip /path/to/funit_1.1.0.zip
+```
+
+Use the manual recipe below when debugging the harness itself.
+
 A minimal local recipe:
 
 ```sh
