@@ -283,8 +283,10 @@ Before opening a PR, ensure:
    like `Thank you <name>!` where relevant.
 4. Documentation is updated: add/extend `docs-source/docs/...` (and `README.md` sections), and add new
    contributors to the Contributors list.
-5. The version is bumped with `./bump_version.sh <minor|feature|major>`, which updates `info.json`, `archive.sh`
-   and the top of `changelog.txt` together.
+5. The version is bumped with `./bump_version.sh <minor|feature|major>`, which updates `info.json` and the
+   top of `changelog.txt` together. `archive.sh` reads the version from `info.json`. The `Version` GitHub
+   Actions workflow runs `.github/scripts/check_version.sh` to enforce consistency and comments the failure
+   on the pull request, so a changelog entry cannot be added without bumping the mod version.
 
 ## Quick file-finding tips
 

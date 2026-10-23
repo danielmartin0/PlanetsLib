@@ -1,0 +1,156 @@
+# Checks that the mod version is recorded consistently in info.json and the
+# newest changelog.txt entry, and that archive.sh derives its release name from
+# info.json instead of hard-coding one.
+#
+# pull_request_target is used so fork pull requests can receive a comment with
+# write access. The trusted version-check script is run from the base-branch
+# checkout; pull-request files are only read as data and are never executed.
+
+name: Version
+
+on:
+  push:
+    branches: [main]
+  pull_request_target:
+  workflow_dispatch:
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-version:
+    name: Check version consistency
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out trusted base branch
+        uses: actions/checkout@v4
+        with:
+          path: base
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Check out pull request files
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: pr
+          persist-credentials: false
+
+      - name: Check version consistency
+        id: check
+        shell: bash
+        run: |
+          target=base
+          if [ "${{ github.event_name }}" = "pull_request_target" ]; then
+            target=pr
+          fi
+
+          set +e
+          bash base/.github/scripts/check_version.sh "$target" 2>&1 | tee version-check.log
+          status=${PIPESTATUS[0]}
+          set -e
+
+          {
+            echo "### Version consistency"
+            echo
+            echo '```text'
+            cat version-check.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit "$status"
+
+      - name: Comment version-check failure on pull request
+        if: always() && github.event_name == 'pull_request_target' && steps.check.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- version-check-summary -->';
+            let summary = 'The version check did not produce any output.';
+            try {
+              summary = fs.readFileSync('version-check.log', 'utf8').trim() || summary;
+            } catch (error) {
+              summary = `${summary}\n\n${error.message}`;
+            }
+            if (summary.length > 60000) {
+              summary = `${summary.slice(0, 60000)}\n...`;
+            }
+
+            const runUrl = `${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              marker,
+              '### Version consistency check failed',
+              '',
+              '`info.json` and the newest `changelog.txt` entry must record the same version, and `archive.sh` must derive the release name from `info.json` instead of hard-coding one.',
+              '',
+              '```text',
+              summary,
+              '```',
+              '',
+              'Use `./bump_version.sh <minor|feature|major>` or update `info.json` and the newest `changelog.txt` entry together, then push again.',
+              '',
+              `[Workflow run](${runUrl})`,
+            ].join('\n');
+
+            const pull_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pull_number,
+              per_page: 100,
+            });
+            const existing = comments.find(
+              (comment) =>
+                comment.user?.login === 'github-actions[bot]' &&
+                comment.body?.includes(marker),
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pull_number,
+                body,
+              });
+            }
+
+      - name: Remove stale failure comment after a passing check
+        if: always() && github.event_name == 'pull_request_target' && steps.check.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- version-check-summary -->';
+            const pull_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pull_number,
+              per_page: 100,
+            });
+            for (const comment of comments) {
+              if (
+                comment.user?.login === 'github-actions[bot]' &&
+                comment.body?.includes(marker)
+              ) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment.id,
+                });
+              }
+            }
