@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.3.3
-Date: ????
+Date: 2026-10-23
   Changes:
     - PlanetsLib.excise_recipe_from_tech_tree() now has option for additionally removing change-recipe-productivity effects.
 ---------------------------------------------------------------------------------------------------
