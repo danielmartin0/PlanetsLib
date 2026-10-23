@@ -232,6 +232,8 @@ primary agent: evidence, what worked, recurring friction, and a short list of he
 writing. The brief ends with a direct prompt that the primary agent then carries out, unless the
 user asked for analysis only. Definitions live in `.opencode/agents/self-learn.md` and
 `.opencode/commands/self-learn.md`; `.opencode/` is development-only and excluded from releases.
+Claude Code users get the same flow through `.claude/agents/self-learn.md` and
+`.claude/commands/self-learn.md`; `CLAUDE.md` imports this file and points at the canonical definitions.
 
 ### Bugfix pull request format
 

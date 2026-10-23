@@ -9,6 +9,8 @@ README_images export-ignore
 .github export-ignore
 .opencode export-ignore
 helper_scripts export-ignore
+.claude export-ignore
+CLAUDE.md export-ignore
 .gitignore export-ignore
 .gitattributes export-ignore
 graphics/mipgenerator export-ignore

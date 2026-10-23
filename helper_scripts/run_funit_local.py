@@ -51,6 +51,7 @@ ROOT_SKIP_DIRS = {
     ".git",
     ".github",
     ".opencode",
+    ".claude",
     "artifacts",
     "docs",
     "docs-source",
@@ -64,7 +65,7 @@ ROOT_SKIP_DIRS = {
     ".vscode",
 }
 SKIP_FILE_SUFFIXES = {".pyc", ".pyo", ".zip"}
-SKIP_FILE_NAMES = {".DS_Store", "opencode.json"}
+SKIP_FILE_NAMES = {".DS_Store", "opencode.json", "CLAUDE.md"}
 
 
 def fail(message: str) -> NoReturn:
