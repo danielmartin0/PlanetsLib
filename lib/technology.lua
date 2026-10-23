@@ -372,6 +372,7 @@ function Public.process_technology_recipe_productivity_effects(tech)
 
 	-- To stop techs that deepcopy vanilla productivity techs from wrongly getting vanilla productivity effects.
 	if tech.PlanetsLib_recipe_productivity_effects.technology_name and tech.PlanetsLib_recipe_productivity_effects.technology_name ~= tech.name then
+		tech.PlanetsLib_recipe_productivity_effects = nil
 		return
 	end
 	if not tech.effects then
@@ -475,6 +476,9 @@ function Public.process_technology_recipe_productivity_effects(tech)
 			::continue::
 		end
 		tech.effects = new_effects
+	end
+	if not (tech.PlanetsLib_recipe_productivity_effects.force_do_not_excise or next(tech.effects)) then
+		Public.excise_tech_from_tech_tree(tech.name)
 	end
 	tech.PlanetsLib_recipe_productivity_effects = nil
 end

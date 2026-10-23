@@ -14,12 +14,15 @@ PlanetsLib adds a new field named `PlanetsLib_recipe_productivity_effects` to [[
 
 Recipe products are ignored if they are not "productivity-capable"—if `ignored_by_productivity` is greater than or equal to `amount` (or `amount_max`)—because changing a recipe's productivity has no effect on such products. If a recipe has no productivity-capable products, it is fully ineligible; and if a recipe has multiple products, but only one product is productivity-capable (e.g. Kovarex enrichment), it is eligible _even if `allow_multiple_results` = false_.
 
+If a technology with `PlanetsLib_recipe_productivity_effects` defined (and valid) has no effects after PlanetsLib has finished processing it, the technology is excised using `PlanetsLib.excise_tech_from_tech_tree` unless `PlanetsLib_recipe_productivity_effects.force_do_not_excise` is set to `true`.
+
 #### [[TechnologyPrototype]] field: `PlanetsLib_recipe_productivity_effects` Properties:
 *   `effects`: `table[ChangeResultProductivityModifier]`
 *   `category_blacklist` - `table[`[`RecipeCategoryID`](https://lua-api.factorio.com/latest/types/RecipeCategoryID.html)`]`. Recipes in these categories are skipped. Defaults to `{ "recycling" }`. Must be omitted when using a `category` filter.
 *   `purge_other_effects`- `boolean`. Default: false. Before adding effects added by `PlanetsLib_recipe_productivity_effects`, remove all 
 effects not flagged with `PlanetsLib_force_include`.
 *   `allow_recipes_without_productivity` - `boolean`. Default: false. Captures recipes even if they have `allow_productivity` set to false.
+*   `force_do_not_excise` - `boolean`. Default: false. Does not automatically excise this technology even if it has no effects.
 *   `technology_name` - `string`. If this field is defined, `PlanetsLib_recipe_productivity_effects` does not apply if this field is not equal to the technology name. Acts as a check to prevent deepcopies of vanilla recipe productivity technologies from unknowingly receiving these effects.
 
 #### `ChangeResultProductivityModifier` Properties:
