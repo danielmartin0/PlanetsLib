@@ -81,6 +81,12 @@ local setup_ok, setup_err = pcall(function()
 		clone_recipe("funit-tech-recipe-4"),
 		clone_recipe("funit-tech-recipe-5"),
 		clone_recipe("funit-tech-recipe-6"),
+
+		-- Recipes used by the excise_recipe_from_tech_tree productivity checks
+		-- (TECH-11..TECH-15).
+		clone_recipe("funit-tech-excise-prod-recipe-a"),
+		clone_recipe("funit-tech-excise-prod-recipe-b"),
+		clone_recipe("funit-tech-excise-prod-recipe-c"),
 	})
 
 	-- Items used to exercise sort_science_pack_names. z1/z2 have no `order` and
@@ -136,6 +142,29 @@ local techs_ok, techs_err = pcall(function()
 		clone_tech("funit-tech-effect-only-child", { "funit-tech-effect-only" }, {}),
 		clone_tech("funit-tech-effect-count", {}, {
 			{ type = "nothing", effect_description = "funit" },
+		}),
+
+		-- TECH-11..TECH-15: excise_recipe_from_tech_tree's second argument.
+		-- TECH-11 calls the function without it and must keep the productivity
+		-- effect; TECH-12/13 call it with true and remove both unlock and
+		-- productivity effects.
+		clone_tech("funit-tech-excise-prod-default", {}, {
+			{ type = "unlock-recipe", recipe = "funit-tech-excise-prod-recipe-c" },
+			{ type = "change-recipe-productivity", recipe = "funit-tech-excise-prod-recipe-c", change = 0.1 },
+		}),
+		clone_tech("funit-tech-excise-prod-mixed", {}, {
+			{ type = "unlock-recipe", recipe = "funit-tech-excise-prod-recipe-a" },
+			{ type = "change-recipe-productivity", recipe = "funit-tech-excise-prod-recipe-a", change = 0.1 },
+			{ type = "unlock-recipe", recipe = "funit-tech-excise-prod-recipe-b" },
+			{ type = "change-recipe-productivity", recipe = "funit-tech-excise-prod-recipe-b", change = 0.2 },
+		}),
+		clone_tech("funit-tech-excise-prod-root", {}, {}),
+		clone_tech("funit-tech-excise-prod-only", { "funit-tech-excise-prod-root" }, {
+			{ type = "change-recipe-productivity", recipe = "funit-tech-excise-prod-recipe-a", change = 0.1 },
+		}),
+		clone_tech("funit-tech-excise-prod-only-child", { "funit-tech-excise-prod-only" }, {}),
+		clone_tech("funit-tech-excise-prod-control", {}, {
+			{ type = "change-recipe-productivity", recipe = "funit-tech-excise-prod-recipe-b", change = 0.3 },
 		}),
 	})
 end)
@@ -249,6 +278,89 @@ ok, err = pcall(function()
 	assert(count.hidden ~= true, "the technology must not be hidden by a non-matching effect")
 end)
 results.record("technology", "TECH-4", ok, err)
+
+-- == TECH-11: excise_recipe_from_tech_tree keeps productivity effects by default == == --
+ok, err = pcall(function()
+	PlanetsLib.excise_recipe_from_tech_tree("funit-tech-excise-prod-recipe-c")
+
+	local tech = data.raw.technology["funit-tech-excise-prod-default"]
+	assert(#tech.effects == 1, "the default call should remove only the unlock effect, got " .. #tech.effects)
+	assert(
+		tech.effects[1].type == "change-recipe-productivity"
+			and tech.effects[1].recipe == "funit-tech-excise-prod-recipe-c",
+		"the default call must keep the recipe's productivity effect"
+	)
+	assert(tech.hidden ~= true, "the technology still has an effect and must not be hidden")
+	assert(
+		not data.raw.recipe["funit-tech-excise-prod-recipe-c"].PlanetsLib_blacklist_technology_updates,
+		"the default call must not blacklist the recipe from technology updates"
+	)
+end)
+results.record("technology", "TECH-11", ok, err)
+
+-- == TECH-12: include_productivity_effects removes matching effects only == == --
+ok, err = pcall(function()
+	PlanetsLib.excise_recipe_from_tech_tree("funit-tech-excise-prod-recipe-a", true)
+
+	local tech = data.raw.technology["funit-tech-excise-prod-mixed"]
+	assert(#tech.effects == 2, "the target recipe's two effects should be removed, got " .. #tech.effects)
+	for _, effect in ipairs(tech.effects) do
+		assert(effect.recipe == "funit-tech-excise-prod-recipe-b", "an effect for another recipe was removed")
+	end
+	assert(tech.effects[1].type == "unlock-recipe", "the unrelated unlock effect was not preserved")
+	assert(
+		tech.effects[2].type == "change-recipe-productivity" and tech.effects[2].change == 0.2,
+		"the unrelated productivity effect was not preserved"
+	)
+
+	local control = data.raw.technology["funit-tech-excise-prod-control"]
+	assert(
+		#control.effects == 1
+			and control.effects[1].type == "change-recipe-productivity"
+			and control.effects[1].recipe == "funit-tech-excise-prod-recipe-b"
+			and control.effects[1].change == 0.3,
+		"an unrelated technology was modified"
+	)
+end)
+results.record("technology", "TECH-12", ok, err)
+
+-- == TECH-13: include_productivity_effects excises an emptied technology == == --
+ok, err = pcall(function()
+	local only = data.raw.technology["funit-tech-excise-prod-only"]
+	assert(only.hidden == true, "a technology emptied by the productivity excision must be hidden")
+	assert(#only.effects == 0, "the emptied technology should have no effects")
+
+	local child = data.raw.technology["funit-tech-excise-prod-only-child"]
+	assert(
+		#child.prerequisites == 1 and child.prerequisites[1] == "funit-tech-excise-prod-root",
+		"prerequisites were not promoted when the productivity excision emptied the technology"
+	)
+end)
+results.record("technology", "TECH-13", ok, err)
+
+-- == TECH-14: include_productivity_effects blacklists the recipe before final fixes == == --
+ok, err = pcall(function()
+	assert(
+		PlanetsLib.current_stage == "data",
+		"this check must run during the data stage, got " .. tostring(PlanetsLib.current_stage)
+	)
+	local recipe = data.raw.recipe["funit-tech-excise-prod-recipe-a"]
+	assert(
+		recipe.PlanetsLib_blacklist_technology_updates == true,
+		"calling with include_productivity_effects during data must set PlanetsLib_blacklist_technology_updates"
+	)
+end)
+results.record("technology", "TECH-14", ok, err)
+
+-- == TECH-15: include_productivity_effects tolerates an unknown recipe == == --
+ok, err = pcall(function()
+	PlanetsLib.excise_recipe_from_tech_tree("funit-tech-excise-prod-does-not-exist", true)
+	assert(
+		data.raw.recipe["funit-tech-excise-prod-does-not-exist"] == nil,
+		"the unknown recipe must not be created"
+	)
+end)
+results.record("technology", "TECH-15", ok, err)
 
 -- == TECH-5: sort_science_pack_names == == --
 ok, err = pcall(function()
