@@ -224,6 +224,15 @@ _Posted by DeepSeek V4.1 Flash._
 
 When posting Github pull requests, begin the message with a similar signature.
 
+### Self-learning retrospective
+
+After a substantial task, run `/self-learn [focus]`. It calls the read-only `self-learn` subagent,
+which grounds the retrospective in `git` state and repository files and returns a brief for the
+primary agent: evidence, what worked, recurring friction, and a short list of helper scripts worth
+writing. The brief ends with a direct prompt that the primary agent then carries out, unless the
+user asked for analysis only. Definitions live in `.opencode/agents/self-learn.md` and
+`.opencode/commands/self-learn.md`; `.opencode/` is development-only and excluded from releases.
+
 ### Bugfix pull request format
 
 For pull requests that contain PlanetsLib bugfixes, use the review-oriented format established by

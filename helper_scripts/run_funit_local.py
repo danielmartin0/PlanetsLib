@@ -50,6 +50,7 @@ SCENARIOS = {
 ROOT_SKIP_DIRS = {
     ".git",
     ".github",
+    ".opencode",
     "artifacts",
     "docs",
     "docs-source",
