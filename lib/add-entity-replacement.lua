@@ -71,6 +71,19 @@ end
 local function create_planet_entity_variant(planet_names,entity,new_properties,bound_setting,item_name)
     assert(settings.startup[bound_setting],
     "PlanetsLib.assign_entity_replacement(planet_names,entity,new_properties,bound_setting,item_name) - bound_setting must refer to a valid boolean startup setting.")
+
+    -- Never generate a variant of an already generated variant. Callers often
+    -- iterate a prototype table (for example
+    -- `for _, panel in pairs(data.raw["solar-panel"])`); without this guard the
+    -- variants created during the loop are visited too, and each visit creates
+    -- another variant until the game consumes all RAM. See issue #136.
+    -- Checking the generated name additionally covers variants whose
+    -- PlanetsLib_do_not_generate_variants marker was overridden by new_properties.
+    if entity.PlanetsLib_do_not_generate_variants
+        or (type(entity.name) == "string" and entity.name:find("-PlanetsLib-", 1, true) ~= nil) then
+        return
+    end
+
     if item_name == nil and data.raw["item"][entity.name] then
         item_name = entity.name
     end

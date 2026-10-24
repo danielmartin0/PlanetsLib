@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.3.4
+Date: 2026-10-23
+  Bugfixes:
+    - PlanetsLib.create_planet_entity_variant() no longer creates variants of its own generated variants. Calling it while iterating a prototype table (for example every solar panel) previously kept visiting the newly created variants and generated more variants recursively until the game ran out of RAM. Generated variants are now skipped using PlanetsLib_do_not_generate_variants and the generated -PlanetsLib- name suffix. Thank you Frontrider!
+---------------------------------------------------------------------------------------------------
 Version: 2.3.3
 Date: 2026-10-23
   Changes:
