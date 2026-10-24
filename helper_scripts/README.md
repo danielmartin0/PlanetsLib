@@ -16,26 +16,45 @@ repository root:
 ```sh
 cp .env.example .env   # then put FACTORIO_API_KEY=<key> in .env
 chmod 600 .env
+node helper_scripts/publish_mod.mjs --check-key
 node helper_scripts/publish_mod.mjs --dry-run
 node helper_scripts/publish_mod.mjs
+node helper_scripts/publish_mod.mjs --verify
 ```
 
-The API key needs the `ModPortal: Upload Mods` permission. `FACTORIO_TOKEN` and
-`MOD_UPLOAD_API_KEY` are accepted as aliases. `.env` is ignored by git and
-excluded from release archives.
+The API key needs the `ModPortal: Upload Mods` permission. `--check-key` also
+uses the `edit_details` endpoint, which requires `ModPortal: Edit Mods`.
+`FACTORIO_TOKEN` and `MOD_UPLOAD_API_KEY` are accepted as aliases. `.env` is
+ignored by git and excluded from release archives; `.env.example` is the tracked
+template.
 
 Useful options:
 
-- `--dry-run` — validate and package without uploading.
+- `--dry-run` — validate and package without uploading. The generated
+  `PlanetsLib_<version>.zip` is kept so it can be inspected.
+- `--check-key` — check the API key with a non-publishing `edit_details`
+  request and exit.
+- `--verify` — check `/api/mods/<name>/full` for the `info.json` version and
+  print its file name, SHA1, and release time; exits non-zero if the version is
+  absent.
 - `--zip PATH` — upload an existing zip instead of building one.
-- `--keep-archive` — keep the generated `PlanetsLib_<version>.zip`.
+- `--keep-archive` — keep the generated `PlanetsLib_<version>.zip` after a real
+  publish.
 - `--yes` — skip the confirmation prompt.
 - `--allow-dirty` / `--allow-any-branch` — relax the preflight checks.
 - `--skip-version-check` — allow uploading a version already on the portal (the
   portal will normally reject it).
+- `--api-base URL` — override the mod portal base URL, useful for local mocks.
 
-The script requires Node.js 18 or newer for built-in `fetch`, `FormData`, and
-`Blob`.
+Run the regression suite against a loopback mock portal with:
+
+```sh
+node helper_scripts/test_publish_mod.mjs
+```
+
+The suite creates a temporary git repository and never contacts the real mod
+portal. The script requires Node.js 18 or newer for built-in `fetch`,
+`FormData`, and `Blob`.
 
 ## Local FUnit matrix
 

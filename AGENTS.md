@@ -195,10 +195,16 @@ linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
   `feature` bumps the minor digit and writes `Features`, `Changes`; `major` bumps the major digit and writes
   `Features`, `Changes`, `Bugfixes`). It supports `--date YYYY-MM-DD|????` and `--dry-run`, and does not
   commit. `archive.sh` reads the version from `info.json`, so it needs no version update. Then fill in the
-  changelog, and `./archive.sh` creates a versioned zip (`git archive`) and regenerates the docs.
+  changelog, commit, and push. `./archive.sh` remains the local packaging/docs-rebuild step: it creates a
+  versioned zip (`git archive`) and regenerates the docs. To publish the committed version to the mod
+  portal, run `node helper_scripts/publish_mod.mjs --dry-run` first and then
+  `node helper_scripts/publish_mod.mjs`. The publisher reads the API key from the local-only,
+  export-ignored `.env` file (`.env.example` is the tracked template) and uploads the version already in
+  `info.json`; see `helper_scripts/README.md`. Use `--check-key` and `--verify` for non-publishing
+  validation.
 - **Packaging ignore**: `info.json`'s `package.ignore` and `.gitattributes` `export-ignore` exclude
-  `*.py`, `*.bat`, `*.sh`, `*.exe`, `*.ps1`, and `test-mods/` from the release. Python helper scripts
-  and development test mods must never ship.
+  `*.py`, `*.bat`, `*.sh`, `*.exe`, `*.ps1`, `test-mods/`, and `.env`/`.env.*` from the release. Python
+  helper scripts, development test mods, and local environment files must never ship.
 
 ### Gotchas / known inconsistencies
 
@@ -210,6 +216,10 @@ linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
   site. When documenting a new API, update `docs-source/docs/usage-documentation/*` and/or `README.md`.
 - `helper_scripts/` contains standalone development tools (asset generators, local test runners
   and shell helpers); they manage their own dependencies and are excluded from releases.
+- `.env` is local-only: it is git-ignored and export-ignored. `.env.example` is the only tracked
+  environment template.
+- `publish_mod.mjs` publishes only the version already committed in `info.json`; it does not bump
+  versions or edit `changelog.txt`. Both it and `archive.sh` derive the archive name from `info.json`.
 - `archive.sh` derives the release archive name from `info.json`, so only `info.json` and the newest
   `changelog.txt` entry need to be updated when releasing.
 
