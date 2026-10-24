@@ -10,3 +10,5 @@ opencode.json
 .claude/settings.local.json
 prompts/factorio-docs.txt
 prompts/lua-docs.txt
+
+.env

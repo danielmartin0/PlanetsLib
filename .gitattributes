@@ -36,6 +36,8 @@ config.ld export-ignore
 *.bat export-ignore
 *.ps1 export-ignore
 *.sh export-ignore
+.env export-ignore
+.env.* export-ignore
 
 
 
