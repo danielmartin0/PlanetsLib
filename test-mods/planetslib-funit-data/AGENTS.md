@@ -220,7 +220,7 @@ run it). Check the files for the current state.
 
 | Suite | IDs | What to cover |
 | --- | --- | --- |
-| `entity_replacement_data` | ENT-0..4 | `ENT-0` asserts the CI scenario's `PlanetsLib-enable-entity-replacements` value; `assign_entity_replacement` (rule storage, default bound setting, duplicate error, recursion assertion, variant lists, mass-assignment and planet-table forms); `create_planet_entity_variant` (name suffix, deepcopy, localised fields, flags, Factoriopedia redirect/hide, `placeable_by`, icon corner, order suffix, `do_not_generate_variants`, multi-planet, invalid setting, item inference); rocket lift/part multiplier variant generation. Fixture: `entity_replacement_data`. |
+| `entity_replacement_data` | ENT-0..4 | `ENT-0` asserts the CI scenario's `PlanetsLib-enable-entity-replacements` value; `assign_entity_replacement` (rule storage, default bound setting, duplicate error, recursion assertion, variant lists, mass-assignment and planet-table forms); `create_planet_entity_variant` (name suffix, deepcopy, localised fields, flags, Factoriopedia redirect/hide, `placeable_by`, icon corner, order suffix, `do_not_generate_variants`, multi-planet, invalid setting, item inference, variant-of-variant recursion guard); rocket lift/part multiplier variant generation. Fixture: `entity_replacement_data`. |
 | `entity_replacement_runtime` | ENT-5..11, ENT-14 | Place → replace; settings/inventory/crafting/health/temperature transfer; ghost preservation; robot-built path; inverse normalisation; modules/spill; fluid transfer; wire connections incl. self-referential; grid contents incl. ghost equipment; `storage.replaced_entities` + `get_replacement`; `PlanetsLib.events.on_entity_replaced`; disabled rule. |
 | `entity_replacement_migration` | ENT-12..13h | Rolling-stock replacement (watch the undefined `rolling_stock_info` path); `on_configuration_changed` migration when a rule is added, removed, changed or disabled; stale rule snapshots whose entity prototypes no longer exist. Needs a prebuilt save or a controlled configuration change; if impossible headlessly, test the pure layout helpers and record the limitation. |
 
@@ -455,6 +455,11 @@ Fixed while implementing these suites (each has a regression test):
     "Unknown entity name", aborting `on_configuration_changed`. Rule names are
     now validated against `prototypes.entity`; stale rules are skipped and
     logged. (ENT-13g, ENT-13h)
+32. **Variant-of-variant recursion** (fixed) — `create_planet_entity_variant`
+    re-processed its own generated variants when a mod iterated `data.raw`,
+    creating variants until RAM was exhausted (issue #136). It now skips
+    entities marked `PlanetsLib_do_not_generate_variants` or named with the
+    generated `-PlanetsLib-` suffix, so the loop terminates. (ENT-2f, ENT-2g)
 
 Still open / needs a decision:
 
