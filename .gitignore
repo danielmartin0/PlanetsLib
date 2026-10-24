@@ -7,5 +7,11 @@ prepublish.js
 site/node_modules
 site/.docusaurus
 opencode.json
+.claude/settings.local.json
 prompts/factorio-docs.txt
 prompts/lua-docs.txt
+
+# Local API keys; .env.example is the tracked template.
+.env
+.env.*
+!.env.example

@@ -186,7 +186,7 @@ end
 Status: every suite listed in `tests/suites/manifest.lua` is implemented (no
 stubs), and every fixture listed in `prototypes/fixtures/manifest.lua` is
 implemented for its stage. Against the latest Factorio release the suite runs
-**160 tests with 0 failures/errors** with Space Age + Quality and **134 tests
+**174 tests with 0 failures/errors** with Space Age + Quality and **148 tests
 with 0 failures/errors** in a base-only game; Space Age-only fixtures/suites are
 filtered out when `mods["space-age"]` is nil (see `tests/README.md` for how to
 run it). Check the files for the current state.
@@ -207,8 +207,8 @@ run it). Check the files for the current state.
 | `planet` | PLAN-1..15 | `PlanetsLib:extend` valid config, parent `planet-str` copy, `draw_orbit`, batch configs, every validation error, `special_properties` rejection; `PlanetsLib:update` in data/data-updates (moves descendants) and in data-final-fixes (rewrites `origin` + starmap layers), all validation errors; `borrow_music` (multi-planet fast path, space-platform copy, `track_types`, `modifier_function` arity). Fixtures: `planet_extend`, `planet_update`, `planet_update_final`. |
 | `orbit_conversion` | ORB-5..20 | Missing-parent placeholders; non-star composition and polar-convention consistency; `ensure_all_locations_have_orbits`; `locations_ordered_by_orbits` (chains + cycle error); `is_parent`; `update_positions_of_all_children_via_orbits`; `apply_native_orbit` (origin, no-op with existing origin, `orbit.sprite` → `draw_orbit`, no parent); star survival / `sprite_only` cleanup. Fixture: `orbit_native`. |
 | `special_properties` | SP-1..7 | `set_special_properties` deep-copy + merge + name/prototype input + return value; final-fixes rejection; runtime reads of `Planetslib.planet_special_properties`; unknown planet. Fixtures: `special_properties`, `special_properties_final`. |
-| `technology` | TECH-1..8 | `get_child_technologies`; `excise_tech/recipe/effect_from_tech_tree` (prereq promotion, dedupe, hidden, empty-tech excision); `sort_science_pack_names`; `set_science_packs_from_lab` / vanilla-lab helper; planet/moon technology icons; `cargo_drops_technology_base` + effect/icon helpers and required-arg errors. Fixture: `technology`. |
-| `technology_productivity` | TECH-9..10 | `PlanetsLib_recipe_productivity_effects`: `purge_other_effects` + `PlanetsLib_force_include`, `technology_name` guard, name+type vs category xor, default `category_blacklist` (`recycling`), `PlanetsLib_blacklist_technology_updates`, `ignored_by_productivity` filtering, single-vs-multiple results (`allow_multiple_results`, dedupe by name), `allow_recipes_without_productivity`; vanilla productivity techs inheriting `change`. Fixture: `technology_productivity_setup` (fields processed by PlanetsLib's data-final-fixes). |
+| `technology` | TECH-1..8, TECH-11..17 | `get_child_technologies`; `excise_tech/recipe/effect_from_tech_tree` (prereq promotion, dedupe, hidden, empty-tech excision); `excise_recipe_from_tech_tree`'s `include_productivity_effects` option (default compatibility, matching `change-recipe-productivity` removal, empty-tech excision, recipe blacklist in data/data-updates but not data-final-fixes, unknown recipe); `sort_science_pack_names`; `set_science_packs_from_lab` / vanilla-lab helper; planet/moon technology icons; `cargo_drops_technology_base` + effect/icon helpers and required-arg errors. Fixtures: `technology`, `technology_excise_updates`, `technology_final`. |
+| `technology_productivity` | TECH-9..10, TECH-18..24 | `PlanetsLib_recipe_productivity_effects`: `purge_other_effects` + `PlanetsLib_force_include`, `technology_name` guard (including input cleanup), name+type vs category xor, default `category_blacklist` (`recycling`), `PlanetsLib_blacklist_technology_updates`, `ignored_by_productivity` filtering, single-vs-multiple results (`allow_multiple_results`, dedupe by name), `allow_recipes_without_productivity`; automatic excision of no-effect technologies, `force_do_not_excise`, and preservation of technologies with remaining effects; vanilla productivity techs inheriting `change`. Fixtures: `technology_productivity_setup` (fields processed by PlanetsLib's data-final-fixes), `technology_final`. |
 | `surface_conditions` | SFC-1..6 | `restrict_surface_conditions` intersection/new property/no input mutation; `relax_surface_conditions` (widen only); `remove_surface_condition` by string and exact table; `restrict_to_planet` (hidden surface property, invert, idempotence); legacy `restrict_to_surface`; `fits_surface_conditions` data/runtime branches and default values. Fixture: `surface_conditions`. |
 | `mod_data` | MD-1..5 | `assign_rocket_part_recipe` (recipe + lock data, `_other`, exclusivity restriction/removal); known table-input bug; planet/global cargo-drop whitelist helpers. Fixture: `mod_data`. |
 | `achievements` | ACH-1..2 | `visit_planet_achievement` shape (`change-surface-achievement`, name/order/surface/icon), default icon size, custom localised name; invalid planet/icon errors. Fixture: `achievements`. |
@@ -220,7 +220,7 @@ run it). Check the files for the current state.
 
 | Suite | IDs | What to cover |
 | --- | --- | --- |
-| `entity_replacement_data` | ENT-0..4 | `ENT-0` asserts the CI scenario's `PlanetsLib-enable-entity-replacements` value; `assign_entity_replacement` (rule storage, default bound setting, duplicate error, recursion assertion, variant lists, mass-assignment and planet-table forms); `create_planet_entity_variant` (name suffix, deepcopy, localised fields, flags, Factoriopedia redirect/hide, `placeable_by`, icon corner, order suffix, `do_not_generate_variants`, multi-planet, invalid setting, item inference); rocket lift/part multiplier variant generation. Fixture: `entity_replacement_data`. |
+| `entity_replacement_data` | ENT-0..4 | `ENT-0` asserts the CI scenario's `PlanetsLib-enable-entity-replacements` value; `assign_entity_replacement` (rule storage, default bound setting, duplicate error, recursion assertion, variant lists, mass-assignment and planet-table forms); `create_planet_entity_variant` (name suffix, deepcopy, localised fields, flags, Factoriopedia redirect/hide, `placeable_by`, icon corner, order suffix, `do_not_generate_variants`, multi-planet, invalid setting, item inference, variant-of-variant recursion guard); rocket lift/part multiplier variant generation. Fixture: `entity_replacement_data`. |
 | `entity_replacement_runtime` | ENT-5..11, ENT-14 | Place → replace; settings/inventory/crafting/health/temperature transfer; ghost preservation; robot-built path; inverse normalisation; modules/spill; fluid transfer; wire connections incl. self-referential; grid contents incl. ghost equipment; `storage.replaced_entities` + `get_replacement`; `PlanetsLib.events.on_entity_replaced`; disabled rule. |
 | `entity_replacement_migration` | ENT-12..13h | Rolling-stock replacement (watch the undefined `rolling_stock_info` path); `on_configuration_changed` migration when a rule is added, removed, changed or disabled; stale rule snapshots whose entity prototypes no longer exist. Needs a prebuilt save or a controlled configuration change; if impossible headlessly, test the pure layout helpers and record the limitation. |
 
@@ -455,6 +455,11 @@ Fixed while implementing these suites (each has a regression test):
     "Unknown entity name", aborting `on_configuration_changed`. Rule names are
     now validated against `prototypes.entity`; stale rules are skipped and
     logged. (ENT-13g, ENT-13h)
+32. **Variant-of-variant recursion** (fixed) — `create_planet_entity_variant`
+    re-processed its own generated variants when a mod iterated `data.raw`,
+    creating variants until RAM was exhausted (issue #136). It now skips
+    entities marked `PlanetsLib_do_not_generate_variants` or named with the
+    generated `-PlanetsLib-` suffix, so the loop terminates. (ENT-2f, ENT-2g)
 
 Still open / needs a decision:
 
@@ -553,6 +558,18 @@ non-obvious requirements we hit while validating PlanetsLib:
   `planetslib-funit-settings` in the mod directory. The CI build job creates
   these archives with `git archive --prefix=...`; use the same layout locally
   rather than copying loose directories.
+
+`helper_scripts/run_funit_local.py` automates the whole recipe below. It packages
+the working tree (including uncommitted changes), runs all four scenarios, waits
+for FUnit's `====END====` signal, and summarizes the reports:
+
+```sh
+helper_scripts/run_funit_local.py \
+  --factorio /path/to/factorio \
+  --funit-zip /path/to/funit_1.1.0.zip
+```
+
+Use the manual recipe below when debugging the harness itself.
 
 A minimal local recipe:
 

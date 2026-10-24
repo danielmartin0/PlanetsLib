@@ -393,6 +393,61 @@ record("ENT-2e", function()
 	end
 end)
 
+-- ENT-2f: create_planet_entity_variant must not create a variant of a
+-- generated variant. This is the guard that stops the issue #136 loop: callers
+-- iterate data.raw and visit the variants they just created, so without the
+-- guard every visit creates another variant until the game runs out of RAM.
+record("ENT-2f", function()
+	local base = table.deepcopy(data.raw.container["wooden-chest"])
+	base.name = "funit-ent-recursion-base"
+	data:extend({ base })
+
+	PlanetsLib.create_planet_entity_variant("funit-ent-planet-a", base, {}, SETTING)
+	local first_name = "funit-ent-recursion-base-PlanetsLib-funit-ent-planet-a"
+	local first = data.raw.container[first_name]
+	assert(first, "the first-level variant was not created")
+	assert(first.PlanetsLib_do_not_generate_variants == true,
+		"the generated variant is not marked PlanetsLib_do_not_generate_variants")
+
+	PlanetsLib.create_planet_entity_variant("funit-ent-planet-a", first, {}, SETTING)
+
+	local nested_name = first_name .. "-PlanetsLib-funit-ent-planet-a"
+	assert(data.raw.container[nested_name] == nil,
+		"a variant of a generated variant was created (issue #136)")
+	assert(PlanetsLib.constants.entity_variants_list[first_name] == nil,
+		"the generated variant was recorded as a base entity")
+	assert(
+		PlanetsLib.constants.on_entity_placed_on_planet_replacements["funit-ent-planet-a"][first_name] == nil,
+		"a replacement rule was registered for the generated variant"
+	)
+end)
+
+-- ENT-2g: the generated name is also a recursion guard, so overriding
+-- PlanetsLib_do_not_generate_variants through new_properties cannot re-enable
+-- variant-of-variant generation.
+record("ENT-2g", function()
+	local base = table.deepcopy(data.raw.container["wooden-chest"])
+	base.name = "funit-ent-recursion-override-base"
+	data:extend({ base })
+
+	PlanetsLib.create_planet_entity_variant(
+		"funit-ent-planet-a",
+		base,
+		{ PlanetsLib_do_not_generate_variants = false },
+		SETTING
+	)
+	local first_name = "funit-ent-recursion-override-base-PlanetsLib-funit-ent-planet-a"
+	local first = data.raw.container[first_name]
+	assert(first, "the first-level variant was not created")
+	assert(first.PlanetsLib_do_not_generate_variants == false,
+		"new_properties did not override PlanetsLib_do_not_generate_variants")
+
+	PlanetsLib.create_planet_entity_variant("funit-ent-planet-a", first, {}, SETTING)
+
+	assert(data.raw.container[first_name .. "-PlanetsLib-funit-ent-planet-a"] == nil,
+		"the generated name did not stop variant-of-variant generation")
+end)
+
 -- ENT-3: rocket lift/part multiplier variant fields.
 record("ENT-3", function()
 	local silo = data.raw["rocket-silo"]["rocket-silo"]

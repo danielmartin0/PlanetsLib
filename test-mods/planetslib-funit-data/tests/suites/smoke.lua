@@ -32,6 +32,8 @@ local BASE_NAMESPACES = {
 	"surface_conditions",
 	"technology",
 	"technology_productivity_setup",
+	"technology_excise_updates",
+	"technology_final",
 }
 
 local SPACE_AGE_NAMESPACES = {

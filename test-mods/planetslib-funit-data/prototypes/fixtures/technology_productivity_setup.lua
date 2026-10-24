@@ -165,6 +165,28 @@ local setup_ok, setup_err = pcall(function()
 	make_recipe("funit-techprod-recipe-blkcat", {
 		{ type = "item", name = "funit-techprod-i", amount = 1 },
 	}, { allow_productivity = true, categories = { "funit-techprod-blk" } })
+
+	-- Technologies left configured for PlanetsLib's own data-final-fixes pass.
+	-- They are checked by technology_final.lua after processing. The ignored
+	-- recipe yields no effect, so auto-excise becomes empty and is excised;
+	-- auto-force sets force_do_not_excise to stay.
+	make_tech("funit-techprod-auto-root", {})
+
+	make_tech("funit-techprod-auto-excise", {}, {
+		effects = { { type = "item", name = "funit-techprod-g", change = 0.1 } },
+	}).prerequisites = { "funit-techprod-auto-root" }
+
+	local auto_excise_child = make_tech("funit-techprod-auto-excise-child", {})
+	auto_excise_child.prerequisites = { "funit-techprod-auto-excise" }
+
+	make_tech("funit-techprod-auto-keep", {}, {
+		effects = { { type = "item", name = "funit-techprod-a", change = 0.1 } },
+	})
+
+	make_tech("funit-techprod-auto-force", {}, {
+		force_do_not_excise = true,
+		effects = { { type = "item", name = "funit-techprod-g", change = 0.1 } },
+	})
 end)
 results.record(SUITE, "TECH-9-setup", setup_ok, setup_err)
 
@@ -354,6 +376,87 @@ check("TECH-9-xor", function()
 	})
 	local catbl_ok = process_expecting_error(category_and_blacklist)
 	assert(not catbl_ok, "category with category_blacklist must be rejected")
+end)
+
+-- == TECH-18..21: excising technologies whose productivity config is a no-op == --
+
+check("TECH-18", function()
+	local root = make_tech("funit-techprod-excise-root", {})
+
+	-- No matching recipe: the technology ends up with no effects.
+	local no_match = make_tech("funit-techprod-excise-no-match", {}, {
+		effects = { { type = "item", name = "funit-techprod-g", change = 0.1 } },
+	})
+	no_match.prerequisites = { root.name }
+	local child = make_tech("funit-techprod-excise-no-match-child", {})
+	child.prerequisites = { no_match.name }
+	process(no_match)
+	assert(no_match.hidden == true, "a technology with no effects after processing must be hidden")
+	assert(#no_match.effects == 0, "the excised technology should have no effects")
+	assert(
+		#child.prerequisites == 1 and child.prerequisites[1] == root.name,
+		"prerequisites were not promoted when the technology was excised"
+	)
+
+	-- An empty effects list is also a no-op configuration.
+	local empty = make_tech("funit-techprod-excise-empty", {}, { effects = {} })
+	process(empty)
+	assert(empty.hidden == true, "an empty effects list must result in excision")
+
+	-- purge_other_effects can empty a pre-existing effect list.
+	local purged = make_tech("funit-techprod-excise-purged", {
+		{ type = "unlock-recipe", recipe = "funit-techprod-recipe-single" },
+	}, {
+		purge_other_effects = true,
+		effects = { { type = "item", name = "funit-techprod-g", change = 0.1 } },
+	})
+	process(purged)
+	assert(purged.hidden == true, "a technology emptied by purge_other_effects must be excised")
+	assert(#purged.effects == 0, "the purged technology should have no effects")
+end)
+
+check("TECH-19", function()
+	local forced = make_tech("funit-techprod-excise-forced", {}, {
+		force_do_not_excise = true,
+		effects = { { type = "item", name = "funit-techprod-g", change = 0.1 } },
+	})
+	process(forced)
+
+	assert(forced.hidden ~= true, "force_do_not_excise must prevent excision")
+	assert(#forced.effects == 0, "the forced technology should still have no effects")
+end)
+
+check("TECH-20", function()
+	local kept = make_tech("funit-techprod-excise-kept", {
+		{ type = "unlock-recipe", recipe = "funit-techprod-recipe-single" },
+	}, {
+		effects = { { type = "item", name = "funit-techprod-g", change = 0.1 } },
+	})
+	process(kept)
+
+	assert(kept.hidden ~= true, "a technology with remaining effects must not be hidden")
+	assert(
+		effect_for(kept, "funit-techprod-recipe-single"),
+		"the remaining unlock effect was lost during processing"
+	)
+	assert(#kept.effects == 1, "the technology should keep exactly its original effect")
+end)
+
+check("TECH-21", function()
+	-- A technology_name mismatch makes the config invalid, so the technology
+	-- must not be processed or excised, and its input field must be cleared.
+	local guarded = make_tech("funit-techprod-excise-guarded", {}, {
+		technology_name = "funit-techprod-someone-else",
+		effects = { { type = "item", name = "funit-techprod-g", change = 0.1 } },
+	})
+	PlanetsLib.process_technology_recipe_productivity_effects(guarded)
+
+	assert(
+		guarded.PlanetsLib_recipe_productivity_effects == nil,
+		"a technology_name mismatch must clear the input field"
+	)
+	assert(guarded.hidden ~= true, "a technology_name mismatch must not excise the technology")
+	assert(#guarded.effects == 0, "a technology_name mismatch must not add effects")
 end)
 
 -- == TECH-10: result counting, allow flags, category, vanilla change == --

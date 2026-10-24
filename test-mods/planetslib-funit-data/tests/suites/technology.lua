@@ -21,6 +21,11 @@ local TECHNOLOGY_IDS = {
 	"TECH-6",
 	"TECH-7",
 	"TECH-8",
+	"TECH-11",
+	"TECH-12",
+	"TECH-13",
+	"TECH-14",
+	"TECH-15",
 }
 
 local function contains(list, value)
@@ -177,6 +182,90 @@ return function(runner)
 			"an effect with a different key count must not be removed"
 		)
 		runner.assert(not effect_count.hidden, "the non-matching technology should not be hidden")
+	end)
+
+	runner.test("TECH-11 excise_recipe_from_tech_tree keeps productivity effects by default", function()
+		local tech = prototypes.technology["funit-tech-excise-prod-default"]
+		runner.assert(tech, "funit-tech-excise-prod-default is missing")
+		runner.assert(#tech.effects == 1, "the default call must keep exactly the productivity effect")
+		runner.assert(
+			tech.effects[1].type == "change-recipe-productivity"
+				and tech.effects[1].recipe == "funit-tech-excise-prod-recipe-c",
+			"the default call removed or changed the productivity effect"
+		)
+		runner.assert(tech.hidden ~= true, "the technology still has an effect and must not be hidden")
+		support.assert_entry(runner, "technology", "TECH-11")
+	end)
+
+	runner.test("TECH-12 include_productivity_effects removes only the target recipe", function()
+		local tech = prototypes.technology["funit-tech-excise-prod-mixed"]
+		runner.assert(tech, "funit-tech-excise-prod-mixed is missing")
+		runner.assert(#tech.effects == 2, "the target recipe's effects were not both removed")
+		runner.assert(
+			tech.effects[1].type == "unlock-recipe"
+				and tech.effects[1].recipe == "funit-tech-excise-prod-recipe-b",
+			"the unrelated unlock effect was not preserved"
+		)
+		runner.assert(
+			tech.effects[2].type == "change-recipe-productivity"
+				and tech.effects[2].recipe == "funit-tech-excise-prod-recipe-b"
+				and tech.effects[2].change == 0.2,
+			"the unrelated productivity effect was not preserved"
+		)
+
+		local control = prototypes.technology["funit-tech-excise-prod-control"]
+		runner.assert(control and #control.effects == 1, "an unrelated technology was modified")
+		runner.assert(control.effects[1].change == 0.3, "the unrelated technology's effect changed")
+		support.assert_entry(runner, "technology", "TECH-12")
+	end)
+
+	runner.test("TECH-13 include_productivity_effects excises an emptied technology", function()
+		local tech = prototypes.technology["funit-tech-excise-prod-only"]
+		runner.assert(tech and tech.hidden, "the technology emptied by productivity excision is not hidden")
+		runner.assert(#tech.effects == 0, "the emptied technology still has effects")
+
+		local child = prototypes.technology["funit-tech-excise-prod-only-child"]
+		runner.assert(child, "funit-tech-excise-prod-only-child is missing")
+		runner.assert(
+			has_prereq(child, "funit-tech-excise-prod-root") and not has_prereq(child, "funit-tech-excise-prod-only"),
+			"prerequisites were not promoted when productivity excision emptied the technology"
+		)
+		support.assert_entry(runner, "technology", "TECH-13")
+	end)
+
+	runner.test("TECH-14 include_productivity_effects blacklists the recipe in data", function()
+		-- The blacklist marker is a data-stage-only custom field, so the fixture
+		-- asserts it. The recorded result is the runtime contract.
+		support.assert_entry(runner, "technology", "TECH-14")
+	end)
+
+	runner.test("TECH-15 include_productivity_effects tolerates an unknown recipe", function()
+		support.assert_entry(runner, "technology", "TECH-15")
+	end)
+
+	runner.test("TECH-16 include_productivity_effects blacklists the recipe in data-updates", function()
+		support.assert_entry(runner, "technology_excise_updates", "TECH-16")
+
+		local tech = prototypes.technology["funit-tech-excise-updates-tech"]
+		runner.assert(tech and tech.hidden, "the data-updates technology emptied by excision is not hidden")
+		runner.assert(#tech.effects == 0, "the data-updates technology still has effects")
+
+		local child = prototypes.technology["funit-tech-excise-updates-child"]
+		runner.assert(child, "funit-tech-excise-updates-child is missing")
+		runner.assert(
+			has_prereq(child, "funit-tech-excise-updates-root")
+				and not has_prereq(child, "funit-tech-excise-updates-tech"),
+			"prerequisites were not promoted during the data-updates excision"
+		)
+	end)
+
+	runner.test("TECH-17 include_productivity_effects does not blacklist in data-final-fixes", function()
+		support.assert_entry(runner, "technology_final", "TECH-17")
+
+		local tech = prototypes.technology["funit-tech-excise-final-tech"]
+		runner.assert(tech, "funit-tech-excise-final-tech is missing")
+		runner.assert(tech.hidden == true, "the data-final-fixes technology emptied by excision is not hidden")
+		runner.assert(#tech.effects == 0, "the data-final-fixes technology still has effects")
 	end)
 
 	runner.test("TECH-5 sort_science_pack_names sorts by order without mutating", function()

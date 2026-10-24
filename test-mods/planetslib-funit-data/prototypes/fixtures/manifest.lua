@@ -54,7 +54,7 @@ return {
 	}),
 
 	-- Required from data-updates.lua.
-	data_updates = fixtures({ "example_updates", "planet_update" }),
+	data_updates = fixtures({ "example_updates", "planet_update", "technology_excise_updates" }),
 
 	-- Required from data-final-fixes.lua.
 	data_final_fixes = fixtures({
@@ -66,5 +66,6 @@ return {
 		"ground_diggers_late",
 		"misc_science_lab_final",
 		"misc_visuals_final",
+		"technology_final",
 	}),
 }

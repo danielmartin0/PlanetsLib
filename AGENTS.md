@@ -90,7 +90,7 @@ scripts/                    Runtime helpers required by control.lua (cargo-pods,
                             recipe-effects, rocket-parts, unreachable-techs, player-effects, custom-events)
 locale/<lang>/              Localisation (.cfg). Add keys to existing files.
 graphics/                   Shared icons/entities (entity/, icons/)
-helper_scripts/             Standalone Python asset generators + source PNGs (NOT shipped; see below)
+helper_scripts/             Standalone dev helpers: asset generators, local FUnit runner, PR worktree helper (NOT shipped)
 test-mods/                  Development test mods written while testing a feature (NOT shipped);
                             planetslib-funit-data/ also holds the FUnit suite and scenario
 docs-source/                Docusaurus documentation site — the canonical user-facing docs
@@ -189,16 +189,22 @@ linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
   `cd docs-source && npm install && npm start` (or `npm run build`).
   `./update_documentation.sh` rebuilds the committed `docs/` output (`rm -rf ../docs && mv build ../docs`)
   and writes the `CNAME`.
-- **Release**: run `./bump_version.sh <minor|feature|major>` first. It bumps the version in `info.json`,
-  rewrites the hard-coded zip prefix/name in `archive.sh`, and prepends a `changelog.txt` entry with empty
-  section headings for the release type (`minor`/`bugfix`/`patch` bump the patch digit and write `Bugfixes`;
+- **Release**: run `./bump_version.sh <minor|feature|major>` first. It bumps the version in `info.json`
+  and prepends a `changelog.txt` entry with empty section headings for the release type
+  (`minor`/`bugfix`/`patch` bump the patch digit and write `Bugfixes`;
   `feature` bumps the minor digit and writes `Features`, `Changes`; `major` bumps the major digit and writes
   `Features`, `Changes`, `Bugfixes`). It supports `--date YYYY-MM-DD|????` and `--dry-run`, and does not
-  commit. Then fill in the changelog, and `./archive.sh` creates a versioned zip (`git archive`) and
-  regenerates the docs.
+  commit. `archive.sh` reads the version from `info.json`, so it needs no version update. Then fill in the
+  changelog, commit, and push. `./archive.sh` remains the local packaging/docs-rebuild step: it creates a
+  versioned zip (`git archive`) and regenerates the docs. To publish the committed version to the mod
+  portal, run `node helper_scripts/publish_mod.mjs --dry-run` first and then
+  `node helper_scripts/publish_mod.mjs`. The publisher reads the API key from the local-only,
+  export-ignored `.env` file (`.env.example` is the tracked template) and uploads the version already in
+  `info.json`; see `helper_scripts/README.md`. Use `--check-key` and `--verify` for non-publishing
+  validation.
 - **Packaging ignore**: `info.json`'s `package.ignore` and `.gitattributes` `export-ignore` exclude
-  `*.py`, `*.bat`, `*.sh`, `*.exe`, `*.ps1`, and `test-mods/` from the release. Python helper scripts
-  and development test mods must never ship.
+  `*.py`, `*.bat`, `*.sh`, `*.exe`, `*.ps1`, `test-mods/`, and `.env`/`.env.*` from the release. Python
+  helper scripts, development test mods, and local environment files must never ship.
 
 ### Gotchas / known inconsistencies
 
@@ -208,10 +214,14 @@ linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
   docs are the Docusaurus site; don't spend time on LDoc.
 - `api.lua`'s header comment says API docs live in `README.md`, but the README now only links to the docs
   site. When documenting a new API, update `docs-source/docs/usage-documentation/*` and/or `README.md`.
-- `helper_scripts/*.py` are standalone; they manage their own dependencies and are excluded from releases.
-- `archive.sh` is not fully generic: it hard-codes the version in its zip prefix/name. `./bump_version.sh`
-  rewrites it, so prefer that over editing it by hand, and double-check it whenever you bump the version
-  another way.
+- `helper_scripts/` contains standalone development tools (asset generators, local test runners
+  and shell helpers); they manage their own dependencies and are excluded from releases.
+- `.env` is local-only: it is git-ignored and export-ignored. `.env.example` is the only tracked
+  environment template.
+- `publish_mod.mjs` publishes only the version already committed in `info.json`; it does not bump
+  versions or edit `changelog.txt`. Both it and `archive.sh` derive the archive name from `info.json`.
+- `archive.sh` derives the release archive name from `info.json`, so only `info.json` and the newest
+  `changelog.txt` entry need to be updated when releasing.
 
 ## AI agent communication
 
@@ -223,6 +233,17 @@ _Posted by DeepSeek V4.1 Flash._
 ```
 
 When posting Github pull requests, begin the message with a similar signature.
+
+### Self-learning retrospective
+
+After a substantial task, run `/self-learn [focus]`. It calls the read-only `self-learn` subagent,
+which grounds the retrospective in `git` state and repository files and returns a brief for the
+primary agent: evidence, what worked, recurring friction, and a short list of helper scripts worth
+writing. The brief ends with a direct prompt that the primary agent then carries out, unless the
+user asked for analysis only. Definitions live in `.opencode/agents/self-learn.md` and
+`.opencode/commands/self-learn.md`; `.opencode/` is development-only and excluded from releases.
+Claude Code users get the same flow through `.claude/agents/self-learn.md` and
+`.claude/commands/self-learn.md`; `CLAUDE.md` imports this file and points at the canonical definitions.
 
 ### Bugfix pull request format
 
@@ -281,11 +302,14 @@ Before opening a PR, ensure:
 3. `changelog.txt` is updated — prepend a new entry at the top with the version and date, using the
    existing section headings (`Features`, `Changes`, `Bugfixes`, `Graphics`, `Locale`, `Optimizations`,
    `Info`). Set the date to the release date (leave `????` until released) and add attribution lines
-   like `Thank you <name>!` where relevant.
+   like `Thank you <name>!` for code, graphics, locale, or testing contributions. Do not credit people
+   solely for reporting issues.
 4. Documentation is updated: add/extend `docs-source/docs/...` (and `README.md` sections), and add new
    contributors to the Contributors list.
-5. The version is bumped with `./bump_version.sh <minor|feature|major>`, which updates `info.json`, `archive.sh`
-   and the top of `changelog.txt` together.
+5. The version is bumped with `./bump_version.sh <minor|feature|major>`, which updates `info.json` and the
+   top of `changelog.txt` together. `archive.sh` reads the version from `info.json`. The `Version` GitHub
+   Actions workflow runs `.github/scripts/check_version.sh` to enforce consistency and comments the failure
+   on the pull request, so a changelog entry cannot be added without bumping the mod version.
 
 ## Quick file-finding tips
 

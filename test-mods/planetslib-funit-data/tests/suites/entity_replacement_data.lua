@@ -185,6 +185,8 @@ return function(runner)
 			"ENT-2c",
 			"ENT-2d",
 			"ENT-2e",
+			"ENT-2f",
+			"ENT-2g",
 		})
 
 		local variant = prototypes.entity["wooden-chest-PlanetsLib-funit-ent-planet-a"]
@@ -222,6 +224,23 @@ return function(runner)
 			runner.assert(nauvis[info[1]] and nauvis[info[1]].entity == info[2],
 				"runtime variant rule is missing: " .. info[1])
 		end
+
+		-- ENT-2f/ENT-2g: no generated variant may be used as the base of
+		-- another variant, regardless of whether the marker flag or the
+		-- generated name prevents it.
+		local recursion_variant = prototypes.entity["funit-ent-recursion-base-PlanetsLib-funit-ent-planet-a"]
+		runner.assert(recursion_variant, "the recursion-guard fixture variant is missing")
+		runner.assert(
+			prototypes.entity["funit-ent-recursion-base-PlanetsLib-funit-ent-planet-a-PlanetsLib-funit-ent-planet-a"] == nil,
+			"a variant of a generated variant exists (issue #136)"
+		)
+		runner.assert(
+			prototypes.entity["funit-ent-recursion-override-base-PlanetsLib-funit-ent-planet-a-PlanetsLib-funit-ent-planet-a"] == nil,
+			"overriding PlanetsLib_do_not_generate_variants allowed a variant of a generated variant"
+		)
+		local planet_a_rules = prototypes.mod_data["Planetslib"].data.on_entity_placed_on_planet_replacements["funit-ent-planet-a"]
+		runner.assert(planet_a_rules["funit-ent-recursion-base-PlanetsLib-funit-ent-planet-a"] == nil,
+			"the generated variant was registered as a base entity")
 	end)
 
 	runner.test("ENT-3 rocket lift/part multiplier variant fields", function()

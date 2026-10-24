@@ -4,8 +4,8 @@ Headless [FUnit](https://mods.factorio.com/mod/funit) test suite for PlanetsLib.
 
 Current status (Factorio 2.1.23, both entity-replacements axes):
 
-- **160 tests** with Space Age + Quality, **0 failures, 0 errors**.
-- **134 tests** in a base-only game, **0 failures, 0 errors**. Space Age-only
+- **174 tests** with Space Age + Quality, **0 failures, 0 errors**.
+- **148 tests** in a base-only game, **0 failures, 0 errors**. Space Age-only
   fixtures and suites are skipped dynamically (`mods["space-age"]` at the data
   stage, `script.active_mods["space-age"]` at runtime). The base scenario keeps
   the built-in `recycler` mod enabled but disables Space Age, Quality and
@@ -43,6 +43,19 @@ list of known bugs the suite pins down.
   not loaded by the scenario.
 
 ## Running locally
+
+For the full four-scenario matrix, use the local runner:
+
+```sh
+helper_scripts/run_funit_local.py \
+  --factorio /path/to/factorio \
+  --funit-zip /path/to/funit_1.1.0.zip
+```
+
+It packages the working tree (including uncommitted changes), runs base and
+Space Age with entity replacements on and off, stops Factorio after FUnit's
+`====END====` signal, and prints a report summary. The manual steps below are
+useful when debugging the harness itself.
 
 1. Install [FUnit](https://mods.factorio.com/mod/funit).
 2. Put `PlanetsLib` and `test-mods/planetslib-funit-data` in your mods directory.

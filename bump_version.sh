@@ -2,8 +2,8 @@
 #
 # bump_version.sh - Prepare a PlanetsLib release.
 #
-# Bumps the version in info.json, updates the hard-coded zip prefix in
-# archive.sh, and prepends a changelog.txt entry for the new version.
+# Bumps the version in info.json and prepends a changelog.txt entry for the new
+# version. archive.sh reads the version from info.json, so it needs no update.
 #
 # The release type decides how the version number changes and which changelog
 # sections are written:
@@ -28,7 +28,6 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INFO_JSON="$REPO_DIR/info.json"
-ARCHIVE_SH="$REPO_DIR/archive.sh"
 CHANGELOG="$REPO_DIR/changelog.txt"
 
 # The changelog uses a 99-dash divider before every version entry.
@@ -82,7 +81,7 @@ case "$date" in
     *) die "invalid --date '$date' (expected YYYY-MM-DD or ????)" ;;
 esac
 
-for file in "$INFO_JSON" "$ARCHIVE_SH" "$CHANGELOG"; do
+for file in "$INFO_JSON" "$CHANGELOG"; do
     [ -f "$file" ] || die "required file not found: $file"
 done
 
@@ -124,7 +123,7 @@ printf '  date:       %s\n' "$date"
 printf '  sections:   %s\n' "${sections[*]}"
 printf '  changelog:  %s\n' "$CHANGELOG"
 printf '  info.json:  %s\n' "$INFO_JSON"
-printf '  archive.sh: PlanetsLib_%s -> PlanetsLib_%s\n' "$current" "$new"
+printf '  archive.sh: PlanetsLib_%s.zip (from info.json)\n' "$new"
 
 if $dry_run; then
     printf '\nDry run: no files were changed.\n'
@@ -152,13 +151,6 @@ sed "s/^\( *\"version\"[[:space:]]*:[[:space:]]*\"\)[^\"]*\(\".*\)\$/\1$new\2/" 
     "$INFO_JSON" > "$tmp"
 grep -qF "\"version\": \"$new\"" "$tmp" || die "failed to update the version in $INFO_JSON"
 mv "$tmp" "$INFO_JSON"
-
-# Update the hard-coded zip prefix and name in archive.sh.
-escaped_current="${current//./\\.}"
-grep -qF "PlanetsLib_$current" "$ARCHIVE_SH" \
-    || die "could not find PlanetsLib_$current in $ARCHIVE_SH"
-sed "s/PlanetsLib_$escaped_current/PlanetsLib_$new/g" "$ARCHIVE_SH" > "$tmp"
-mv "$tmp" "$ARCHIVE_SH"
 
 printf '\nDone. Next steps:\n'
 printf '  1. Fill in the %s section(s) in changelog.txt.\n' "${sections[*]}"
