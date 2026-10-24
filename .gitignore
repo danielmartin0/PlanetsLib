@@ -11,4 +11,7 @@ opencode.json
 prompts/factorio-docs.txt
 prompts/lua-docs.txt
 
+# Local API keys; .env.example is the tracked template.
 .env
+.env.*
+!.env.example
