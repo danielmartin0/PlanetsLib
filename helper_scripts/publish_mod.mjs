@@ -62,12 +62,14 @@ API key:
   Create the key at https://factorio.com/profile with "Upload Mods" permission.
 
 Options:
-  --dry-run             Validate and package, but do not upload.
+  --dry-run             Validate and package, but do not upload. Keeps the zip.
   --zip <path>          Upload an existing zip instead of building one.
   --keep-archive        Keep the generated PlanetsLib_<version>.zip.
   --yes, -y             Do not ask for confirmation.
   --allow-dirty         Allow a dirty working tree (the zip still uses HEAD).
   --allow-any-branch    Allow publishing from a branch other than main.
+  --check-key           Check the API key with edit_details, then exit.
+  --verify              Verify that info.json's version is on the portal, then exit.
   --skip-version-check  Do not check whether the version is already on the portal.
   --api-base <url>      Mod portal base URL (default: ${DEFAULT_API_BASE}).
   -h, --help            Show this help.
@@ -83,6 +85,8 @@ function parseArgs(argv) {
 		keepArchive: false,
 		allowDirty: false,
 		allowAnyBranch: false,
+		checkKey: false,
+		verify: false,
 		skipVersionCheck: false,
 		zip: null,
 		apiBase: process.env.FACTORIO_MOD_PORTAL_URL || DEFAULT_API_BASE,
@@ -106,6 +110,12 @@ function parseArgs(argv) {
 				break;
 			case "--allow-any-branch":
 				options.allowAnyBranch = true;
+				break;
+			case "--check-key":
+				options.checkKey = true;
+				break;
+			case "--verify":
+				options.verify = true;
 				break;
 			case "--skip-version-check":
 				options.skipVersionCheck = true;
@@ -191,6 +201,8 @@ async function runGit(args) {
 	return stdout.trim();
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 function readJsonFile(file) {
 	return JSON.parse(readFileSync(file, "utf8"));
 }
@@ -219,6 +231,8 @@ function readTopChangelogEntry(changelog) {
 	return { version, date, hasEntries, text: entry.join("\n") };
 }
 
+// Keep these checks in sync with .github/scripts/check_version.sh, which
+// enforces the same info.json/changelog.txt version consistency in CI.
 function validateMetadata(info) {
 	if (!info || typeof info !== "object") {
 		throw new Error("info.json did not contain an object");
@@ -249,9 +263,18 @@ function validateMetadata(info) {
 }
 
 async function checkGitState(options) {
-	const trackedEnv = (await runGit(["ls-files", ".env"])).trim();
-	if (trackedEnv) {
-		throw new Error(".env is tracked by git; remove it from the index before publishing");
+	const trackedEnvFiles = (await runGit(["ls-files", "-z"]))
+		.split("\0")
+		.filter(Boolean)
+		.filter((file) => {
+			const base = path.basename(file);
+			return base.startsWith(".env") && base !== ".env.example";
+		});
+	if (trackedEnvFiles.length > 0) {
+		throw new Error(
+			`environment file(s) are tracked by git: ${trackedEnvFiles.join(", ")}; ` +
+				"remove them from the index before publishing"
+		);
 	}
 
 	const status = await runGit(["status", "--porcelain=v1"]);
@@ -361,6 +384,61 @@ async function checkPublishedVersion(info, options) {
 	console.log(`Version ${info.version} is not on the portal yet.`);
 }
 
+async function verifyRelease(info, options) {
+	const attempts = 3;
+	const delayMs = 500;
+	let lastError = null;
+
+	for (let attempt = 1; attempt <= attempts; attempt += 1) {
+		const url = new URL(`/api/mods/${encodeURIComponent(info.name)}/full`, options.apiBase);
+		url.searchParams.set("_", String(Date.now()));
+
+		let response;
+		try {
+			response = await fetch(url, {
+				headers: {
+					Accept: "application/json",
+					"Cache-Control": "no-cache",
+					"User-Agent": USER_AGENT,
+				},
+			});
+		} catch (error) {
+			lastError = error;
+			if (attempt < attempts) {
+				await sleep(delayMs);
+				continue;
+			}
+			throw new Error(`could not reach the mod portal: ${error.message}`);
+		}
+
+		if (response.status === 404) {
+			lastError = new Error(`mod '${info.name}' was not found on the portal`);
+		} else {
+			const result = await parsePortalResponse(response);
+			if (!result.ok) {
+				lastError = new Error(formatPortalError(result));
+			} else {
+				const releases = Array.isArray(result.data?.releases) ? result.data.releases : [];
+				const release = releases.find((item) => item.version === info.version);
+				if (release) {
+					console.log(`Verified ${info.name} ${info.version}`);
+					console.log(`  file:        ${release.file_name ?? "(unknown)"}`);
+					console.log(`  sha1:        ${release.sha1 ?? "(unknown)"}`);
+					console.log(`  released_at: ${release.released_at ?? "(unknown)"}`);
+					return;
+				}
+				lastError = new Error(`${info.name} ${info.version} is not on the portal yet`);
+			}
+		}
+
+		if (attempt < attempts) {
+			await sleep(delayMs);
+		}
+	}
+
+	throw new Error(`could not verify release: ${lastError?.message ?? "unknown error"}`);
+}
+
 async function buildArchive(info, options) {
 	if (options.zip) {
 		const zipPath = path.resolve(process.cwd(), options.zip);
@@ -401,6 +479,18 @@ async function portalFormPost(url, fields, apiKey) {
 	}
 
 	return parsePortalResponse(response);
+}
+
+async function checkApiKey(info, apiKey, apiBase) {
+	const result = await portalFormPost(
+		`${apiBase}/api/v2/mods/edit_details`,
+		{ mod: info.name },
+		apiKey.value
+	);
+	if (!result.ok || result.data?.error || result.data?.success !== true) {
+		throw new Error(formatPortalError(result));
+	}
+	console.log(`API key ${apiKey.name} is valid.`);
 }
 
 async function initUpload(info, apiKey, apiBase) {
@@ -491,6 +581,22 @@ async function main() {
 	validateMetadata(info);
 
 	const apiKey = getApiKey();
+	if (options.checkKey) {
+		if (!apiKey) {
+			throw new Error(
+				`no API key found. Add FACTORIO_API_KEY=<key> to ${ENV_FILE} ` +
+					"(or set FACTORIO_TOKEN / MOD_UPLOAD_API_KEY)."
+			);
+		}
+		await checkApiKey(info, apiKey, options.apiBase);
+		return;
+	}
+
+	if (options.verify) {
+		await verifyRelease(info, options);
+		return;
+	}
+
 	if (!apiKey && !options.dryRun) {
 		throw new Error(
 			`no API key found. Add FACTORIO_API_KEY=<key> to ${ENV_FILE} ` +
