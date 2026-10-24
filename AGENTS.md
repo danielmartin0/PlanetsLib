@@ -292,7 +292,8 @@ Before opening a PR, ensure:
 3. `changelog.txt` is updated — prepend a new entry at the top with the version and date, using the
    existing section headings (`Features`, `Changes`, `Bugfixes`, `Graphics`, `Locale`, `Optimizations`,
    `Info`). Set the date to the release date (leave `????` until released) and add attribution lines
-   like `Thank you <name>!` where relevant.
+   like `Thank you <name>!` for code, graphics, locale, or testing contributions. Do not credit people
+   solely for reporting issues.
 4. Documentation is updated: add/extend `docs-source/docs/...` (and `README.md` sections), and add new
    contributors to the Contributors list.
 5. The version is bumped with `./bump_version.sh <minor|feature|major>`, which updates `info.json` and the
