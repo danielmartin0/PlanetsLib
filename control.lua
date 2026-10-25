@@ -423,6 +423,9 @@ if script.active_mods["funit"] then
 			storage.old_replacement_rules = old_rules or storage.old_replacement_rules
 			return migrate_all_entity_replacement_rules()
 		end,
+		orientations_differ = function(first, second)
+			return entity_replacement.orientations_differ(first, second)
+		end,
 		warn_on_join = function()
 			return warn_on_join_if_due()
 		end,

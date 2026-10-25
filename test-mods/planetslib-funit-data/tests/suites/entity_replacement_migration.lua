@@ -6,7 +6,8 @@
 -- migration through the `migrate_entity_replacement_rules` seam with a complete
 -- old-rule snapshot, covering re-enabled, disabled and removed rules. ENT-13g
 -- and ENT-13h cover stale rule snapshots whose entity prototypes no longer
--- exist after a mod update.
+-- exist after a mod update. ENT-13i checks rolling-stock orientation survives
+-- the migration replacement in all eight rail directions.
 
 -- `require` is only allowed while the scenario's control.lua is parsed, not
 -- from inside an on_tick test callback.
@@ -85,23 +86,24 @@ local function clear_area(surface, center, radius)
 	end
 end
 
-local function with_area(runner, body)
+local function with_area(runner, body, radius)
 	fixture_entries(runner)
 	local planet = game.planets[SURFACE_NAME]
 	runner.assert(planet and planet.surface, "the nauvis surface is missing")
 	local surface = planet.surface
+	radius = radius or AREA_RADIUS
 
 	next_area = next_area + 1
 	local center = { x = 8000 + next_area * AREA_STEP, y = 4000 }
 
 	local ok, err = pcall(function()
-		prepare_area(surface, center, AREA_RADIUS)
+		prepare_area(surface, center, radius)
 		-- Map generation can leave trees, rocks or cliffs inside the landfill
 		-- area; clear them before each test so entity placement is deterministic.
-		clear_area(surface, center, AREA_RADIUS)
+		clear_area(surface, center, radius)
 		body(surface, center)
 	end)
-	pcall(clear_area, surface, center, AREA_RADIUS + 6)
+	pcall(clear_area, surface, center, radius + 6)
 	if not ok then
 		error(err, 0)
 	end
@@ -132,10 +134,28 @@ local function create_at(surface, name, center)
 	}), position
 end
 
-local function create_rail(surface, center)
+local function create_rail(surface, center, direction)
 	-- A locomotive is six tiles long, so a single 2-tile rail segment cannot
-	-- hold one. Build a short north-south line and return the middle segment.
+	-- hold one. Build a short line and return the middle segment. `direction`
+	-- is one of the eight rail directions a locomotive can face (0, 2, 4, 6,
+	-- 8, 10, 12, 14); the engine normalises a rail to its axis, but the
+	-- requested direction still decides which way a locomotive placed on it
+	-- faces.
 	-- Rail alignment depends on the rail grid; try a few centre conventions.
+	local axis = direction % 8
+	local step
+	if axis == 0 then
+		step = { x = 0, y = 2 }
+	elseif axis == 2 then
+		step = { x = -2, y = 2 }
+	elseif axis == 4 then
+		step = { x = 2, y = 0 }
+	elseif axis == 6 then
+		step = { x = 2, y = 2 }
+	else
+		return nil
+	end
+
 	local candidates = {
 		{ x = center.x, y = center.y },
 		{ x = center.x + 0.5, y = center.y + 0.5 },
@@ -147,11 +167,15 @@ local function create_rail(surface, center)
 		local rails = {}
 		local complete = true
 		for offset = -2, 2 do
+			local position = {
+				x = base.x + step.x * offset,
+				y = base.y + step.y * offset,
+			}
 			local ok, rail = pcall(function()
 				return surface.create_entity({
 					name = "straight-rail",
-					position = { x = base.x, y = base.y + offset * 2 },
-					direction = defines.direction.north,
+					position = position,
+					direction = direction,
 					force = game.forces.player,
 				})
 			end)
@@ -165,6 +189,65 @@ local function create_rail(surface, center)
 		end
 		if complete then
 			return rails[3]
+		end
+		for _, rail in ipairs(rails) do
+			if rail.valid then
+				rail.destroy()
+			end
+		end
+	end
+	return nil
+end
+
+local function create_half_diagonal_rail(surface, center, direction)
+	-- Half-diagonal rails connect at a (2, 4) or (4, 2) offset. Three pieces
+	-- are long enough for a locomotive plus a wagon, and the resulting
+	-- locomotive orientation is not a multiple of 1/8. That fractional
+	-- orientation is what exposes the engine's floating-point rounding (issue
+	-- #139). `direction` selects which way the stock faces, like create_rail.
+	local axis = direction % 8
+	local step
+	if axis == 0 then
+		step = { x = 2, y = 4 }
+	elseif axis == 2 then
+		step = { x = 2, y = -4 }
+	elseif axis == 4 then
+		step = { x = 4, y = -2 }
+	elseif axis == 6 then
+		step = { x = 4, y = 2 }
+	else
+		return nil
+	end
+
+	local candidates = {
+		{ x = center.x, y = center.y },
+		{ x = center.x + 0.5, y = center.y + 0.5 },
+		{ x = center.x - 0.5, y = center.y - 0.5 },
+	}
+	for _, base in ipairs(candidates) do
+		local rails = {}
+		local complete = true
+		for offset = -1, 1 do
+			local position = {
+				x = base.x + step.x * offset,
+				y = base.y + step.y * offset,
+			}
+			local ok, rail = pcall(function()
+				return surface.create_entity({
+					name = "half-diagonal-rail",
+					position = position,
+					direction = direction,
+					force = game.forces.player,
+				})
+			end)
+			if not (ok and rail and rail.valid) then
+				complete = false
+				break
+			end
+			rails[#rails + 1] = rail
+		end
+		if complete then
+			return rails
 		end
 		for _, rail in ipairs(rails) do
 			if rail.valid then
@@ -189,7 +272,7 @@ return function(runner)
 		local replace_entity = require_seam(runner, "replace_entity")
 
 		with_area(runner, function(surface, center)
-			local rail = create_rail(surface, center)
+			local rail = create_rail(surface, center, defines.direction.north)
 			runner.assert(rail and rail.valid, "could not create a straight rail for the locomotive")
 
 			local ok, locomotive = pcall(function()
@@ -522,5 +605,176 @@ return function(runner)
 				)
 			end
 		end)
+	end)
+
+	runner.test("ENT-13i migration preserves locomotive orientation in every direction", function()
+		local migrate = require_seam(runner, "migrate_entity_replacement_rules")
+
+		-- Locomotive orientation is the direction the stock faces; `direction`
+		-- itself is the rail direction (front/back) and is always north for a
+		-- lone locomotive. A locomotive can face eight directions on straight
+		-- rails: the four cardinals plus the four diagonals. Build one track
+		-- per direction and assert the literal orientation the fixture is
+		-- expected to produce, so a mis-placed fixture fails instead of
+		-- silently testing the wrong pose.
+		local cases = {
+			{ direction = defines.direction.north, orientation = 0, label = "north" },
+			{ direction = defines.direction.northeast, orientation = 0.125, label = "northeast" },
+			{ direction = defines.direction.east, orientation = 0.25, label = "east" },
+			{ direction = defines.direction.southeast, orientation = 0.375, label = "southeast" },
+			{ direction = defines.direction.south, orientation = 0.5, label = "south" },
+			{ direction = defines.direction.southwest, orientation = 0.625, label = "southwest" },
+			{ direction = defines.direction.west, orientation = 0.75, label = "west" },
+			{ direction = defines.direction.northwest, orientation = 0.875, label = "northwest" },
+		}
+		local tolerance = 1e-4
+
+		with_migration_area(runner, migrate, function(surface, center)
+			for _, case in ipairs(cases) do
+				-- Keep one track at a time so locomotives cannot connect into a
+				-- train and so a replacement from the previous case cannot be
+				-- mistaken for this case's result.
+				clear_area(surface, center, AREA_RADIUS)
+
+				local rail = create_rail(surface, center, case.direction)
+				runner.assert(
+					rail and rail.valid,
+					"could not create a " .. case.label .. " straight rail for the locomotive"
+				)
+
+				local ok, locomotive = pcall(function()
+					return surface.create_entity({
+						name = "locomotive",
+						position = rail.position,
+						direction = case.direction,
+						force = game.forces.player,
+					})
+				end)
+				runner.assert(
+					ok and locomotive and locomotive.valid,
+					"could not create a " .. case.label .. "-facing locomotive on the test rail: "
+						.. tostring(locomotive)
+				)
+				runner.assert(
+					math.abs(locomotive.orientation - case.orientation) < tolerance,
+					"the " .. case.label .. " fixture locomotive did not face "
+						.. case.label .. " (orientation " .. tostring(locomotive.orientation) .. ")"
+				)
+
+				local position = locomotive.position
+				local old_orientation = locomotive.orientation
+				local old_unit_number = locomotive.unit_number
+
+				-- The previous save had the locomotive rule disabled. Changing it
+				-- back to enabled makes the migration replace existing locomotives
+				-- through the rolling-stock path.
+				local current = copy_current_rules(runner)
+				local new_rule = current["nauvis"] and current["nauvis"]["locomotive"]
+				runner.assert(new_rule, "the nauvis locomotive rule is missing")
+				runner.assert(
+					new_rule.entity == "locomotive-PlanetsLib-nauvis",
+					"the nauvis locomotive rule has the wrong target"
+				)
+				local old_rules = copy_current_rules(runner)
+				old_rules["nauvis"]["locomotive"].enabled = false
+
+				migrate(old_rules)
+
+				if new_rule.enabled == true then
+					runner.assert(not locomotive.valid, "the migration did not replace the " .. case.label .. " locomotive")
+					local replacement = find(surface, "locomotive-PlanetsLib-nauvis", position, 2)
+					runner.assert(
+						replacement and replacement.valid,
+						"the " .. case.label .. " locomotive was not replaced by its nauvis variant"
+					)
+					runner.assert(
+						math.abs(replacement.orientation - old_orientation) < tolerance,
+						"the " .. case.label .. " locomotive changed orientation during migration (was "
+							.. tostring(old_orientation) .. ", now " .. tostring(replacement.orientation) .. ")"
+					)
+					runner.assert(replacement.train ~= nil, "the " .. case.label .. " replacement is not on a train")
+					runner.assert(
+						replacement.unit_number ~= old_unit_number,
+						"the " .. case.label .. " replacement reused the old unit number"
+					)
+				else
+					runner.assert(
+						locomotive.valid,
+						"the global kill switch should leave the " .. case.label .. " locomotive in place"
+					)
+					runner.assert(
+						math.abs(locomotive.orientation - old_orientation) < tolerance,
+						"the global kill switch changed the " .. case.label .. " locomotive's orientation"
+					)
+					runner.assert(
+						find(surface, "locomotive-PlanetsLib-nauvis", position, 2) == nil,
+						"the global kill switch still migrated the " .. case.label .. " locomotive"
+					)
+				end
+			end
+		end)
+	end)
+
+	runner.test("ENT-13j curved-track replacement does not report a false orientation mismatch (issue #139)", function()
+		local replace_entity = require_seam(runner, "replace_entity")
+		local orientations_differ = require_seam(runner, "orientations_differ")
+
+		-- Exact values from the locomotive at (209.984, -487.828) in issue
+		-- #139's save: the engine's in-place upgrade reports 0.63550692377612
+		-- for a stored orientation of 0.635507. That tiny difference must not
+		-- count as a mismatch.
+		runner.assert(
+			not orientations_differ(0.635507, 0.63550692377612),
+			"the issue #139 rounding difference was treated as an orientation mismatch"
+		)
+		runner.assert(
+			orientations_differ(0, 0.25),
+			"a 90-degree orientation change was not treated as a mismatch"
+		)
+		runner.assert(
+			not orientations_differ(0.99999, 0.00001),
+			"orientations that wrap around 1.0 were treated as a mismatch"
+		)
+
+		with_area(runner, function(surface, center)
+			-- A half-diagonal track gives a fractional orientation, like the
+			-- curved track in the reported save. Three connected pieces are
+			-- long enough for a locomotive.
+			local rails = create_half_diagonal_rail(surface, center, defines.direction.north)
+			runner.assert(rails and #rails == 3, "could not create the curved test track")
+
+			local ok, locomotive = pcall(function()
+				return surface.create_entity({
+					name = "locomotive",
+					position = rails[2].position,
+					direction = defines.direction.north,
+					force = game.forces.player,
+				})
+			end)
+			runner.assert(ok and locomotive and locomotive.valid, "could not create the curved-track locomotive")
+
+			local orientation = locomotive.orientation
+			local eighths = orientation * 8
+			runner.assert(
+				math.abs(eighths - math.floor(eighths + 0.5)) > 0.01,
+				"the curved-track fixture orientation is not fractional: " .. tostring(orientation)
+			)
+			runner.assert(
+				math.abs(orientation - 0.4263) < 1e-3,
+				"the curved-track fixture has an unexpected orientation: " .. tostring(orientation)
+			)
+
+			local new, orientation_mismatch = replace_entity(locomotive, "locomotive-PlanetsLib-nauvis", false)
+			runner.assert(new and new.valid, "the curved-track locomotive was not replaced")
+			runner.assert(
+				orientation_mismatch == false,
+				"the replacement reported a false orientation mismatch for " .. tostring(orientation)
+			)
+			runner.assert(
+				math.abs(new.orientation - orientation) < 1e-4,
+				"the curved-track locomotive changed orientation (was "
+					.. tostring(orientation) .. ", now " .. tostring(new.orientation) .. ")"
+			)
+		end, 12)
 	end)
 end

@@ -70,6 +70,7 @@ remote.call("planetslib_funit", "on_built_entity", event, swap_target, dont_rais
 remote.call("planetslib_funit", "construct_ground_digger", event)
 remote.call("planetslib_funit", "on_entity_built", event)
 remote.call("planetslib_funit", "on_configuration_changed", configuration_changed_data)
+remote.call("planetslib_funit", "orientations_differ", first, second)
 remote.call("planetslib_funit", "pod_contents_is_allowed", pod_contents, planet_name)
 remote.call("planetslib_funit", "examine_cargo_pods", platform, planet_name)
 ```
@@ -186,7 +187,7 @@ end
 Status: every suite listed in `tests/suites/manifest.lua` is implemented (no
 stubs), and every fixture listed in `prototypes/fixtures/manifest.lua` is
 implemented for its stage. Against the latest Factorio release the suite runs
-**174 tests with 0 failures/errors** with Space Age + Quality and **148 tests
+**176 tests with 0 failures/errors** with Space Age + Quality and **150 tests
 with 0 failures/errors** in a base-only game; Space Age-only fixtures/suites are
 filtered out when `mods["space-age"]` is nil (see `tests/README.md` for how to
 run it). Check the files for the current state.
@@ -222,7 +223,7 @@ run it). Check the files for the current state.
 | --- | --- | --- |
 | `entity_replacement_data` | ENT-0..4 | `ENT-0` asserts the CI scenario's `PlanetsLib-enable-entity-replacements` value; `assign_entity_replacement` (rule storage, default bound setting, duplicate error, recursion assertion, variant lists, mass-assignment and planet-table forms); `create_planet_entity_variant` (name suffix, deepcopy, localised fields, flags, Factoriopedia redirect/hide, `placeable_by`, icon corner, order suffix, `do_not_generate_variants`, multi-planet, invalid setting, item inference, variant-of-variant recursion guard); rocket lift/part multiplier variant generation. Fixture: `entity_replacement_data`. |
 | `entity_replacement_runtime` | ENT-5..11, ENT-14 | Place → replace; settings/inventory/crafting/health/temperature transfer; ghost preservation; robot-built path; inverse normalisation; modules/spill; fluid transfer; wire connections incl. self-referential; grid contents incl. ghost equipment; `storage.replaced_entities` + `get_replacement`; `PlanetsLib.events.on_entity_replaced`; disabled rule. |
-| `entity_replacement_migration` | ENT-12..13h | Rolling-stock replacement (watch the undefined `rolling_stock_info` path); `on_configuration_changed` migration when a rule is added, removed, changed or disabled; stale rule snapshots whose entity prototypes no longer exist. Needs a prebuilt save or a controlled configuration change; if impossible headlessly, test the pure layout helpers and record the limitation. |
+| `entity_replacement_migration` | ENT-12..13j | Rolling-stock replacement (watch the undefined `rolling_stock_info` path) and locomotive orientation preservation across all eight directions; curved-track rounding must not raise a false mismatch warning (issue #139); `on_configuration_changed` migration when a rule is added, removed, changed or disabled; stale rule snapshots whose entity prototypes no longer exist. Needs a prebuilt save or a controlled configuration change; if impossible headlessly, test the pure layout helpers and record the limitation. |
 
 ### D. Ground diggers
 
@@ -460,6 +461,14 @@ Fixed while implementing these suites (each has a regression test):
     creating variants until RAM was exhausted (issue #136). It now skips
     entities marked `PlanetsLib_do_not_generate_variants` or named with the
     generated `-PlanetsLib-` suffix, so the loop terminates. (ENT-2f, ENT-2g)
+33. **False locomotive orientation warning** (fixed) — the rolling-stock
+    replacement check compared the old and new orientations with `~=`. The
+    engine's in-place upgrade rounds the value slightly (for example 0.635507
+    becomes 0.63550692377612 on a curved track), so loading a save printed
+    "Orientation mismatch between locomotive and replacement locomotive!" and
+    told the player not to save even though the orientation was preserved. The
+    check now uses a 1e-4 wrap-aware tolerance and the replacement returns the
+    mismatch flag for the regression test. (ENT-13j, issue #139)
 
 Still open / needs a decision:
 

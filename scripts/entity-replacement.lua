@@ -128,6 +128,25 @@ function Public.copy_wire_connections(source, destination)
   return true
 end
 
+-- Orientation is a double and the engine's in-place upgrade can introduce a
+-- tiny rounding difference (for example 0.635507 becoming
+-- 0.63550692377612 for a locomotive on a curve). An exact comparison reports
+-- a spurious "orientation mismatch" warning for that save. Treat differences
+-- below this tolerance as the same orientation.
+local ORIENTATION_TOLERANCE = 1e-4
+
+local function orientations_differ(first, second)
+    if first == nil or second == nil then
+        return first ~= second
+    end
+    local difference = math.abs(first - second)
+    -- Orientations are in [0, 1); 0.9999 and 0.0001 are adjacent.
+    difference = math.min(difference, math.abs(1 - difference))
+    return difference > ORIENTATION_TOLERANCE
+end
+
+Public.orientations_differ = orientations_differ
+
 --Gets a field of an object, or nil if checking for it normally returns an error.
 local function get_field(LuaEntity,field)
     local function get_field_or_error(LuaEntity,field)
@@ -486,7 +505,11 @@ function Public.replace_entity(entity,new_entity,raise_built)
                 Public.copy_info_to_new_rolling_stock(new_entity, rolling_stock_info)
             end
         end
-        if new_entity and new_entity.orientation ~= old_orientation then
+        local orientation_mismatch = false
+        if new_entity then
+            orientation_mismatch = orientations_differ(old_orientation, new_entity.orientation)
+        end
+        if orientation_mismatch then
             game.print("Orientation mismatch between locomotive and replacement locomotive! Don't save this game. Report this issue to PlanetsLib."..serpent.block(new_entity.position))
         end
         --print(new_entity.orientation)
@@ -504,7 +527,7 @@ function Public.replace_entity(entity,new_entity,raise_built)
             entity = entity,
             new_entity = new_entity or entity,
         })
-        return new_entity
+        return new_entity, orientation_mismatch
         --Public.transfer_entity_state(entity,new_entity)
     else
         local new_entity = entity.surface.create_entity(new_entity_properties)
