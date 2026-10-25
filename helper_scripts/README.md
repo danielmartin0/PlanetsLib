@@ -126,6 +126,70 @@ python3 -m py_compile helper_scripts/pr_diff_links.py
 python3 helper_scripts/pr_diff_links.py 32d86ea
 ```
 
+## Bugfix PR body generator
+
+`pr_body.sh` builds the review-oriented bugfix PR body described in `AGENTS.md`:
+commit-pinned links, the checklist from `.github/PULL_REQUEST_TEMPLATE.md`,
+Testing Notes from an FUnit log, and categorized diff links for the `fix:`
+commits.
+
+```sh
+helper_scripts/pr_body.sh --issue 139 \
+  --test-file test-mods/planetslib-funit-data/tests/suites/entity_replacement_migration.lua \
+  --test-ids ENT-13i,ENT-13j --test-lines L610-L779 \
+  --funit-log /tmp/opencode/planetslib-funit/logs/base.log
+```
+
+Use `--base REF` when the base is not `origin/main`, `--output FILE` to write
+the Markdown to a file, and `--factorio-version` when no FUnit log is available.
+The script only reads git metadata and local files; it never calls `gh` or
+mutates the repository.
+
+## Lua syntax check
+
+`lua_check.sh` runs `luac` over changed/untracked Lua files and checks
+`git diff --check`. It uses `luac5.2` when available, otherwise `luac`; set
+`LUAC` to override. `--all` checks every tracked/untracked Lua file.
+
+```sh
+helper_scripts/lua_check.sh
+helper_scripts/lua_check.sh --all
+LUAC=luac5.2 helper_scripts/lua_check.sh --no-diff-check
+```
+
+## Release export boundary
+
+`export_check.sh` verifies with `git check-attr` that development paths are
+`export-ignore`d and runtime files and `locale/en/` are not. `--ref` checks a
+historical tree; `--require-path` is the negative self-test for the detector.
+
+```sh
+helper_scripts/export_check.sh
+helper_scripts/export_check.sh --ref HEAD
+helper_scripts/export_check.sh --require-path .github/funit/README.md
+```
+
+## Factorio API docs (`fdoc.py`)
+
+`fdoc.py` is a fast, read-only CLI over the local Factorio documentation JSON
+(`prototype-api.json` and `runtime-api.json`). It resolves inherited
+prototype/class members and formats one answer per command instead of requiring
+ad-hoc `json.load()` snippets.
+
+```sh
+python3 helper_scripts/fdoc.py info
+python3 helper_scripts/fdoc.py prototype accumulator
+python3 helper_scripts/fdoc.py class LuaInventory
+python3 helper_scripts/fdoc.py event on_built_entity
+python3 helper_scripts/fdoc.py search "circuit wire"
+```
+
+The default docs directory is `/opt/factorio_space_age_21/doc-html`; override it
+with `--docs-dir` or `FACTORIO_DOCS_DIR`. The tracked
+`.opencode/agents/factorio-docs.md` agent uses this helper, and
+`.claude/agents/factorio-docs.md` is the Claude Code shim for the same
+definition.
+
 ## Asset generators
 
 These scripts use [uv](https://docs.astral.sh/uv/) and manage their own

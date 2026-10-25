@@ -90,7 +90,7 @@ scripts/                    Runtime helpers required by control.lua (cargo-pods,
                             recipe-effects, rocket-parts, unreachable-techs, player-effects, custom-events)
 locale/<lang>/              Localisation (.cfg). Add keys to existing files.
 graphics/                   Shared icons/entities (entity/, icons/)
-helper_scripts/             Standalone dev helpers: asset generators, local FUnit runner, PR worktree helper (NOT shipped)
+helper_scripts/             Standalone dev helpers: asset generators, local FUnit runner, PR body/worktree helpers, Factorio docs CLI, release-boundary checker (NOT shipped)
 test-mods/                  Development test mods written while testing a feature (NOT shipped);
                             planetslib-funit-data/ also holds the FUnit suite and scenario
 docs-source/                Docusaurus documentation site — the canonical user-facing docs
@@ -182,6 +182,8 @@ linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
   multiple planet mods installed. Add or extend the FUnit suite in
   `test-mods/planetslib-funit-data/` (see its `AGENTS.md` for the plan and conventions) and run it
   locally or let CI run it. Don't assume the suite runs automatically outside CI.
+  Run `helper_scripts/lua_check.sh` for changed Lua files and the static conventions check
+  (`python3 .github/scripts/check_funit_conventions.py`) before opening the PR.
 - **Development test mods**: any test mod you write while developing a feature must be saved to
   `test-mods/<mod-name>/` (see `test-mods/README.md`). This keeps tests reproducible for reviewers
   while excluding them from release builds.
@@ -201,7 +203,7 @@ linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
   `node helper_scripts/publish_mod.mjs`. The publisher reads the API key from the local-only,
   export-ignored `.env` file (`.env.example` is the tracked template) and uploads the version already in
   `info.json`; see `helper_scripts/README.md`. Use `--check-key` and `--verify` for non-publishing
-  validation.
+  validation. Run `helper_scripts/export_check.sh` before packaging to verify the release boundary.
 - **Packaging ignore**: `info.json`'s `package.ignore` and `.gitattributes` `export-ignore` exclude
   `*.py`, `*.bat`, `*.sh`, `*.exe`, `*.ps1`, `test-mods/`, and `.env`/`.env.*` from the release. Python
   helper scripts, development test mods, and local environment files must never ship.
@@ -233,6 +235,11 @@ _Posted by DeepSeek V4.1 Flash._
 ```
 
 When posting Github pull requests, begin the message with a similar signature.
+
+For Factorio prototype/runtime API questions, use the `factorio-docs` subagent
+(defined in `.opencode/agents/factorio-docs.md`, with a Claude Code shim in
+`.claude/agents/factorio-docs.md`). It uses `helper_scripts/fdoc.py` instead of
+ad-hoc JSON snippets; see the helper section below for the available commands.
 
 ### Self-learning retrospective
 
@@ -286,7 +293,8 @@ The body should contain, in order:
    The `diff-` fragment is the SHA-256 hex digest of the repository-relative file path. Link every
    file that contains a reviewable part of that bugfix, and use the commit that introduced the
    change rather than the PR's compare view. Generate the links with
-   `python3 helper_scripts/pr_diff_links.py <commit>` instead of computing the SHA-256 by hand.
+   `python3 helper_scripts/pr_diff_links.py <commit>` instead of computing the SHA-256 by hand, or
+   generate the complete body with `helper_scripts/pr_body.sh --issue <N>`.
 6. **Review note** — add a short section for any known limitation or follow-up check that does not
    block the PR but should be considered by a human reviewer.
 7. **Related Issues** — link related PRs or issues.
@@ -320,3 +328,17 @@ Before opening a PR, ensure:
 - Runtime entity swapping: `scripts/entity-replacement.lua` + `lib/add-entity-replacement.lua`.
 - Overrides by stage: `prototypes/vanilla-override` (data), `prototypes/override` (data-updates),
   `prototypes/override-final` (data-final-fixes).
+
+## Factorio API docs helper
+
+The `factorio-docs` agent answers prototype/runtime API questions from the local
+Factorio documentation JSON under `/opt/factorio_space_age_21/doc-html`. Its
+canonical definition is `.opencode/agents/factorio-docs.md`; Claude Code uses the
+shim in `.claude/agents/factorio-docs.md`.
+
+Lookups go through `helper_scripts/fdoc.py`, a single-file, stdlib-only CLI that
+resolves prototype/class inheritance and formats results readably instead of
+dumping raw JSON. Run `python3 helper_scripts/fdoc.py --help` for the commands
+(`prototype`, `type`, `class`, `event`, `concept`, `define`, `get`, `member`,
+`search`, `list`, `info`). Use `--docs-dir` or `FACTORIO_DOCS_DIR` when the
+documentation lives elsewhere.
