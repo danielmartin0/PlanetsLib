@@ -285,7 +285,8 @@ The body should contain, in order:
 
    The `diff-` fragment is the SHA-256 hex digest of the repository-relative file path. Link every
    file that contains a reviewable part of that bugfix, and use the commit that introduced the
-   change rather than the PR's compare view.
+   change rather than the PR's compare view. Generate the links with
+   `python3 helper_scripts/pr_diff_links.py <commit>` instead of computing the SHA-256 by hand.
 6. **Review note** — add a short section for any known limitation or follow-up check that does not
    block the PR but should be considered by a human reviewer.
 7. **Related Issues** — link related PRs or issues.

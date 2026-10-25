@@ -46,6 +46,17 @@ Project-specific changes:
   `--comment` writes a second copy for a pull request comment, truncated to
   GitHub's comment size limit, and `--github-output` records `failed=true|false`
   for the workflow's comment steps.
+- `.github/scripts/check_funit_conventions.py` is a project-specific static
+  checker run by the `conventions` job before the Factorio matrix. It verifies
+  that the `planetslib_funit` seam list in `control.lua` matches both test-doc
+  seam lists, that every suite is in `tests/suites/manifest.lua`, that test IDs
+  are unique, and that suites do not use `runner.assert(true, ...)` or the
+  global `before_each`/`after_each` hooks. It is read-only, needs no secrets or
+  Factorio, and can be run locally with:
+
+  ```sh
+  python3 .github/scripts/check_funit_conventions.py
+  ```
 - On a failing run of a same-repository pull request, the workflow posts the
   summary as a new comment on that PR (marked with a hidden
   `<!-- funit-results -->` tag). A later passing run deletes all such comments,

@@ -45,6 +45,15 @@ env:
   TOKEN: ${{ secrets.FACTORIO_TOKEN }}
 
 jobs:
+  conventions-job:
+    name: Check FUnit conventions
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check seams, manifest, test IDs and forbidden patterns
+        run: python3 .github/scripts/check_funit_conventions.py
+
   build-archive-job:
     name: Build test artifacts
     runs-on: ubuntu-latest

@@ -69,8 +69,15 @@ remote.call("planetslib_funit", "replace_entity", entity, new_entity, raise_buil
 remote.call("planetslib_funit", "on_built_entity", event, swap_target, dont_raise_built)
 remote.call("planetslib_funit", "construct_ground_digger", event)
 remote.call("planetslib_funit", "on_entity_built", event)
+remote.call("planetslib_funit", "ground_digger_collisions", surface, position, digger_prototype_name)
+remote.call("planetslib_funit", "revive_ground_digger_ghost", ghost)
+remote.call("planetslib_funit", "select_digger_ghost", colliding_entities, digger_name, position)
 remote.call("planetslib_funit", "on_configuration_changed", configuration_changed_data)
+remote.call("planetslib_funit", "migrate_entity_replacement_rules", old_rules)
 remote.call("planetslib_funit", "orientations_differ", first, second)
+remote.call("planetslib_funit", "warn_on_join")
+remote.call("planetslib_funit", "should_warn_on_join", tick, setting_value)
+remote.call("planetslib_funit", "warn_cargo_pod_canceled", player, platform, planet_name)
 remote.call("planetslib_funit", "pod_contents_is_allowed", pod_contents, planet_name)
 remote.call("planetslib_funit", "examine_cargo_pods", platform, planet_name)
 ```
@@ -186,11 +193,12 @@ end
 
 Status: every suite listed in `tests/suites/manifest.lua` is implemented (no
 stubs), and every fixture listed in `prototypes/fixtures/manifest.lua` is
-implemented for its stage. Against the latest Factorio release the suite runs
-**176 tests with 0 failures/errors** with Space Age + Quality and **150 tests
-with 0 failures/errors** in a base-only game; Space Age-only fixtures/suites are
-filtered out when `mods["space-age"]` is nil (see `tests/README.md` for how to
-run it). Check the files for the current state.
+implemented for its stage. Against the latest Factorio release, the suite must
+finish with zero failures/errors in both the Space Age + Quality and base-only
+configurations; Space Age-only fixtures/suites are filtered out when
+`mods["space-age"]` is nil (see `tests/README.md` for how to run it). The FUnit
+report and JUnit conversion are the source of truth for the current test count;
+do not hardcode totals here. Check the files for the current state.
 
 ### A. Pure runtime helper suites
 
@@ -519,9 +527,12 @@ This is a harness fix; the library's own control stage already sets the marker.
    ```sh
    luac5.1 -p test-mods/planetslib-funit-data/tests/suites/<name>.lua
    luac5.1 -p test-mods/planetslib-funit-data/prototypes/fixtures/<name>.lua
+   python3 .github/scripts/check_funit_conventions.py
    ```
    `luac5.1` cannot compile `goto` (PlanetsLib uses it in some files); keep test
    files goto-free, or validate with a Factorio 2.x/Lua 5.4 parser if available.
+   The convention checker catches seam-list drift, missing manifest entries,
+   duplicate test IDs, and forbidden global hooks.
 6. Run the scenario locally (see `tests/README.md`) or let CI do it.
 7. Update this file only when the plan itself changes (new area, new fixture,
    new seam).

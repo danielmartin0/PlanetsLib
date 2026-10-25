@@ -95,6 +95,37 @@ worktree with:
 git worktree remove /tmp/opencode/planetslib-pr-135
 ```
 
+## Pull-request diff links
+
+`pr_diff_links.py` prints commit-pinned GitHub `#diff-<sha256>` links for every
+file changed by a commit. The bugfix PR format uses these anchors so reviewers
+can jump directly to the relevant file diff.
+
+```sh
+python3 helper_scripts/pr_diff_links.py 32d86ea
+python3 helper_scripts/pr_diff_links.py 32d86ea --format json
+python3 helper_scripts/pr_diff_links.py HEAD --base origin/main
+```
+
+Options:
+
+- `COMMIT` — commit to link; defaults to `HEAD`.
+- `--base REF` — use `REF...COMMIT`; without it the commit is compared with its
+  first parent.
+- `--repo OWNER/REPO` — override the GitHub repository inferred from `origin`.
+- `--format markdown|json` — output Markdown bullets or structured JSON.
+
+The script is read-only. It only reads git metadata, never checks out code,
+contacts the network, or executes pull-request code. It exits with an
+explanation if the origin remote is not a GitHub URL and `--repo` is omitted.
+
+Validation:
+
+```sh
+python3 -m py_compile helper_scripts/pr_diff_links.py
+python3 helper_scripts/pr_diff_links.py 32d86ea
+```
+
 ## Asset generators
 
 These scripts use [uv](https://docs.astral.sh/uv/) and manage their own
