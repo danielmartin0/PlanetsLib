@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.3.6
+Date: 2026-10-25
+  Bugfixes:
+    - Entity replacement migration no longer reports a false "orientation mismatch" warning for locomotives on curved tracks. The check compared floating-point orientations exactly, so engine rounding (for example 0.635507 becoming 0.63550692377612) triggered the warning even though the orientation was preserved.
+---------------------------------------------------------------------------------------------------
 Version: 2.3.5
 Date: 2026-10-25
   Locale:
