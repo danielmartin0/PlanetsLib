@@ -75,6 +75,7 @@ lib/                        Data-stage library modules ("lib.*")
   technology.lua            Science-pack sorting, tech-tree excision, icons
   recipe.lua  achievements.lua  planet-str.lua  predicates.lua  lib.lua
   add-entity-replacement.lua
+  entity-removal-floors.lua Data API/mod-data for temporary deconstruction floors
   dual-item-icon.lua        Composite icon helpers (dual_icon, dual_icon_reversed)
   images.lua                Icon/image effects (blur_technology_icon)
   remove-replace-object.lua (alias: lib.objects / rro)   Table-manipulation helpers
@@ -87,7 +88,8 @@ prototypes/                 Data-stage prototypes (tiles, custom events/inputs, 
   override-final/           Overrides applied in data-final-fixes.lua
   surface-property/         Atmosphere, planet-string, temperature
 scripts/                    Runtime helpers required by control.lua (cargo-pods, entity-replacement,
-                            recipe-effects, rocket-parts, unreachable-techs, player-effects, custom-events)
+                            recipe-effects, rocket-parts, unreachable-techs, player-effects, custom-events,
+                            entity-removal-floors)
 locale/<lang>/              Localisation (.cfg). Add keys to existing files.
 graphics/                   Shared icons/entities (entity/, icons/)
 helper_scripts/             Standalone dev helpers: asset generators, local FUnit runner, PR body/worktree helpers, Factorio docs CLI, release-boundary checker (NOT shipped)
@@ -326,6 +328,7 @@ Before opening a PR, ensure:
 - Where a `PlanetsLib:extend/update` field is validated or applied: `lib/planet.lua`.
 - Orbit/starmap math and native `origin` conversion: `lib/orbits.lua`, `prototypes/override-final/starmap.lua`.
 - Runtime entity swapping: `scripts/entity-replacement.lua` + `lib/add-entity-replacement.lua`.
+- Temporary deconstruction floors under simple entities: `lib/entity-removal-floors.lua` (data API/mod-data) + `scripts/entity-removal-floors.lua` (runtime).
 - Overrides by stage: `prototypes/vanilla-override` (data), `prototypes/override` (data-updates),
   `prototypes/override-final` (data-final-fixes).
 

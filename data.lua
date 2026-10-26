@@ -43,6 +43,9 @@ data:extend({
 			ground_diggers = { --Planets that convert mining drills placed without nearby resources into recipe-crafting machines.
 				--[planet-name] = {recipe = "recipe-name", diggers = {["item-name"] = {drill = "entity-name", digger = "digger-entity-name"}}}
 			},
+			entity_removal_floors = { --Temporary floor tiles placed under simple entities during deconstruction.
+				--[planet-name] = {["entity-name"] = {default_tile = "tile-name", default_tile_item = "item-name", waiting_message = {"locale-key"}}}
+			},
 			items_corrected_fuel_category = {
 
 			}

@@ -12,6 +12,7 @@ local unreachable_techs = require("scripts.unreachable-techs")
 local entity_replacement = require("scripts.entity-replacement")
 require("lib.authors")
 require("scripts.player-effects")
+local entity_removal_floors = require("scripts.entity-removal-floors")
 -- By convention, please register event handlers in this file rather than the scripts directory, to help avoid collisions
 
 local cargo_pods
@@ -53,6 +54,7 @@ PlanetsLib.event_handler.add_lib{on_init = function()
 		cargo_pods.init_storage()
 	end
 	init_storage()
+	entity_removal_floors.on_init()
 		storage.old_replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements
 end}
 
@@ -196,6 +198,7 @@ local function on_configuration_changed(configuration_changed_data)
 	end
 
 	migrate_all_entity_replacement_rules()
+	entity_removal_floors.on_configuration_changed(configuration_changed_data)
 
 	-- local rocket_part_recipe_rules = data.raw["mod-data"]["Planetslib-planet-rocket-part-recipe"].data
 	-- local lock_rocket_part_rules = 
@@ -353,6 +356,33 @@ if not rro.deep_equals(PlanetsLib.constants.ground_diggers, {}) then
 end
 
 
+-- Entity removal floors: place temporary tile ghosts under configured simple
+-- entities before construction robots can deconstruct them over unsafe tiles.
+if entity_removal_floors.is_enabled() then
+	script.on_event(
+		defines.events.on_marked_for_deconstruction,
+		entity_removal_floors.on_marked_for_deconstruction,
+		entity_removal_floors.get_entity_filters()
+	)
+	script.on_event(defines.events.on_player_built_tile, function(event)
+		entity_removal_floors.on_tile_built(event, "player")
+	end)
+	script.on_event(defines.events.on_robot_built_tile, function(event)
+		entity_removal_floors.on_tile_built(event, "robot")
+	end)
+	script.on_event(defines.events.on_space_platform_built_tile, function(event)
+		entity_removal_floors.on_tile_built(event, "robot")
+	end)
+	script.on_event(defines.events.script_raised_set_tiles, entity_removal_floors.on_script_raised_set_tiles)
+	script.on_event(defines.events.on_player_mined_tile, entity_removal_floors.on_tile_mined)
+	script.on_event(defines.events.on_robot_mined_tile, entity_removal_floors.on_tile_mined)
+	script.on_event(defines.events.on_space_platform_mined_tile, entity_removal_floors.on_tile_mined)
+	script.on_event(defines.events.on_undo_applied, entity_removal_floors.on_undo_applied)
+	script.on_nth_tick(30, entity_removal_floors.process_pending_tile_cleanup)
+	script.on_nth_tick(60, entity_removal_floors.prune_invalid_entries)
+end
+
+
 --Remote interface to help transfer storage of a mod to a fork of a mod.
 remote.add_interface("PlanetsLib_transfer_storage",
 	{
@@ -449,6 +479,54 @@ if script.active_mods["funit"] then
 				return nil
 			end
 			return cargo_pods.examine_cargo_pods(platform, planet_name)
+		end,
+		entity_removal_floors_is_enabled = function()
+			return entity_removal_floors.is_enabled()
+		end,
+		entity_removal_floors_on_marked_for_deconstruction = function(event)
+			return entity_removal_floors.on_marked_for_deconstruction(event)
+		end,
+		entity_removal_floors_on_tile_built = function(event, builder)
+			return entity_removal_floors.on_tile_built(event, builder)
+		end,
+		entity_removal_floors_on_script_raised_set_tiles = function(event)
+			return entity_removal_floors.on_script_raised_set_tiles(event)
+		end,
+		entity_removal_floors_on_tile_mined = function(event)
+			return entity_removal_floors.on_tile_mined(event)
+		end,
+		entity_removal_floors_on_undo_applied = function(event)
+			return entity_removal_floors.on_undo_applied(event)
+		end,
+		entity_removal_floors_process_pending_tile_cleanup = function()
+			return entity_removal_floors.process_pending_tile_cleanup()
+		end,
+		entity_removal_floors_prune_invalid_entries = function()
+			return entity_removal_floors.prune_invalid_entries()
+		end,
+		entity_removal_floors_floor_bounds = function(entity)
+			return { entity_removal_floors._test_get_floor_bounds(entity) }
+		end,
+		entity_removal_floors_analyse_floor = function(entity)
+			return entity_removal_floors._test_analyse_floor(entity)
+		end,
+		entity_removal_floors_select_replacement_tile = function(...)
+			return entity_removal_floors._test_select_replacement_tile(...)
+		end,
+		entity_removal_floors_queue_entity = function(entity, force_name, player_index, replacement_tile)
+			return entity_removal_floors._test_queue_entity(entity, force_name, player_index, replacement_tile)
+		end,
+		entity_removal_floors_apply_undo_actions = function(actions)
+			return entity_removal_floors._test_apply_undo_actions(actions)
+		end,
+		entity_removal_floors_clear_surface_state = function(surface_index)
+			return entity_removal_floors._test_clear_surface_state(surface_index)
+		end,
+		entity_removal_floors_get_queued = function(surface_index)
+			return entity_removal_floors._test_get_queued(surface_index)
+		end,
+		entity_removal_floors_get_cleanup = function(surface_index)
+			return entity_removal_floors._test_get_cleanup(surface_index)
 		end,
 	})
 end

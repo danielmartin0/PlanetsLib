@@ -35,6 +35,7 @@ return {
 		"entity_replacement_runtime",
 		"entity_replacement_migration",
 		"ground_diggers_runtime",
+		"entity_removal_floors",
 		"rocket_parts",
 		"cargo_pods",
 		"unreachable_techs",

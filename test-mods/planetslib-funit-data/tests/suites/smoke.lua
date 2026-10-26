@@ -37,6 +37,7 @@ local BASE_NAMESPACES = {
 }
 
 local SPACE_AGE_NAMESPACES = {
+	"entity_removal_floors_data",
 	"ground_diggers_data",
 	"ground_diggers_late",
 	"orbit_native",

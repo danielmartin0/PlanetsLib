@@ -105,7 +105,19 @@ Available seam functions: `replace_entity`, `on_built_entity`,
 `revive_ground_digger_ghost`, `select_digger_ghost`,
 `on_configuration_changed`, `migrate_entity_replacement_rules`,
 `orientations_differ`, `warn_on_join`, `should_warn_on_join`,
-`warn_cargo_pod_canceled`, `pod_contents_is_allowed`, `examine_cargo_pods`.
+`warn_cargo_pod_canceled`, `pod_contents_is_allowed`, `examine_cargo_pods`,
+`entity_removal_floors_is_enabled`,
+`entity_removal_floors_on_marked_for_deconstruction`,
+`entity_removal_floors_on_tile_built`,
+`entity_removal_floors_on_script_raised_set_tiles`,
+`entity_removal_floors_on_tile_mined`, `entity_removal_floors_on_undo_applied`,
+`entity_removal_floors_process_pending_tile_cleanup`,
+`entity_removal_floors_prune_invalid_entries`,
+`entity_removal_floors_floor_bounds`, `entity_removal_floors_analyse_floor`,
+`entity_removal_floors_select_replacement_tile`,
+`entity_removal_floors_queue_entity`, `entity_removal_floors_apply_undo_actions`,
+`entity_removal_floors_clear_surface_state`,
+`entity_removal_floors_get_queued`, `entity_removal_floors_get_cleanup`.
 
 ## Data-stage fixtures
 

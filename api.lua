@@ -12,6 +12,7 @@ local entity_replacements = require("lib.add-entity-replacement")
 local dual_item_icon = require("lib.dual-item-icon")
 local images = require("lib.images")
 local ground_diggers = require("lib.ground-diggers")
+local entity_removal_floors = require("lib.entity-removal-floors")
 
 --== APIs ==--
 -- API documentation lives in README.md (or on the mod portal.)
@@ -55,6 +56,8 @@ PlanetsLib.visit_planet_achievement = achievements.visit_planet_achievement
 PlanetsLib.create_planet_entity_variant = entity_replacements.create_planet_entity_variant
 PlanetsLib.assign_entity_replacement = entity_replacements.assign_entity_replacement
 PlanetsLib.enable_ground_diggers = ground_diggers.enable_ground_diggers
+PlanetsLib.assign_entity_removal_floor = entity_removal_floors.assign_entity_removal_floor
+PlanetsLib.add_entity_removal_floor_rule = entity_removal_floors.add_entity_removal_floor_rule
 PlanetsLib.set_special_properties = planet.set_special_properties
 PlanetsLib.get_special_property = planet.get_special_property
 PlanetsLib.get_special_properties = planet.get_special_properties

@@ -17,6 +17,7 @@ local SPACE_AGE_ONLY = {
 	orbit_native = true,
 	ground_diggers_data = true,
 	ground_diggers_late = true,
+	entity_removal_floors_data = true,
 	rocket_parts_setup = true,
 }
 
@@ -49,6 +50,7 @@ return {
 		"misc_visuals_setup",
 		"entity_replacement_data",
 		"ground_diggers_data",
+		"entity_removal_floors_data",
 		"rocket_parts_setup",
 		"recipe_effects_setup",
 	}),
