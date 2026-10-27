@@ -3,7 +3,7 @@ sidebar_label: Entity Removal Floors
 ---
 # Entity Removal Floors
 
-PlanetsLib can place a temporary floor underneath configured **simple entities, plants, and containers** while they are deconstructed. This prevents construction robots from destroying the entity's mining results when the entity stands on a tile whose prototype has `destroys_dropped_items` set.
+PlanetsLib can place a temporary floor underneath configured **simple entities, plants, trees, and containers** while they are deconstructed. This prevents construction robots from destroying the entity's mining results when the entity stands on a tile whose prototype has `destroys_dropped_items` set.
 
 The mechanic is ported from the lunar-rock removal feature in [Muluna, Moon of Nauvis](https://mods.factorio.com/mod/planet-muluna). Instead of hard-coding a planet and an entity, PlanetsLib stores one rule per planet and entity in mod-data.
 
@@ -19,7 +19,7 @@ PlanetsLib.assign_entity_removal_floor("muluna", { "lunar-rock", "lunar-huge-roc
 `PlanetsLib.assign_entity_removal_floor(planet, entities, default_tile, options)` configures the mechanic:
 
 * `planet` — Planet name or planet prototype. Only surfaces whose `LuaSurface.planet` matches this planet use the rule.
-* `entities` — One entity name, an array of names, or a dictionary of name to `true`. The entities must exist and have a supported prototype type: `simple-entity`, `plant`, or `container`.
+* `entities` — One entity name, an array of names, or a dictionary of name to `true`. The entities must exist and have a supported prototype type: `simple-entity`, `plant`, `tree`, or `container`.
 * `default_tile` — Preferred tile prototype placed under the entity. It must not have `destroys_dropped_items` set, or the floor would destroy the same drops it is meant to protect. PlanetsLib verifies that the tile can actually be built on each unsafe footprint tile; if the default cannot be built there, another buildable safe tile is chosen.
 * `options` (optional):
     * `default_tile_item` — Item used to place `default_tile`. If omitted, PlanetsLib finds an item whose `place_as_tile` result is `default_tile`. When no such item exists, players cannot fall back to another tile.
@@ -74,6 +74,6 @@ Because both the data-stage API and the runtime read the same mod-data table, ru
 
 ## Known limitations
 
-* The mechanic only applies to entities whose prototype type is `simple-entity`, `plant`, or `container`. Trees, corpses, and other entity types are ignored.
+* The mechanic only applies to entities whose prototype type is `simple-entity`, `plant`, `tree`, or `container`. Corpses and other entity types are ignored.
 * Tile ghosts are placed in the entity's whole-tile footprint, using the entity's `bounding_box` rather than its placement grid. Entities with unusual collision shapes can therefore receive a larger floor than their visual footprint.
 * The temporary floor is not transferred if a mod or script replaces the queued entity with a different entity before deconstruction; the queue keeps tracking the original entity.

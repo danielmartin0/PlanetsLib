@@ -10,6 +10,7 @@ local ENTITY_B = "funit-erf-rock-b"
 local LARGE_ENTITY = "funit-erf-large-rock"
 local DROP_ENTITY = "funit-erf-drop-rock"
 local PLANT = "funit-erf-plant"
+local TREE = "funit-erf-tree"
 local CONTAINER = "funit-erf-container"
 local SAFE_TILE = "funit-erf-safe"
 local UNSAFE_TILE = "funit-erf-unsafe"
@@ -218,6 +219,7 @@ return function(runner)
 		runner.assert(rules and rules[PLANET], "the test planet has no entity removal floor rules")
 		runner.assert(rules[PLANET][ENTITY], "the test entity has no rule")
 		runner.assert(rules[PLANET][PLANT], "the plant test entity has no rule")
+		runner.assert(rules[PLANET][TREE], "the tree test entity has no rule")
 		runner.assert(rules[PLANET][CONTAINER], "the container test entity has no rule")
 		runner.assert(rules[PLANET][ENTITY].default_tile == SAFE_TILE, "the configured default tile is wrong")
 		runner.assert(
@@ -836,6 +838,24 @@ return function(runner)
 				tile_ghost_names(surface, { x, y }).foundation,
 				"the queued floor did not use the buildable foundation"
 			)
+		end)
+	end)
+
+	runner.test("ERF-22 tree entities are queued with a floor", function()
+		local surface = prepare_surface(runner)
+		run_with_cleanup(function()
+			cleanup_surface(surface)
+		end, function()
+			local tree = create_named_entity(runner, surface, TREE, { 14.5, 14.5 })
+			mark_queued(runner, tree)
+
+			runner.assert(not tree.to_be_deconstructed(), "the tree deconstruction order was not cancelled")
+			local ghost = find_tile_ghost(surface, { 14.5, 14.5 })
+			runner.assert(ghost, "no tile ghost was created under the queued tree")
+			runner.assert(ghost.ghost_name == SAFE_TILE, "the tree tile ghost has the wrong tile")
+
+			local entries = queued(surface)
+			runner.assert(#entries == 1, "expected one queued tree, got " .. #entries)
 		end)
 	end)
 

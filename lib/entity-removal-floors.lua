@@ -16,13 +16,14 @@ local Public = {}
 
 local DEFAULT_WAITING_MESSAGE = { "planetslib.entity-removal-floor-waiting" }
 
--- Entity prototype types that can use this mechanic. Plants are included
--- because they are deconstructable and can drop items just like simple
+-- Entity prototype types that can use this mechanic. Plants and trees are
+-- included because they are deconstructable and can drop items just like simple
 -- entities. Containers are included because deconstructing one spills its
 -- inventory onto the ground.
 local SUPPORTED_ENTITY_TYPES = {
 	"simple-entity",
 	"plant",
+	"tree",
 	"container",
 }
 

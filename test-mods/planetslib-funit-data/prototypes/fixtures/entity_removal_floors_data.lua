@@ -82,6 +82,17 @@ local setup_ok, setup_err = pcall(function()
 		},
 	})
 
+	local tree = table.deepcopy(data.raw["tree"]["tree-01"])
+	tree.name = "funit-erf-tree"
+	tree.autoplace = nil
+	tree.collision_box = { { -0.45, -0.45 }, { 0.45, 0.45 } }
+	tree.selection_box = { { -0.5, -0.5 }, { 0.5, 0.5 } }
+	tree.minable = {
+		mining_time = 0.2,
+		results = { { type = "item", name = "wood", amount = 1 } },
+	}
+	data:extend({ tree })
+
 	local container = table.deepcopy(data.raw["container"]["wooden-chest"])
 	container.name = "funit-erf-container"
 	container.autoplace = nil
@@ -128,7 +139,7 @@ local setup_ok, setup_err = pcall(function()
 
 	PlanetsLib.assign_entity_removal_floor(
 		"funit-erf-planet",
-		{ "funit-erf-large-rock", "funit-erf-drop-rock", "funit-erf-plant", "funit-erf-container" },
+		{ "funit-erf-large-rock", "funit-erf-drop-rock", "funit-erf-plant", "funit-erf-tree", "funit-erf-container" },
 		"funit-erf-safe",
 		{ default_tile_item = "funit-erf-safe-item" }
 	)
@@ -163,6 +174,7 @@ record("ERF-1", function()
 	assert(rules["funit-erf-large-rock"], "the multi-tile test entity has no rule")
 	assert(rules["funit-erf-drop-rock"], "the drop test entity has no rule")
 	assert(rules["funit-erf-plant"], "the plant test entity has no rule")
+	assert(rules["funit-erf-tree"], "the tree test entity has no rule")
 	assert(rules["funit-erf-container"], "the container test entity has no rule")
 
 	local planet_b_rules = PlanetsLib.constants.entity_removal_floors["funit-erf-planet-b"]

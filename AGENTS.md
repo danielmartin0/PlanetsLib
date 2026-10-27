@@ -328,7 +328,7 @@ Before opening a PR, ensure:
 - Where a `PlanetsLib:extend/update` field is validated or applied: `lib/planet.lua`.
 - Orbit/starmap math and native `origin` conversion: `lib/orbits.lua`, `prototypes/override-final/starmap.lua`.
 - Runtime entity swapping: `scripts/entity-replacement.lua` + `lib/add-entity-replacement.lua`.
-- Temporary deconstruction floors under simple entities, plants, and containers: `lib/entity-removal-floors.lua` (data API/mod-data) + `scripts/entity-removal-floors.lua` (runtime).
+- Temporary deconstruction floors under simple entities, plants, trees, and containers: `lib/entity-removal-floors.lua` (data API/mod-data) + `scripts/entity-removal-floors.lua` (runtime).
 - Overrides by stage: `prototypes/vanilla-override` (data), `prototypes/override` (data-updates),
   `prototypes/override-final` (data-final-fixes).
 
