@@ -310,10 +310,53 @@ local function has_stationary_roboport_coverage(surface, force, position)
 	return false
 end
 
----Selects the tile used under an entity.
+---Whether a tile ghost of the given tile can be built at a tile position.
+-- Uses the engine's own tile build check so tile conditions and collision masks
+-- match what construction robots will actually be able to build.
+-- @param surface LuaSurface
+-- @param tile_name string
+-- @param x number
+-- @param y number
+-- @return boolean
+local function tile_can_be_built(surface, tile_name, x, y)
+	if not surface or not surface.valid or not prototypes.tile[tile_name] then
+		return false
+	end
+	return surface.can_place_entity({
+		name = TILE_GHOST_NAME,
+		inner_name = tile_name,
+		position = { x + 0.5, y + 0.5 },
+	})
+end
+
+-- Safe tiles that have at least one placing item. Used as a last-resort
+-- fallback when neither the rule's default tile nor an inventory tile can be
+-- built on a particular footprint tile.
+local all_placeable_safe_tiles
+local function get_all_placeable_safe_tiles()
+	if all_placeable_safe_tiles then
+		return all_placeable_safe_tiles
+	end
+	local result = {}
+	for tile_name, tile in pairs(prototypes.tile or {}) do
+		if
+			not tile.destroys_dropped_items
+			and tile.items_to_place_this
+			and #tile.items_to_place_this > 0
+		then
+			result[#result + 1] = tile_name
+		end
+	end
+	table.sort(result)
+	all_placeable_safe_tiles = result
+	return result
+end
+
+---Selects a buildable tile for one unsafe footprint tile.
 -- Character players outside a stationary roboport network can fall back to
 -- another tile item in their inventory when they do not carry enough of the
--- rule's default tile item.
+-- rule's default tile item. A candidate is only selected when the optional
+-- buildability check accepts it.
 -- @param contents table Inventory contents (ItemStackDefinition[]).
 -- @param default_item_count number Amount of the rule's default tile item held.
 -- @param required_count number Number of unsafe tiles to cover.
@@ -321,6 +364,7 @@ end
 -- @param is_character boolean
 -- @param default_tile string
 -- @param default_tile_item string|nil
+-- @param is_tile_buildable function|nil Optional function(tile_name) -> boolean.
 -- @return string
 local function select_replacement_tile(
 	contents,
@@ -329,12 +373,17 @@ local function select_replacement_tile(
 	in_stationary_roboport_range,
 	is_character,
 	default_tile,
-	default_tile_item
+	default_tile_item,
+	is_tile_buildable
 )
-	if not is_character or in_stationary_roboport_range or not default_tile_item then
-		return default_tile
+	local required = math.max(1, required_count)
+	local function buildable(tile_name)
+		return not is_tile_buildable or is_tile_buildable(tile_name)
 	end
-	if default_item_count >= math.max(1, required_count) then
+
+	local can_use_default = (not is_character or in_stationary_roboport_range or not default_tile_item)
+		or default_item_count >= required
+	if can_use_default and buildable(default_tile) then
 		return default_tile
 	end
 
@@ -348,8 +397,13 @@ local function select_replacement_tile(
 						and prototypes.tile[placement.result]
 					or placement.result
 				local tile_name = tile and tile.name
-				if tile_name and tile_name ~= default_tile and not tile.destroys_dropped_items then
-					if item.count >= math.max(1, required_count) then
+				if
+					tile_name
+					and tile_name ~= default_tile
+					and not tile.destroys_dropped_items
+					and buildable(tile_name)
+				then
+					if item.count >= required then
 						return tile_name
 					end
 					if not fallback then
@@ -359,33 +413,66 @@ local function select_replacement_tile(
 			end
 		end
 	end
+	if fallback then
+		return fallback
+	end
+	-- Prefer the configured default as the last resort when it is buildable,
+	-- even if the player does not carry enough of its item yet.
+	if buildable(default_tile) then
+		return default_tile
+	end
 
-	return fallback or default_tile
+	-- The default tile may not be buildable on this particular footprint tile.
+	-- Fall back to any safe tile that has a placing item and passes the engine's
+	-- tile build check. This keeps the queued floor buildable even when the
+	-- player does not carry the required replacement tile.
+	for _, tile_name in ipairs(get_all_placeable_safe_tiles()) do
+		if buildable(tile_name) then
+			return tile_name
+		end
+	end
+
+	return default_tile
 end
 
-local function choose_replacement_tile(player, entity, required_count, force_name, rule)
-	if not player or not player.valid or player.controller_type ~= defines.controllers.character then
-		return rule.default_tile
+local function choose_replacement_tiles(player, entity, unsafe, force_name, rule)
+	local surface = entity.surface
+	local contents = {}
+	local default_item_count = 0
+	local in_stationary_range = false
+	local is_character = false
+
+	if player and player.valid and player.controller_type == defines.controllers.character then
+		local character = player.character
+		local inventory = player.get_main_inventory()
+		if character and character.valid and inventory then
+			local force = game.forces[force_name] or player.force
+			in_stationary_range = has_stationary_roboport_coverage(surface, force, entity.position)
+			default_item_count = rule.default_tile_item and inventory.get_item_count(rule.default_tile_item) or 0
+			contents = inventory.get_contents()
+			is_character = true
+		end
 	end
 
-	local character = player.character
-	local inventory = player.get_main_inventory()
-	if not character or not character.valid or not inventory then
-		return rule.default_tile
+	local replacements = {}
+	local first
+	for _, tile in ipairs(unsafe) do
+		local tile_name = select_replacement_tile(
+			contents,
+			default_item_count,
+			#unsafe,
+			in_stationary_range,
+			is_character,
+			rule.default_tile,
+			rule.default_tile_item,
+			function(candidate)
+				return tile_can_be_built(surface, candidate, tile.x, tile.y)
+			end
+		)
+		replacements[tile.key] = tile_name
+		first = first or tile_name
 	end
-
-	local force = game.forces[force_name] or player.force
-	local in_stationary_range = has_stationary_roboport_coverage(entity.surface, force, entity.position)
-	local default_item_count = rule.default_tile_item and inventory.get_item_count(rule.default_tile_item) or 0
-	return select_replacement_tile(
-		inventory.get_contents(),
-		default_item_count,
-		required_count,
-		in_stationary_range,
-		true,
-		rule.default_tile,
-		rule.default_tile_item
-	)
+	return replacements, first
 end
 
 --== Queue bookkeeping ==--
@@ -474,7 +561,8 @@ local function remove_created_ghosts(entry)
 	for _, created in pairs(entry.created_ghosts or {}) do
 		if not queue_uses_tile(entry.surface_index, created.x, created.y) then
 			local ghost = created.ghost
-			if ghost and ghost.valid and ghost.ghost_name == entry.replacement_tile then
+			local tile_name = created.name or entry.replacement_tile
+			if ghost and ghost.valid and ghost.ghost_name == tile_name then
 				ghost.destroy({ raise_destroy = true })
 			end
 		end
@@ -599,7 +687,7 @@ local function warn_waiting_for_floor(entity, player, force_name, rule, tile_nam
 	end
 end
 
-local function queue_entity(entity, rule, force_name, player_index, replacement_tile)
+local function queue_entity(entity, rule, force_name, player_index, replacement_tiles, first_replacement)
 	local surface = entity.surface
 	local unsafe, all_safe = analyse_floor(entity)
 	if all_safe then
@@ -617,7 +705,11 @@ local function queue_entity(entity, rule, force_name, player_index, replacement_
 		entity_name = entity.name,
 		force = force_name or entity.force.name,
 		player_index = player_index,
-		replacement_tile = replacement_tile or rule.default_tile,
+		replacement_tile = first_replacement
+			or (type(replacement_tiles) == "string" and replacement_tiles)
+			or rule.default_tile,
+		replacement_tiles = {},
+		default_tile = rule.default_tile,
 		waiting_message = rule.waiting_message or DEFAULT_WAITING_MESSAGE,
 		tiles = {},
 		remaining = {},
@@ -636,13 +728,18 @@ local function queue_entity(entity, rule, force_name, player_index, replacement_
 	end
 
 	for _, tile in ipairs(unsafe) do
+		local tile_name = type(replacement_tiles) == "string" and replacement_tiles
+			or (type(replacement_tiles) == "table" and replacement_tiles[tile.key])
+			or rule.default_tile
+		entry.replacement_tiles[tile.key] = tile_name
 		entry.remaining[tile.key] = { x = tile.x, y = tile.y }
-		local ghost = ensure_tile_ghost(surface, tile.x, tile.y, entry.force, entry.replacement_tile)
+		local ghost = ensure_tile_ghost(surface, tile.x, tile.y, entry.force, tile_name)
 		if ghost then
 			entry.created_ghosts[tile.key] = {
 				ghost = ghost,
 				x = tile.x,
 				y = tile.y,
+				name = tile_name,
 			}
 		end
 	end
@@ -673,9 +770,12 @@ local function create_pending_tile_cleanup(entry)
 		if builder == "robot" then
 			local created = entry.created_ghosts and entry.created_ghosts[key]
 			if created then
+				local tile_name = created.name
+					or (entry.replacement_tiles and entry.replacement_tiles[key])
+					or entry.replacement_tile
 				local tile = surface.get_tile(created.x, created.y)
-				if tile and tile.valid and tile.name == entry.replacement_tile then
-					tiles[#tiles + 1] = { x = created.x, y = created.y }
+				if tile and tile.valid and tile.name == tile_name then
+					tiles[#tiles + 1] = { x = created.x, y = created.y, name = tile_name }
 				end
 			end
 		end
@@ -692,7 +792,7 @@ local function create_pending_tile_cleanup(entry)
 		entity = entity,
 		surface_index = entry.surface_index,
 		force = entry.force,
-		tile_name = entry.replacement_tile,
+		tile_name = tiles[1] and tiles[1].name or entry.replacement_tile,
 		area = {
 			{ left, top },
 			{ right + 1, bottom + 1 },
@@ -712,7 +812,8 @@ local function order_cleanup_tiles(pending)
 	local remaining = {}
 	for _, tile_position in pairs(pending.tiles or {}) do
 		local tile = surface.get_tile(tile_position.x, tile_position.y)
-		if tile and tile.valid and tile.name == pending.tile_name then
+		local tile_name = tile_position.name or pending.tile_name
+		if tile and tile.valid and tile.name == tile_name then
 			if queue_uses_tile(pending.surface_index, tile_position.x, tile_position.y) then
 				remaining[#remaining + 1] = tile_position
 			elseif force and not tile.to_be_deconstructed(force) then
@@ -792,14 +893,20 @@ local function refresh_queue_entry(index)
 
 	entry.remaining = {}
 	entry.created_ghosts = entry.created_ghosts or {}
+	entry.replacement_tiles = entry.replacement_tiles or {}
 	for _, tile in ipairs(unsafe) do
+		local tile_name = entry.replacement_tiles[tile.key]
+			or entry.replacement_tile
+			or entry.default_tile
+		entry.replacement_tiles[tile.key] = tile_name
 		entry.remaining[tile.key] = { x = tile.x, y = tile.y }
-		local ghost = ensure_tile_ghost(surface, tile.x, tile.y, entry.force, entry.replacement_tile)
+		local ghost = ensure_tile_ghost(surface, tile.x, tile.y, entry.force, tile_name)
 		if ghost then
 			entry.created_ghosts[tile.key] = {
 				ghost = ghost,
 				x = tile.x,
 				y = tile.y,
+				name = tile_name,
 			}
 		end
 	end
@@ -882,11 +989,15 @@ local function record_ghost_builders(event, builder, surface)
 			local indices = queue_indices_at(event.surface_index, position.x, position.y)
 			for index in pairs(indices or {}) do
 				local entry = storage_state().queued[index]
+				local expected_tile = entry
+					and entry.replacement_tiles
+					and entry.replacement_tiles[key]
+					or (entry and entry.replacement_tile)
 				if
 					entry
 					and entry.created_ghosts
 					and entry.created_ghosts[key]
-					and entry.replacement_tile == tile_name
+					and expected_tile == tile_name
 				then
 					entry.built_by = entry.built_by or {}
 					entry.built_by[key] = builder
@@ -962,12 +1073,12 @@ local function on_marked_for_deconstruction(event)
 		return
 	end
 
-	local replacement_tile = choose_replacement_tile(player, entity, #unsafe, force_name, rule)
+	local replacement_tiles, replacement_tile = choose_replacement_tiles(player, entity, unsafe, force_name, rule)
 	cancel_entity_deconstruction(entity, force_name, player)
 	if entity.valid and entity.to_be_deconstructed() then
 		cancel_all_deconstruction(entity)
 	end
-	queue_entity(entity, rule, force_name, event.player_index, replacement_tile)
+	queue_entity(entity, rule, force_name, event.player_index, replacement_tiles, replacement_tile)
 end
 
 local function apply_undo_actions(actions)
@@ -1031,13 +1142,32 @@ function Public.on_configuration_changed(configuration_changed_data)
 	for index, entry in pairs(storage_state().queued) do
 		local entity = entry.entity
 		local rule = entity and entity.valid and get_rule(entity) or nil
-		if not rule or not prototypes.tile[entry.replacement_tile] then
+		local valid_tiles = true
+		if entry.replacement_tiles then
+			for _, tile_name in pairs(entry.replacement_tiles) do
+				if not prototypes.tile[tile_name] then
+					valid_tiles = false
+					break
+				end
+			end
+		elseif not prototypes.tile[entry.replacement_tile] then
+			valid_tiles = false
+		end
+		if not rule or not valid_tiles then
 			cleanup_entry(index)
 		end
 	end
 
 	for index, pending in pairs(storage_state().cleanup) do
-		if not prototypes.tile[pending.tile_name] then
+		local valid = true
+		for _, tile_position in pairs(pending.tiles or {}) do
+			local tile_name = tile_position.name or pending.tile_name
+			if not prototypes.tile[tile_name] then
+				valid = false
+				break
+			end
+		end
+		if not valid then
 			storage_state().cleanup[index] = nil
 		end
 	end
@@ -1129,6 +1259,36 @@ function Public._test_select_replacement_tile(
 	)
 end
 
+function Public._test_select_replacement_tile_for_tile(
+	contents,
+	default_item_count,
+	required_count,
+	in_stationary_roboport_range,
+	is_character,
+	default_tile,
+	default_tile_item,
+	surface_index,
+	x,
+	y
+)
+	local surface = game.surfaces[surface_index]
+	if not surface or not surface.valid then
+		return nil
+	end
+	return select_replacement_tile(
+		contents,
+		default_item_count,
+		required_count,
+		in_stationary_roboport_range,
+		is_character,
+		default_tile,
+		default_tile_item,
+		function(tile_name)
+			return tile_can_be_built(surface, tile_name, x, y)
+		end
+	)
+end
+
 function Public._test_queue_entity(entity, force_name, player_index, replacement_tile)
 	local rule = is_eligible(entity)
 	if not rule then
@@ -1165,6 +1325,7 @@ function Public._test_get_queued(surface_index)
 				index = index,
 				entity = entry.entity,
 				replacement_tile = entry.replacement_tile,
+				replacement_tiles = entry.replacement_tiles,
 				remaining = entry.remaining,
 				created_ghosts = entry.created_ghosts,
 				built_by = entry.built_by,

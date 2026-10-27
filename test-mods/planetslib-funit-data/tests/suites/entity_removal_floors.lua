@@ -783,6 +783,62 @@ return function(runner)
 		})
 	end)
 
+	runner.test("ERF-21 selected floor tile is buildable on the unsafe tile", function()
+		local surface = prepare_surface(runner)
+		run_with_cleanup(function()
+			cleanup_surface(surface)
+		end, function()
+			local x, y = 20, 20
+			set_tile(surface, "funit-erf-foundation-only", x, y)
+
+			local function can_build(tile_name)
+				return surface.can_place_entity({
+					name = "tile-ghost",
+					inner_name = tile_name,
+					position = { x + 0.5, y + 0.5 },
+				})
+			end
+
+			runner.assert(not can_build(SAFE_TILE), "fixture error: the default tile should not be buildable here")
+			runner.assert(can_build("foundation"), "fixture error: the foundation should be buildable here")
+
+			local selected = remote.call(
+				"planetslib_funit",
+				"entity_removal_floors_select_replacement_tile_for_tile",
+				{
+					{ name = SAFE_ITEM, count = 1 },
+					{ name = "foundation", count = 1 },
+				},
+				1,
+				1,
+				false,
+				true,
+				SAFE_TILE,
+				SAFE_ITEM,
+				surface.index,
+				x,
+				y
+			)
+			runner.assert(selected == "foundation", "expected the buildable foundation, got " .. tostring(selected))
+			runner.assert(can_build(selected), "the selected replacement tile is not buildable on the unsafe tile")
+
+			local entity = create_entity(runner, surface, { x + 0.5, y + 0.5 })
+			local index = remote.call(
+				"planetslib_funit",
+				"entity_removal_floors_queue_entity",
+				entity,
+				"player",
+				nil,
+				selected
+			)
+			runner.assert(index, "could not queue the entity with the selected floor")
+			runner.assert(
+				tile_ghost_names(surface, { x, y }).foundation,
+				"the queued floor did not use the buildable foundation"
+			)
+		end)
+	end)
+
 	runner.test("ERF-20 removes the test surface", function()
 		local surface = prepared_surface
 		prepared_surface = nil

@@ -40,6 +40,18 @@ local setup_ok, setup_err = pcall(function()
 	unsafe_tile.destroys_dropped_items = true
 	data:extend({ unsafe_tile })
 
+	-- A water-like unsafe tile where paths cannot be built but foundations can.
+	local foundation_only = table.deepcopy(data.raw.tile["water"])
+	foundation_only.name = "funit-erf-foundation-only"
+	foundation_only.autoplace = nil
+	foundation_only.fluid = nil
+	foundation_only.destroys_dropped_items = true
+	data:extend({ foundation_only })
+	local foundation_item = data.raw.item["foundation"]
+	assert(foundation_item and foundation_item.place_as_tile and foundation_item.place_as_tile.tile_condition,
+		"the foundation item is missing its tile_condition list")
+	table.insert(foundation_item.place_as_tile.tile_condition, "funit-erf-foundation-only")
+
 	local safe_item = table.deepcopy(data.raw.item["stone-brick"])
 	safe_item.name = "funit-erf-safe-item"
 	safe_item.place_as_tile.result = "funit-erf-safe"

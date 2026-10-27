@@ -513,6 +513,9 @@ if script.active_mods["funit"] then
 		entity_removal_floors_select_replacement_tile = function(...)
 			return entity_removal_floors._test_select_replacement_tile(...)
 		end,
+		entity_removal_floors_select_replacement_tile_for_tile = function(...)
+			return entity_removal_floors._test_select_replacement_tile_for_tile(...)
+		end,
 		entity_removal_floors_has_stationary_roboport_coverage = function(surface, force, position)
 			return entity_removal_floors._test_has_stationary_roboport_coverage(surface, force, position)
 		end,

@@ -20,7 +20,7 @@ PlanetsLib.assign_entity_removal_floor("muluna", { "lunar-rock", "lunar-huge-roc
 
 * `planet` — Planet name or planet prototype. Only surfaces whose `LuaSurface.planet` matches this planet use the rule.
 * `entities` — One entity name, an array of names, or a dictionary of name to `true`. The entities must exist and have a supported prototype type: `simple-entity`, `plant`, or `container`.
-* `default_tile` — Tile prototype placed under the entity. It must not have `destroys_dropped_items` set, or the floor would destroy the same drops it is meant to protect.
+* `default_tile` — Preferred tile prototype placed under the entity. It must not have `destroys_dropped_items` set, or the floor would destroy the same drops it is meant to protect. PlanetsLib verifies that the tile can actually be built on each unsafe footprint tile; if the default cannot be built there, another buildable safe tile is chosen.
 * `options` (optional):
     * `default_tile_item` — Item used to place `default_tile`. If omitted, PlanetsLib finds an item whose `place_as_tile` result is `default_tile`. When no such item exists, players cannot fall back to another tile.
     * `waiting_message` — Localised string shown when a queued entity is marked for deconstruction again. Defaults to a PlanetsLib message.
@@ -37,7 +37,7 @@ When one of the configured entities is marked for deconstruction:
 4. When the floor has been built, the deconstruction order is reissued. Construction robots can then deconstruct the entity without destroying its drops.
 5. If construction robots built the temporary floor, it is ordered for deconstruction after the entity is gone and its dropped items have been picked up. Floors built by a player are left in place.
 
-Character players who are outside a stationary roboport network and do not carry enough of the rule's `default_tile_item` may use another tile item from their inventory, provided it places a safe tile. The rule's `default_tile` is used when no suitable fallback exists.
+Character players who are outside a stationary roboport network and do not carry enough of the rule's `default_tile_item` may use another tile item from their inventory, provided it places a safe tile that is buildable on the footprint tile. The rule's `default_tile` is used when no suitable fallback exists.
 
 Undoing the deconstruction order removes the queued entry and any tile ghosts that PlanetsLib created for it.
 
