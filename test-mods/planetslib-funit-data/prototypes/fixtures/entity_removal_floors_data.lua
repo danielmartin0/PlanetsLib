@@ -14,32 +14,33 @@ local function record(id, fn)
 	results.record(SUITE, id, ok, err)
 end
 
-local function add_simple_entity(name)
+local function add_simple_entity(name, options)
+	options = options or {}
 	local entity = table.deepcopy(data.raw["simple-entity"]["big-rock"])
 	entity.name = name
 	entity.autoplace = nil
-	entity.collision_box = { { -0.45, -0.45 }, { 0.45, 0.45 } }
-	entity.selection_box = { { -0.5, -0.5 }, { 0.5, 0.5 } }
-	entity.minable = { mining_time = 0.2, result = "stone", count = 1 }
+	entity.collision_box = options.collision_box or { { -0.45, -0.45 }, { 0.45, 0.45 } }
+	entity.selection_box = options.selection_box or { { -0.5, -0.5 }, { 0.5, 0.5 } }
+	entity.minable = options.minable or { mining_time = 0.2, result = "stone", count = 1 }
 	entity.max_health = 100
 	data:extend({ entity })
 	return entity
 end
 
 local setup_ok, setup_err = pcall(function()
-	local safe_tile = table.deepcopy(data.raw.tile["landfill"])
+	local safe_tile = table.deepcopy(data.raw.tile["stone-path"])
 	safe_tile.name = "funit-erf-safe"
-	safe_tile.localised_name = { "tile-name.landfill" }
+	safe_tile.localised_name = { "tile-name.stone-path" }
 	safe_tile.destroys_dropped_items = nil
 	data:extend({ safe_tile })
 
-	local unsafe_tile = table.deepcopy(data.raw.tile["landfill"])
+	local unsafe_tile = table.deepcopy(data.raw.tile["dry-dirt"])
 	unsafe_tile.name = "funit-erf-unsafe"
-	unsafe_tile.localised_name = { "tile-name.landfill" }
+	unsafe_tile.localised_name = { "tile-name.dry-dirt" }
 	unsafe_tile.destroys_dropped_items = true
 	data:extend({ unsafe_tile })
 
-	local safe_item = table.deepcopy(data.raw.item["landfill"])
+	local safe_item = table.deepcopy(data.raw.item["stone-brick"])
 	safe_item.name = "funit-erf-safe-item"
 	safe_item.place_as_tile.result = "funit-erf-safe"
 	data:extend({ safe_item })
@@ -53,6 +54,21 @@ local setup_ok, setup_err = pcall(function()
 	add_simple_entity("funit-erf-rock")
 	add_simple_entity("funit-erf-rock-b")
 	add_simple_entity("funit-erf-rock-c")
+	add_simple_entity("funit-erf-large-rock", {
+		collision_box = { { -1.5, -1.1 }, { 1.5, 1.1 } },
+		selection_box = { { -1.7, -1.3 }, { 1.7, 1.3 } },
+	})
+	add_simple_entity("funit-erf-drop-rock", {
+		collision_box = { { -0.95, -0.95 }, { 0.95, 0.95 } },
+		selection_box = { { -1, -1 }, { 1, 1 } },
+		minable = {
+			mining_time = 0.2,
+			results = {
+				{ type = "item", name = "stone", amount = 15 },
+				{ type = "item", name = "sulfur", amount = 2 },
+			},
+		},
+	})
 
 	local planet = table.deepcopy(data.raw.planet.nauvis)
 	planet.name = "funit-erf-planet"
@@ -78,6 +94,13 @@ local setup_ok, setup_err = pcall(function()
 	PlanetsLib.add_entity_removal_floor_rule(
 		"funit-erf-planet",
 		{ "funit-erf-rock-b" },
+		"funit-erf-safe",
+		{ default_tile_item = "funit-erf-safe-item" }
+	)
+
+	PlanetsLib.assign_entity_removal_floor(
+		"funit-erf-planet",
+		{ "funit-erf-large-rock", "funit-erf-drop-rock" },
 		"funit-erf-safe",
 		{ default_tile_item = "funit-erf-safe-item" }
 	)
@@ -109,6 +132,8 @@ record("ERF-1", function()
 	)
 	assert(rules["funit-erf-rock-b"], "the alias did not store its entity rule")
 	assert(rules["funit-erf-rock-b"].default_tile == "funit-erf-safe", "the alias rule has the wrong tile")
+	assert(rules["funit-erf-large-rock"], "the multi-tile test entity has no rule")
+	assert(rules["funit-erf-drop-rock"], "the drop test entity has no rule")
 
 	local planet_b_rules = PlanetsLib.constants.entity_removal_floors["funit-erf-planet-b"]
 	assert(planet_b_rules["funit-erf-rock-c"], "the inferred item rule is missing")
