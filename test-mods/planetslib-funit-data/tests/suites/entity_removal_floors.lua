@@ -370,7 +370,46 @@ return function(runner)
 		end)
 	end)
 
-	runner.test("ERF-10 removes the test surface", function()
+	runner.test("ERF-10 stationary roboport coverage is detected", function()
+		local surface = prepare_surface(runner)
+		local roboport = surface.create_entity({
+			name = "roboport",
+			position = { 0.5, 0.5 },
+			force = game.forces.player,
+		})
+		runner.assert(roboport and roboport.valid, "could not create the test roboport")
+
+		runner.after_n_ticks_do(1, function()
+			local ok, err = pcall(function()
+				runner.assert(
+					remote.call(
+						"planetslib_funit",
+						"entity_removal_floors_has_stationary_roboport_coverage",
+						surface,
+						game.forces.player,
+						{ x = 0.5, y = 0.5 }
+					),
+					"stationary roboport position was not reported as covered"
+				)
+				runner.assert(
+					not remote.call(
+						"planetslib_funit",
+						"entity_removal_floors_has_stationary_roboport_coverage",
+						surface,
+						game.forces.player,
+						{ x = 100.5, y = 100.5 }
+					),
+					"position outside the roboport construction area was reported as covered"
+				)
+			end)
+			cleanup_surface(surface)
+			if not ok then
+				error(err, 0)
+			end
+		end)
+	end)
+
+	runner.test("ERF-11 removes the test surface", function()
 		local surface = prepared_surface
 		prepared_surface = nil
 		if surface and surface.valid then

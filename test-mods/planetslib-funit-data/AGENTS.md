@@ -91,6 +91,7 @@ remote.call("planetslib_funit", "entity_removal_floors_prune_invalid_entries")
 remote.call("planetslib_funit", "entity_removal_floors_floor_bounds", entity)
 remote.call("planetslib_funit", "entity_removal_floors_analyse_floor", entity)
 remote.call("planetslib_funit", "entity_removal_floors_select_replacement_tile", contents, default_item_count, required_count, in_stationary_roboport_range, is_character, default_tile, default_tile_item)
+remote.call("planetslib_funit", "entity_removal_floors_has_stationary_roboport_coverage", surface, force, position)
 remote.call("planetslib_funit", "entity_removal_floors_queue_entity", entity, force_name, player_index, replacement_tile)
 remote.call("planetslib_funit", "entity_removal_floors_apply_undo_actions", actions)
 remote.call("planetslib_funit", "entity_removal_floors_clear_surface_state", surface_index)
@@ -260,7 +261,7 @@ do not hardcode totals here. Check the files for the current state.
 
 | Suite | IDs | What to cover |
 | --- | --- | --- |
-| `entity_removal_floors` | ERF-1..10 | Data-stage rule configuration and validation; queueing a deconstruction, tile-ghost creation and cancellation; reissuing deconstruction after the floor is built; undo cleanup; default/fallback tile selection; whole-tile footprint bounds; robot-built floor cleanup after drops are gone; player-built floors kept; direct grouped mod-data rules; test-surface cleanup. |
+| `entity_removal_floors` | ERF-1..11 | Data-stage rule configuration and validation; queueing a deconstruction, tile-ghost creation and cancellation; reissuing deconstruction after the floor is built; undo cleanup; default/fallback tile selection; stationary roboport coverage; whole-tile footprint bounds; robot-built floor cleanup after drops are gone; player-built floors kept; direct grouped mod-data rules; test-surface cleanup. |
 | `rocket_parts` | RP-1..4 | `on_built_rocket_silo` recipe assignment/default/`_other`, lock behaviour, auto-lock heuristic, ghost silo, non-rocket ignore; `fits_surface_conditions`. Fixture: `rocket_parts_setup`. |
 | `cargo_pods` | CARGO-1..6 | Cargo-drop technology per space location + `nothing` effect; disallowed cargo pod destroyed, cargo to hub, throttled warning; whitelist variants (global/per-planet item/type + legacy); on-platform detection; deprecated remote interface add/remove; `init_storage` idempotence. |
 | `unreachable_techs` | URT-1..4 | Hidden-prerequisite warnings + truncation; `warn_unlinked_prerequisites`; author auto-unban vs normal ban; on-join tick-0 warning gated by setting. |

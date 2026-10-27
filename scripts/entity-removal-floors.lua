@@ -291,7 +291,7 @@ local function has_stationary_roboport_coverage(surface, force, position)
 		return false
 	end
 
-	for _, network in pairs(surface.find_logistic_networks_by_construction_area(force, position)) do
+	for _, network in pairs(surface.find_logistic_networks_by_construction_area(position, force)) do
 		for _, cell in pairs(network.cells) do
 			if cell.valid and not cell.mobile and cell.is_in_construction_range(position) then
 				return true
@@ -1123,6 +1123,10 @@ end
 
 function Public._test_analyse_floor(entity)
 	return analyse_floor(entity)
+end
+
+function Public._test_has_stationary_roboport_coverage(surface, force, position)
+	return has_stationary_roboport_coverage(surface, force, position)
 end
 
 function Public._test_select_replacement_tile(

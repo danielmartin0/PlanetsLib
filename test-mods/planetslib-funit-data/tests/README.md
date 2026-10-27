@@ -115,6 +115,7 @@ Available seam functions: `replace_entity`, `on_built_entity`,
 `entity_removal_floors_prune_invalid_entries`,
 `entity_removal_floors_floor_bounds`, `entity_removal_floors_analyse_floor`,
 `entity_removal_floors_select_replacement_tile`,
+`entity_removal_floors_has_stationary_roboport_coverage`,
 `entity_removal_floors_queue_entity`, `entity_removal_floors_apply_undo_actions`,
 `entity_removal_floors_clear_surface_state`,
 `entity_removal_floors_get_queued`, `entity_removal_floors_get_cleanup`.
