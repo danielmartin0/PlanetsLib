@@ -16,4 +16,5 @@ We aim to never make any breaking API changes such that the library is safe to u
 
 * In your pull requests, please list your changes in changelog.txt to be included in the next release. Please also update `README.md` to add sections for your new functionality (even with only 'Documentation pending') and add yourself to the contributors list.
 * Contributions MUST be tested before a PR is made, ideally with multiple planets installed.
+* The mod must load and run on both the latest stable and the latest experimental Factorio release from one codebase. Features that depend on behavior only present in an experimental build must be version-gated (for example `helpers.compare_versions(helpers.game_version, "...")`). CI runs the test suite against both release channels.
 * Feel free to use the file `todo.md`.

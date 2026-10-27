@@ -5,6 +5,7 @@
 ## Checklist
 
 - [ ] Changes have been tested
+- [ ] Changes load and run on both the latest stable and the latest experimental Factorio release (features that rely on experimental behavior are version-gated)
 - [ ] Changes do not break backwards compatibility
 - [ ] `changelog.txt` has been updated
 - [ ] `README.md` has been updated (documentation section and/or Contributors list)
