@@ -442,16 +442,6 @@ local function queue_uses_tile(surface_index, x, y)
 	return by_y ~= nil and next(by_y) ~= nil
 end
 
-local function queue_uses_tile_other_than(surface_index, x, y, index)
-	local indices = queue_indices_at(surface_index, x, y)
-	for other_index in pairs(indices or {}) do
-		if other_index ~= index then
-			return true
-		end
-	end
-	return false
-end
-
 local function ensure_tile_ghost(surface, x, y, force_name, tile_name)
 	local tile = surface.get_tile(x, y)
 	if not tile or not tile.valid or not tile.prototype.destroys_dropped_items then
@@ -792,8 +782,7 @@ local function refresh_queue_entry(index)
 	end
 
 	entry.remaining = {}
-	local old_created = entry.created_ghosts or {}
-	entry.created_ghosts = {}
+	entry.created_ghosts = entry.created_ghosts or {}
 	for _, tile in ipairs(unsafe) do
 		entry.remaining[tile.key] = { x = tile.x, y = tile.y }
 		local ghost = ensure_tile_ghost(surface, tile.x, tile.y, entry.force, entry.replacement_tile)
@@ -803,24 +792,6 @@ local function refresh_queue_entry(index)
 				x = tile.x,
 				y = tile.y,
 			}
-		elseif old_created[tile.key] then
-			entry.created_ghosts[tile.key] = old_created[tile.key]
-		end
-	end
-
-	-- Destroy ghosts this entry created for tiles that no longer need a floor.
-	-- Keep ghosts that another queued entity still needs.
-	for key, created in pairs(old_created) do
-		if not entry.created_ghosts[key] then
-			local ghost = created.ghost
-			if
-				ghost
-				and ghost.valid
-				and ghost.ghost_name == entry.replacement_tile
-				and not queue_uses_tile_other_than(entry.surface_index, created.x, created.y, index)
-			then
-				ghost.destroy({ raise_destroy = true })
-			end
 		end
 	end
 end
