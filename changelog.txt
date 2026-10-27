@@ -3,7 +3,6 @@ Version: 2.4.0
 Date: 2026-10-26
   Features:
     - Added PlanetsLib.assign_entity_removal_floor(planet, entities, default_tile, options). When configured simple entities are marked for deconstruction over tiles that destroy dropped items, PlanetsLib places temporary tile ghosts under them, pauses deconstruction until the floor is built, and then resumes it. Robot-built temporary floors are removed after the entity's drops are collected. Rules are stored per planet and entity in the Planetslib mod-data prototype's entity_removal_floors table, and each rule has its own default tile.
-  Changes:
 ---------------------------------------------------------------------------------------------------
 Version: 2.3.6
 Date: 2026-10-25
