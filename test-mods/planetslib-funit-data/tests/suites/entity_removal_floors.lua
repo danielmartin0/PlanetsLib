@@ -9,6 +9,7 @@ local ENTITY = "funit-erf-rock"
 local ENTITY_B = "funit-erf-rock-b"
 local LARGE_ENTITY = "funit-erf-large-rock"
 local DROP_ENTITY = "funit-erf-drop-rock"
+local PLANT = "funit-erf-plant"
 local SAFE_TILE = "funit-erf-safe"
 local UNSAFE_TILE = "funit-erf-unsafe"
 local SAFE_ITEM = "funit-erf-safe-item"
@@ -97,7 +98,7 @@ local function create_named_entity(runner, surface, name, position)
 		position = position,
 		force = game.forces.player,
 	})
-	runner.assert(entity and entity.valid, "could not create the test simple entity " .. name)
+	runner.assert(entity and entity.valid, "could not create the test entity " .. name)
 	return entity
 end
 
@@ -215,6 +216,7 @@ return function(runner)
 		local rules = prototypes.mod_data["Planetslib"].data.entity_removal_floors
 		runner.assert(rules and rules[PLANET], "the test planet has no entity removal floor rules")
 		runner.assert(rules[PLANET][ENTITY], "the test entity has no rule")
+		runner.assert(rules[PLANET][PLANT], "the plant test entity has no rule")
 		runner.assert(rules[PLANET][ENTITY].default_tile == SAFE_TILE, "the configured default tile is wrong")
 		runner.assert(
 			rules[PLANET][ENTITY].default_tile_item == SAFE_ITEM,
@@ -239,8 +241,15 @@ return function(runner)
 			runner.assert(ghost, "no tile ghost was created under the queued entity")
 			runner.assert(ghost.ghost_name == SAFE_TILE, "the tile ghost has the wrong tile")
 
+			local plant = create_named_entity(runner, surface, PLANT, { 1.5, 0.5 })
+			mark_queued(runner, plant)
+			runner.assert(not plant.to_be_deconstructed(), "the plant deconstruction order was not cancelled")
+			local plant_ghost = find_tile_ghost(surface, { 1.5, 0.5 })
+			runner.assert(plant_ghost, "no tile ghost was created under the queued plant")
+			runner.assert(plant_ghost.ghost_name == SAFE_TILE, "the plant tile ghost has the wrong tile")
+
 			local entries = queued(surface)
-			runner.assert(#entries == 1, "expected exactly one queued entity, got " .. #entries)
+			runner.assert(#entries == 2, "expected two queued entities, got " .. #entries)
 			runner.assert(entries[1].replacement_tile == SAFE_TILE, "the queued replacement tile is wrong")
 		end)
 	end)

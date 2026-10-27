@@ -70,6 +70,17 @@ local setup_ok, setup_err = pcall(function()
 		},
 	})
 
+	local plant = table.deepcopy(data.raw["plant"]["tree-plant"])
+	plant.name = "funit-erf-plant"
+	plant.autoplace = nil
+	plant.collision_box = { { -0.45, -0.45 }, { 0.45, 0.45 } }
+	plant.selection_box = { { -0.5, -0.5 }, { 0.5, 0.5 } }
+	plant.minable = {
+		mining_time = 0.2,
+		results = { { type = "item", name = "wood", amount = 1 } },
+	}
+	data:extend({ plant })
+
 	local planet = table.deepcopy(data.raw.planet.nauvis)
 	planet.name = "funit-erf-planet"
 	planet.surface_properties = {}
@@ -100,7 +111,7 @@ local setup_ok, setup_err = pcall(function()
 
 	PlanetsLib.assign_entity_removal_floor(
 		"funit-erf-planet",
-		{ "funit-erf-large-rock", "funit-erf-drop-rock" },
+		{ "funit-erf-large-rock", "funit-erf-drop-rock", "funit-erf-plant" },
 		"funit-erf-safe",
 		{ default_tile_item = "funit-erf-safe-item" }
 	)
@@ -134,6 +145,7 @@ record("ERF-1", function()
 	assert(rules["funit-erf-rock-b"].default_tile == "funit-erf-safe", "the alias rule has the wrong tile")
 	assert(rules["funit-erf-large-rock"], "the multi-tile test entity has no rule")
 	assert(rules["funit-erf-drop-rock"], "the drop test entity has no rule")
+	assert(rules["funit-erf-plant"], "the plant test entity has no rule")
 
 	local planet_b_rules = PlanetsLib.constants.entity_removal_floors["funit-erf-planet-b"]
 	assert(planet_b_rules["funit-erf-rock-c"], "the inferred item rule is missing")
@@ -170,7 +182,7 @@ record("ERF-2", function()
 	)
 	assert(
 		not pcall(PlanetsLib.assign_entity_removal_floor, "funit-erf-planet", "transport-belt", "funit-erf-safe"),
-		"a non-simple entity must be rejected"
+		"an unsupported entity type must be rejected"
 	)
 	assert(
 		not pcall(PlanetsLib.assign_entity_removal_floor, "funit-erf-planet", "funit-erf-rock", "missing-tile"),

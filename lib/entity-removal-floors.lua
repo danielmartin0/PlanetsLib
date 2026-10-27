@@ -1,5 +1,5 @@
 --- PlanetsLib entity removal floors
---- Places temporary tile ghosts underneath configured simple entities while they
+--- Places temporary tile ghosts underneath configured entities while they
 --- are marked for deconstruction. This prevents construction robots from
 --- destroying an entity's mining results when the entity sits on a tile whose
 --- prototype has destroys_dropped_items set.
@@ -15,6 +15,34 @@ local lib = require("lib.lib")
 local Public = {}
 
 local DEFAULT_WAITING_MESSAGE = { "planetslib.entity-removal-floor-waiting" }
+
+-- Entity prototype types that can use this mechanic. Plants are included
+-- because they are deconstructable and can drop items just like simple
+-- entities.
+local SUPPORTED_ENTITY_TYPES = {
+	"simple-entity",
+	"plant",
+}
+
+---Finds a supported entity prototype by name.
+-- @param entity_name string
+-- @return table|nil
+local function find_supported_entity_prototype(entity_name)
+	for _, entity_type in ipairs(SUPPORTED_ENTITY_TYPES) do
+		local prototypes_of_type = data.raw[entity_type]
+		local prototype = prototypes_of_type and prototypes_of_type[entity_name]
+		if prototype then
+			return prototype
+		end
+	end
+	return nil
+end
+
+---Returns the supported prototype types as a readable list.
+-- @return string
+local function supported_entity_types_text()
+	return table.concat(SUPPORTED_ENTITY_TYPES, ", ")
+end
 
 ---Returns the tile prototype name from a data-stage place_as_tile result.
 -- @param result string|table|nil
@@ -84,14 +112,14 @@ local function normalize_entities(entities, api_name)
 	if #names == 0 then
 		error(
 			api_name
-				.. " - 'entities' must name at least one simple entity. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
+				.. " - 'entities' must name at least one supported entity. See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
 		)
 	end
 	return names
 end
 
 --- PlanetsLib.assign_entity_removal_floor(planet, entities, default_tile, options)
---- Configures temporary floor tiles for simple entities on a planet. When one of
+--- Configures temporary floor tiles for entities on a planet. When one of
 --- the entities is marked for deconstruction while standing on a tile whose
 --- prototype destroys dropped items, PlanetsLib cancels the deconstruction
 --- order, places tile ghosts of `default_tile` under it, and reissues the order
@@ -126,13 +154,15 @@ function Public.assign_entity_removal_floor(planet, entities, default_tile, opti
 	local entity_names = normalize_entities(entities, api_name)
 	for _, entity_name in ipairs(entity_names) do
 		assert(
-			data.raw["simple-entity"][entity_name],
+			find_supported_entity_prototype(entity_name),
 			api_name
-				.. " - Simple entity not found: "
+				.. " - Entity not found or unsupported type: "
 				.. tostring(entity_name)
 				.. " (configured for planet "
 				.. planet_name
-				.. "). See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
+				.. "). Supported prototype types: "
+				.. supported_entity_types_text()
+				.. ". See the PlanetsLib documentation at https://mods.factorio.com/mod/PlanetsLib."
 		)
 	end
 

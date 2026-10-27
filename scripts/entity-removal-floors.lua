@@ -13,6 +13,12 @@ local DEFAULT_WAITING_MESSAGE = { "planetslib.entity-removal-floor-waiting" }
 local TILE_GHOST_NAME = "tile-ghost"
 local RECHECK_RADIUS = 6
 
+-- Must match the supported list in lib/entity-removal-floors.lua.
+local SUPPORTED_ENTITY_TYPES = {
+	["simple-entity"] = true,
+	["plant"] = true,
+}
+
 local rules_by_planet = {}
 local entity_names_by_planet = {}
 local enabled = false
@@ -62,13 +68,15 @@ local function build_rule_index()
 					)
 					return
 				end
-				if entity_prototype.type ~= "simple-entity" then
+				if not SUPPORTED_ENTITY_TYPES[entity_prototype.type] then
 					log(
 						"[PlanetsLib] Ignoring entity removal floor rule for "
 							.. planet_name
 							.. "/"
 							.. entity_name
-							.. ": entity is not a simple-entity."
+							.. ": entity type is not supported ("
+							.. tostring(entity_prototype.type)
+							.. ")."
 					)
 					return
 				end
@@ -171,7 +179,7 @@ end
 
 local function is_eligible(entity)
 	local rule = get_rule(entity)
-	if not rule or entity.type ~= "simple-entity" then
+	if not rule or not SUPPORTED_ENTITY_TYPES[entity.type] then
 		return nil
 	end
 	return rule
@@ -233,7 +241,7 @@ end
 --== Footprint analysis ==--
 
 ---Returns the whole-tile footprint of an entity as left, right, top, bottom.
--- Simple entities may be placed off-grid, so use the entity's nominal footprint
+-- Entities may be placed off-grid, so use the entity's nominal footprint
 -- instead of its raw bounding box, which can clip an extra tile by a fraction.
 -- @param entity LuaEntity
 -- @return number, number, number, number
