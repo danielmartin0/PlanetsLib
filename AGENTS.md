@@ -268,7 +268,8 @@ The body should contain, in order:
 2. **Checklist** — use the repository's pull request checklist. Do not check `README.md` unless the
    README itself was updated; mention documentation changes in `docs-source/` separately.
 3. **Testing Notes** — list every tested Factorio scenario with the scenario name, test count, and
-   failures/errors. Include the Factorio version used locally and note that CI runs the latest image.
+   failures/errors. Include the Factorio version used locally and note that CI runs both the
+   `stable` and `latest` (experimental) Factorio images.
    Also list syntax, Ruby, and diff checks that were run.
 4. **Bugfix review scope** — identify the bugfix commits explicitly and state that test-only commits
    are excluded from the bugfix checklist.

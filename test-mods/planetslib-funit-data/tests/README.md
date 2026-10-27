@@ -77,8 +77,9 @@ useful when debugging the harness itself.
    only affects local runs.
 
 The CI workflow (`.github/workflows/funit.yml`) does steps 2–5 automatically
-inside the `factoriotools/factorio:latest` job container. It builds PlanetsLib,
-this companion mod, the settings mod and FUnit as local zips, runs the four
+inside the `factoriotools/factorio` job container, once per Factorio release
+channel (`stable` and `latest`/experimental). It builds PlanetsLib, this
+companion mod, the settings mod and FUnit as local zips, runs the four
 scenarios, and converts the per-scenario JSON reports to JUnit XML. Each
 scenario starts from a list with explicit DLC and `recycler` entries, then runs
 FUnit's upstream `expand_dependencies.rb` against local copies of the mods so no

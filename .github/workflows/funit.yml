@@ -13,6 +13,10 @@
 #   * base (no Space Age/Quality/Elevated Rails), entity replacements on/off
 #   * Space Age + Quality + Elevated Rails, entity replacements on/off
 #
+# Every scenario runs twice, in a matrix over the Factorio release channels:
+#   * stable       -> factoriotools/factorio:stable (newest stable release)
+#   * experimental -> factoriotools/factorio:latest (newest experimental release)
+#
 # The no-replacements scenarios load the test-only planetslib-funit-settings
 # mod, which forces PlanetsLib-enable-entity-replacements to false.
 #
@@ -34,7 +38,6 @@ permissions:
   contents: read
 
 env:
-  FACTORIO_VERSION: "latest"
   MOD_NAME: PlanetsLib
   TEST_MOD_NAME: planetslib-funit-data
   TEST_MOD_DIR: test-mods/planetslib-funit-data
@@ -60,8 +63,6 @@ jobs:
     container:
       image: ruby:4-alpine
     timeout-minutes: 30
-    outputs:
-      factorio_version: ${{ env.FACTORIO_VERSION }}
     defaults:
       run:
         shell: sh
@@ -187,11 +188,20 @@ jobs:
           if-no-files-found: error
 
   unit-test-job:
-    name: Run FUnit scenarios
+    name: Run FUnit scenarios (${{ matrix.channel }})
     needs: build-archive-job
     runs-on: ubuntu-latest
+    strategy:
+      # An experimental-release failure must not hide the stable result.
+      fail-fast: false
+      matrix:
+        include:
+          - channel: stable
+            image_tag: stable
+          - channel: experimental
+            image_tag: latest
     container:
-      image: "factoriotools/factorio:${{ needs.build-archive-job.outputs.factorio_version }}"
+      image: "factoriotools/factorio:${{ matrix.image_tag }}"
     timeout-minutes: 30
     env:
       UPDATE_MODS_ON_START: "true"
@@ -247,15 +257,21 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: unit-test-job
+          name: unit-test-job-${{ matrix.channel }}
           retention-days: 30
           path: test_artifacts
 
   parse-results-job:
-    name: Parse and summarize FUnit results
+    name: Parse and summarize FUnit results (${{ matrix.channel }})
     needs: unit-test-job
     if: ${{ !cancelled() && needs.unit-test-job.result != 'skipped' }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - channel: stable
+          - channel: experimental
     # Needed to post (and later delete) the failure summary on pull requests.
     permissions:
       contents: read
@@ -268,7 +284,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: unit-test-job
+          name: unit-test-job-${{ matrix.channel }}
           path: test_artifacts
       # Write a human-readable summary to the run page even when a scenario
       # crashed and produced no report. The step itself never fails the job;
@@ -291,16 +307,17 @@ jobs:
         run: |
           ruby parse_funit_json.rb \
             "test_artifacts/${MOD_NAME}/reports" \
-            -o "funit-report-${MOD_NAME}.xml"
+            -o "funit-report-${MOD_NAME}-${{ matrix.channel }}.xml"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: parse-results-job
+          name: parse-results-job-${{ matrix.channel }}
           retention-days: 30
           path: funit-report-*.xml
       # Pull request feedback. Fork PRs are skipped because their GITHUB_TOKEN
       # is read-only, so comment creation and deletion would fail. Each failing
-      # run posts a new comment; any later passing run removes them all.
+      # channel posts a new comment; any later passing run of the same channel
+      # removes it, so one channel's failure is never hidden by the other.
       - name: Comment FUnit failures on pull request
         if: >-
           always() &&
@@ -311,13 +328,14 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const marker = '<!-- funit-results -->';
+            const channel = '${{ matrix.channel }}';
+            const marker = `<!-- funit-results:${channel} -->`;
             const summary = fs.readFileSync('funit-summary.md', 'utf8');
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `${marker}\n${summary}`
+              body: `${marker}\n### Factorio \`${channel}\`\n\n${summary}`
             });
       - name: Remove stale FUnit comments after a passing run
         if: >-
@@ -328,7 +346,13 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const marker = '<!-- funit-results -->';
+            const channel = '${{ matrix.channel }}';
+            // Legacy marker from before the channel matrix; stale comments
+            // carrying it are no longer updated by any channel.
+            const markers = [
+              '<!-- funit-results -->',
+              `<!-- funit-results:${channel} -->`
+            ];
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -338,7 +362,7 @@ jobs:
             for (const comment of comments) {
               const isOurComment =
                 comment.user?.login === 'github-actions[bot]' &&
-                comment.body?.includes(marker);
+                markers.some((marker) => comment.body?.includes(marker));
               if (isOurComment) {
                 await github.rest.issues.deleteComment({
                   owner: context.repo.owner,

@@ -5,9 +5,9 @@
 #
 # FUnit writes one JSON report per scenario (see
 # test-mods/planetslib-funit-data/tests/scenario/control.lua). On a red run the
-# raw reports are buried in the `unit-test-job` artifact. This script turns
-# them into a GitHub step summary that lists every scenario and every failing
-# test, so a failure can be diagnosed without downloading the artifact.
+# raw reports are buried in the `unit-test-job-<channel>` artifact. This script
+# turns them into a GitHub step summary that lists every scenario and every
+# failing test, so a failure can be diagnosed without downloading the artifact.
 #
 # Usage:
 #   ruby summarize_funit_results.rb REPORT_DIR [options]
@@ -406,7 +406,7 @@ incomplete.each do |report|
 end
 
 lines << '_FUnit JSON reports and the full headless log are attached to the ' \
-         '`unit-test-job` artifact for this run._'
+         '`unit-test-job-<channel>` artifact for this run._'
 lines << ''
 
 markdown = lines.join("\n")

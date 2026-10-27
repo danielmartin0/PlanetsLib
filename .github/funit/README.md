@@ -58,13 +58,17 @@ Project-specific changes:
   python3 .github/scripts/check_funit_conventions.py
   ```
 - On a failing run of a same-repository pull request, the workflow posts the
-  summary as a new comment on that PR (marked with a hidden
-  `<!-- funit-results -->` tag). A later passing run deletes all such comments,
-  so stale failures do not linger on the PR. Fork PRs are skipped because their
-  `GITHUB_TOKEN` is read-only; their summary remains in the step summary and
-  annotations.
-- The workflow uses the floating `latest` Factorio image, matching the project
-  policy that FUnit CI should always run against the newest Factorio release.
+  summary as a new comment on that PR (marked with a hidden per-channel tag such
+  as `<!-- funit-results:stable -->`). A later passing run of the same channel
+  deletes that channel's comments, so stale failures do not linger on the PR
+  without hiding a failure in the other channel. Fork PRs are skipped because
+  their `GITHUB_TOKEN` is read-only; their summary remains in the step summary
+  and annotations.
+- The workflow runs the four scenarios twice, once per Factorio release
+  channel: `stable` (`factoriotools/factorio:stable`) and `experimental`
+  (`factoriotools/factorio:latest`). The stable leg catches breakage on the
+  release players actually run; the experimental leg catches breakage before a
+  new Factorio release reaches stable.
 
 The Space Age, Quality, Elevated Rails and Recycler mods are installed by the
 headless Factorio distribution. They cannot be obtained through the mod portal
