@@ -100,6 +100,37 @@ docs/                       Built docs output (committed by update_documentation
 helper scripts              bump_version.sh, archive.sh, update_documentation.sh, config.ld (legacy LDoc config)
 ```
 
+## Factorio version support (stable and experimental)
+
+PlanetsLib ships **one codebase** that must load and run on both the **latest stable** and
+the **latest experimental** Factorio release. `.github/workflows/funit.yml` runs the FUnit
+suite once per release channel (`factoriotools/factorio:stable` and
+`factoriotools/factorio:latest`), so a change that only works on the experimental build
+turns one leg red.
+
+- **Never require an experimental build.** Keep `info.json`'s `factorio_version` and
+  `base >= ...` satisfied by the current stable release.
+- **Version-gate behavior that depends on newer engine builds.** `helpers` exists in every
+  stage (settings, prototype and runtime):
+
+  ```lua
+  local has_new_behavior = helpers.compare_versions(helpers.game_version, "2.1.24") >= 0
+  ```
+
+  Guard the call itself when a build older than the one that added `helpers.compare_versions`
+  must still work (see `lib/global-variable-checks.lua`). Compare against the version that
+  introduced the behavior, not `"latest"`.
+- **Prefer feature detection** (a missing prototype, field or event) over a version bound
+  where the prototype tables expose the difference; `lib/global-variable-checks.lua` repairs
+  vanilla fields that newer builds removed this way. Use a version gate for behavior changes
+  that cannot be detected from the prototype tables.
+- **Gate both directions.** When adding an experimental-only improvement, keep the stable
+  path working instead of deleting the fallback. Assigning a prototype field that the stable
+  build does not recognize errors the data stage, so guard the assignment and not only the
+  runtime behavior.
+- **Test both channels for version-sensitive changes**: run the local headless suite
+  against stable and experimental, or let the CI matrix cover it.
+
 ## Coding conventions
 
 - **Module pattern**: each `lib/*.lua` defines `local Public = {}`, fills it, and `return Public`.
@@ -154,8 +185,9 @@ helper scripts              bump_version.sh, archive.sh, update_documentation.sh
 There is a headless FUnit suite in `test-mods/planetslib-funit-data/tests/` and a GitHub Actions
 workflow (`.github/workflows/funit.yml`) that runs it in a Factorio Docker container in four
 scenarios: base and Space Age + Quality, each with entity replacements on and off. The suite is
-development-only and is not shipped. CI should always use the `latest` Factorio image so tests run
-against the newest engine release. Local headless runs have non-obvious harness requirements
+development-only and is not shipped. CI runs the suite once per Factorio release channel
+(`stable` and `latest`/experimental), so both the release players actually run and the newest
+engine build are covered. Local headless runs have non-obvious harness requirements
 (`auto_pause`, `mod-settings.dat`, the `====END====` signal, and report cleanup); see "Local headless
 harness gotchas" in `test-mods/planetslib-funit-data/AGENTS.md`. There is still no general-purpose Lua
 linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
@@ -310,15 +342,17 @@ Titles for AI-generated PRs should start with `(AI-generated)` and describe the 
 Before opening a PR, ensure:
 
 1. Changes have been **tested** in-game (ideally with several planet mods).
-2. Changes **do not break backwards compatibility**.
-3. `changelog.txt` is updated — prepend a new entry at the top with the version and date, using the
+2. Changes **load and run on both the latest stable and the latest experimental Factorio release**
+   (one codebase serves both; experimental-only behavior must be version-gated).
+3. Changes **do not break backwards compatibility**.
+4. `changelog.txt` is updated — prepend a new entry at the top with the version and date, using the
    existing section headings (`Features`, `Changes`, `Bugfixes`, `Graphics`, `Locale`, `Optimizations`,
    `Info`). Set the date to the release date (leave `????` until released) and add attribution lines
    like `Thank you <name>!` for code, graphics, locale, or testing contributions. Do not credit people
    solely for reporting issues.
-4. Documentation is updated: add/extend `docs-source/docs/...` (and `README.md` sections), and add new
+5. Documentation is updated: add/extend `docs-source/docs/...` (and `README.md` sections), and add new
    contributors to the Contributors list.
-5. The version is bumped with `./bump_version.sh <minor|feature|major>`, which updates `info.json` and the
+6. The version is bumped with `./bump_version.sh <minor|feature|major>`, which updates `info.json` and the
    top of `changelog.txt` together. `archive.sh` reads the version from `info.json`. The `Version` GitHub
    Actions workflow runs `.github/scripts/check_version.sh` to enforce consistency and comments the failure
    on the pull request, so a changelog entry cannot be added without bumping the mod version.
