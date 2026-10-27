@@ -17,6 +17,7 @@ local RECHECK_RADIUS = 6
 local SUPPORTED_ENTITY_TYPES = {
 	["simple-entity"] = true,
 	["plant"] = true,
+	["container"] = true,
 }
 
 local rules_by_planet = {}

@@ -10,6 +10,7 @@ local ENTITY_B = "funit-erf-rock-b"
 local LARGE_ENTITY = "funit-erf-large-rock"
 local DROP_ENTITY = "funit-erf-drop-rock"
 local PLANT = "funit-erf-plant"
+local CONTAINER = "funit-erf-container"
 local SAFE_TILE = "funit-erf-safe"
 local UNSAFE_TILE = "funit-erf-unsafe"
 local SAFE_ITEM = "funit-erf-safe-item"
@@ -217,6 +218,7 @@ return function(runner)
 		runner.assert(rules and rules[PLANET], "the test planet has no entity removal floor rules")
 		runner.assert(rules[PLANET][ENTITY], "the test entity has no rule")
 		runner.assert(rules[PLANET][PLANT], "the plant test entity has no rule")
+		runner.assert(rules[PLANET][CONTAINER], "the container test entity has no rule")
 		runner.assert(rules[PLANET][ENTITY].default_tile == SAFE_TILE, "the configured default tile is wrong")
 		runner.assert(
 			rules[PLANET][ENTITY].default_tile_item == SAFE_ITEM,
@@ -248,8 +250,15 @@ return function(runner)
 			runner.assert(plant_ghost, "no tile ghost was created under the queued plant")
 			runner.assert(plant_ghost.ghost_name == SAFE_TILE, "the plant tile ghost has the wrong tile")
 
+			local container = create_named_entity(runner, surface, CONTAINER, { 2.5, 0.5 })
+			mark_queued(runner, container)
+			runner.assert(not container.to_be_deconstructed(), "the container deconstruction order was not cancelled")
+			local container_ghost = find_tile_ghost(surface, { 2.5, 0.5 })
+			runner.assert(container_ghost, "no tile ghost was created under the queued container")
+			runner.assert(container_ghost.ghost_name == SAFE_TILE, "the container tile ghost has the wrong tile")
+
 			local entries = queued(surface)
-			runner.assert(#entries == 2, "expected two queued entities, got " .. #entries)
+			runner.assert(#entries == 3, "expected three queued entities, got " .. #entries)
 			runner.assert(entries[1].replacement_tile == SAFE_TILE, "the queued replacement tile is wrong")
 		end)
 	end)

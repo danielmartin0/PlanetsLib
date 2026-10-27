@@ -70,6 +70,11 @@ local setup_ok, setup_err = pcall(function()
 		},
 	})
 
+	local container = table.deepcopy(data.raw["container"]["wooden-chest"])
+	container.name = "funit-erf-container"
+	container.autoplace = nil
+	data:extend({ container })
+
 	local plant = table.deepcopy(data.raw["plant"]["tree-plant"])
 	plant.name = "funit-erf-plant"
 	plant.autoplace = nil
@@ -111,7 +116,7 @@ local setup_ok, setup_err = pcall(function()
 
 	PlanetsLib.assign_entity_removal_floor(
 		"funit-erf-planet",
-		{ "funit-erf-large-rock", "funit-erf-drop-rock", "funit-erf-plant" },
+		{ "funit-erf-large-rock", "funit-erf-drop-rock", "funit-erf-plant", "funit-erf-container" },
 		"funit-erf-safe",
 		{ default_tile_item = "funit-erf-safe-item" }
 	)
@@ -146,6 +151,7 @@ record("ERF-1", function()
 	assert(rules["funit-erf-large-rock"], "the multi-tile test entity has no rule")
 	assert(rules["funit-erf-drop-rock"], "the drop test entity has no rule")
 	assert(rules["funit-erf-plant"], "the plant test entity has no rule")
+	assert(rules["funit-erf-container"], "the container test entity has no rule")
 
 	local planet_b_rules = PlanetsLib.constants.entity_removal_floors["funit-erf-planet-b"]
 	assert(planet_b_rules["funit-erf-rock-c"], "the inferred item rule is missing")
