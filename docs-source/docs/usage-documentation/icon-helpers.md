@@ -118,6 +118,34 @@ tech.icon_size = nil
 tech.icons = PlanetsLib.technology_icon_planet("__my-mod__/graphics/technology/planet.png", 256, 0.5)
 ```
 
+### Choosing `shadow_scale`
+
+The shadow sprite is vanilla's 256 px shadow layer: its visible ellipse is
+183 px wide. Vanilla planet-discovery icons pair that ellipse with a planet disc
+about 216 px wide, so the target ellipse-to-disc ratio is `183 / 216`.
+
+Let `disc_px` be the width of the planet disc inside your icon. The scale that
+reproduces vanilla's ratio is:
+
+```latex
+\text{shadow\_scale} = \frac{0.84375 \times \text{icon\_size}}{\text{disc\_px}}
+```
+
+For example, the Castra Prime icon is a 256 px tile with a 250 px planet disc:
+
+```latex
+\text{shadow\_scale} = \frac{0.84375 \times 256}{250} \approx 0.86
+```
+
+A vanilla-sized 256 px icon with a 216 px disc needs `shadow_scale = 1.0`.
+Measure the planet body, not a ring or a glow. If the source icon already has a
+baked-in shadow, do not add this layer as well.
+
+The helper sets the planet layer's `scale` to `shadow_scale * 128 / icon_size`
+and its `shift` to `{0, 10}`. If the original icon used a custom `scale` or
+`shift`, the helper replaces them; pass the final values through after calling
+it if you need to preserve a custom layout.
+
 ### `PlanetsLib.technology_icons_planet_cargo_drops(planet_icon, icon_size, mini)`
 
 Returns an array of four [[IconData]] entries used for cargo-drop technologies: the cargo-pod icon, the planet icon, a semi-transparent black shadow, and the cargo-pod icon again.

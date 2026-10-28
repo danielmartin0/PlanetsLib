@@ -145,6 +145,104 @@ the Markdown to a file, and `--factorio-version` when no FUnit log is available.
 The script only reads git metadata and local files; it never calls `gh` or
 mutates the repository.
 
+## Planet-discovery icon campaign
+
+Three scripts support auditing and upstreaming planet-discovery icon changes.
+They are read-only with respect to the repository and never call `gh` or push.
+
+### `mod_portal_repos.py`
+
+Checks whether mod-portal pages link to a live Git repository. It reads
+`source_url` and `homepage` from `/api/mods/<name>/full`, classifies the host,
+and performs an unauthenticated `HEAD` request. Results are Markdown by default;
+`--json` returns structured data.
+
+```sh
+python3 helper_scripts/mod_portal_repos.py --mod linox --mod cubium
+python3 helper_scripts/mod_portal_repos.py --mods-file mods.txt --json
+```
+
+`--delay` throttles requests. `--git-host` adds a self-hosted Git host.
+Validation:
+
+```sh
+python3 -m py_compile helper_scripts/mod_portal_repos.py
+python3 helper_scripts/mod_portal_repos.py --self-test
+```
+
+### `audit_planet_tech_icons.py`
+
+Reads a `--dump-data` JSON file, finds technologies that unlock a `planet`
+prototype, resolves the primary icon from the supplied `--mods-dir`, measures
+the planet disc, and suggests `shadow_scale` using the vanilla ratio
+(`0.84375 * icon_size / disc_px`). Baked-in shadows are a human decision:
+`--decisions FILE` loads previous `true`/`false` values and writes a skeleton
+for any technology that does not have one yet. `--out FILE` writes a campaign
+JSON suitable for `mod_icon_pr_body.py`.
+
+```sh
+uv run helper_scripts/audit_planet_tech_icons.py \
+    --dump /tmp/opencode/iconcheck/script-output/data-raw-dump.json \
+    --mods-dir /tmp/opencode/perf-final/mods \
+    --factorio-data /opt/factorio_space_age_21/data \
+    --decisions /tmp/opencode/planet-icon-decisions.json \
+    --out /tmp/opencode/planet-icon-campaign.json
+```
+
+Use `--mod NAME` to narrow the report, `--exclude-tech NAME` to drop a
+non-discovery technology or a special case, and `--include-space-locations` to
+include non-planet locations. Validation:
+
+```sh
+uv run helper_scripts/audit_planet_tech_icons.py --self-test
+```
+
+### `render_tech_icon_diff.py`
+
+Runs Factorio twice with `--dump-icon-sprites` (original mod and modified mod),
+then writes `before.png`, `after.png`, and a labelled `diff.png` per technology.
+It builds scratch mod directories with symlinks and never edits the mod
+repository or the supplied mods directory.
+
+```sh
+uv run helper_scripts/render_tech_icon_diff.py \
+    --factorio /opt/factorio_space_age_21 \
+    --mods-dir /tmp/opencode/planet-test/sets/linox/mods \
+    --mod /tmp/opencode/planet-test/testroots/linox/linox_1.8.11 \
+    --before-mod /tmp/opencode/perf-final/mods/linox_1.8.11.zip \
+    --tech linox-technology_planet-discovery-linox \
+    --out /tmp/opencode/linox-icon-diff
+```
+
+`--before-mod` may be a mod directory or a release zip; if omitted, the script
+looks for the installed version in `--mods-dir`. `--keep` preserves the scratch
+directories. Validation:
+
+```sh
+uv run helper_scripts/render_tech_icon_diff.py --self-test
+```
+
+### `mod_icon_pr_body.py`
+
+Turns a campaign JSON file into the Markdown body used for the external icon
+pull requests. It preserves the campaign intro, emits the per-technology
+changes and shadow-scale rationale, embeds the screenshots, and appends the
+testing notes and signature. It only writes Markdown; `--verify-urls` performs
+GET/HEAD checks on the screenshot links.
+
+```sh
+python3 helper_scripts/mod_icon_pr_body.py \
+    --campaign /tmp/opencode/planet-icon-campaign.json \
+    --output /tmp/opencode/body.md --verify-urls
+```
+
+Validation:
+
+```sh
+python3 -m py_compile helper_scripts/mod_icon_pr_body.py
+python3 helper_scripts/mod_icon_pr_body.py --self-test
+```
+
 ## Lua syntax check
 
 `lua_check.sh` runs `luac` over changed/untracked Lua files and checks
