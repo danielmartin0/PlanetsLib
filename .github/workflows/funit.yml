@@ -41,9 +41,8 @@ env:
   MOD_NAME: PlanetsLib
   TEST_MOD_NAME: planetslib-funit-data
   TEST_MOD_DIR: test-mods/planetslib-funit-data
-  FUNIT_COMMIT: b69c2f277a467726e3a8c555d48df5b647ec5a64
+  FUNIT_COMMIT: 2eafa24a3c6096928b2c5a68ae5a411b9cec6d2f
   FUNIT_SCRIPTS_URL: https://gitlab.com/jfletcher94/funit/-/raw/master/scripts
-  TIMEOUT: 5m
   USERNAME: ${{ secrets.FACTORIO_USERNAME }}
   TOKEN: ${{ secrets.FACTORIO_TOKEN }}
 

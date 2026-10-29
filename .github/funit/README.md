@@ -6,7 +6,7 @@ GitHub Actions template, which is licensed under
 project-specific CI adaptations to be copied and modified without applying
 copyleft to this repository.
 
-Copied from FUnit commit `b69c2f277a467726e3a8c555d48df5b647ec5a64`:
+Copied from FUnit commit `2eafa24a3c6096928b2c5a68ae5a411b9cec6d2f`:
 
 - `entrypoint.sh` — `entrypoint.sh`
 - `prepare_test_environment.sh` — `scripts/prepare_test_environment.sh`
@@ -21,7 +21,9 @@ Project-specific changes:
 - `prepare_test_environment.sh` uses `GITHUB_WORKSPACE` and reads the test
   config from `artifacts/PlanetsLib/test`, because PlanetsLib is a single-mod
   repository at the root and its fixtures live in
-  `test-mods/planetslib-funit-data`.
+  `test-mods/planetslib-funit-data`. It also sets `enable-new-mods=false`, so a
+  zip that is present but disabled in the scenario `mod-list.json` stays
+  disabled. `planetslib-funit-settings` is one of those zips.
 - `entrypoint.sh` treats `recycler` as a built-in mod, alongside `space-age`,
   `quality` and `elevated-rails`, so the mod updater does not try to download
   it. Reports are not renamed after each scenario; the scenario names its
