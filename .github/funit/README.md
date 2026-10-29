@@ -47,7 +47,8 @@ Project-specific changes:
   that the JUnit conversion step remains the single source of the job result.
   `--comment` writes a second copy for a pull request comment, truncated to
   GitHub's comment size limit, and `--github-output` records `failed=true|false`
-  for the workflow's comment steps.
+  for the workflow's comment steps (which publish the payload as an artifact
+  rather than commenting directly, see below).
 - `.github/scripts/check_funit_conventions.py` is a project-specific static
   checker run by the `conventions` job before the Factorio matrix. It verifies
   that the `planetslib_funit` seam list in `control.lua` matches both test-doc
@@ -59,13 +60,24 @@ Project-specific changes:
   ```sh
   python3 .github/scripts/check_funit_conventions.py
   ```
-- On a failing run of a same-repository pull request, the workflow posts the
-  summary as a new comment on that PR (marked with a hidden per-channel tag such
-  as `<!-- funit-results:stable -->`). A later passing run of the same channel
-  deletes that channel's comments, so stale failures do not linger on the PR
-  without hiding a failure in the other channel. Fork PRs are skipped because
-  their `GITHUB_TOKEN` is read-only; their summary remains in the step summary
-  and annotations.
+- On a failing run for a pull request, the summary is posted as a comment on
+  that PR (marked with a hidden per-channel tag such as
+  `<!-- funit-results:stable -->`). A later passing run of the same channel
+  deletes that channel's comment, so stale failures do not linger on the PR
+  without hiding a failure in the other channel. Repeated failures update the
+  existing comment instead of adding another one. If the run stops before the
+  tests report at all (for example a failed archive build), the comment says so
+  and names the jobs that did not succeed, so a red check is never left
+  unexplained.
+  Posting is done by `.github/workflows/funit-comment.yml`, not by the test
+  workflow: the test workflow runs on `pull_request`, where forked pull
+  requests get a read-only token, while a `workflow_run` workflow runs from the
+  default branch with write access. The commenter never checks out or executes
+  pull request code; it only reads the `funit-comment-<channel>` artifacts
+  published by the test workflow and comments on the pull request whose head
+  commit matches the triggering run. Because `workflow_run` only fires for
+  workflows on the default branch, `funit-comment.yml` must be merged to `main`
+  before it takes effect.
 - The workflow runs the four scenarios twice, once per Factorio release
   channel: `stable` (`factoriotools/factorio:stable`) and `experimental`
   (`factoriotools/factorio:latest`). The stable leg catches breakage on the
