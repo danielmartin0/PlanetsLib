@@ -6,7 +6,7 @@ GitHub Actions template, which is licensed under
 project-specific CI adaptations to be copied and modified without applying
 copyleft to this repository.
 
-Copied from FUnit commit `2eafa24a3c6096928b2c5a68ae5a411b9cec6d2f`:
+Copied from FUnit commit `135e95c36b9713e7979328b543e1a5f4eee0494f`:
 
 - `entrypoint.sh` — `entrypoint.sh`
 - `prepare_test_environment.sh` — `scripts/prepare_test_environment.sh`
