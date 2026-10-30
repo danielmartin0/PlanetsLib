@@ -192,6 +192,11 @@ engine build are covered. Local headless runs have non-obvious harness requireme
 harness gotchas" in `test-mods/planetslib-funit-data/AGENTS.md`. There is still no general-purpose Lua
 linter; `luac5.1 -p` can syntax-check test files that do not use `goto`.
 
+PR failure comments are posted by a separate `workflow_run` workflow
+(`.github/workflows/funit-comment.yml`), not by `funit.yml`: `funit.yml` runs on `pull_request`, where
+forked PRs get a read-only token. Do not move the commenting back into `funit.yml` — it would silently
+stop working for forks again.
+
 #### Test-authoring principles
 
 - **A test must be capable of failing.** Do not use `runner.assert(true, ...)`, early returns, or

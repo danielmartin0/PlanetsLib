@@ -18,6 +18,11 @@ cp "$artifacts_dir/save_names.txt" /save_names.txt
 cp "$artifacts_dir/scenario_names.txt" /scenario_names.txt
 cp -a "$artifacts_dir/scenarios/." /factorio/scenarios/
 
-sed -i '/^write-data=/c\write-data=/factorio/' /opt/factorio/config/config.ini
+config_ini=/opt/factorio/config/config.ini
+sed -i \
+    -e '/^write-data=/c\write-data=/factorio/' \
+    -e '/^;*[[:space:]]*enable-new-mods=/c\enable-new-mods=false' \
+    "$config_ini"
+grep -q '^enable-new-mods=' "$config_ini" || sed -i '/^\[other\]/a enable-new-mods=false' "$config_ini"
 envsubst < /server-settings.json > "$CONFIG/server-settings.json"
 envsubst < /player-data.json > /factorio/player-data.json

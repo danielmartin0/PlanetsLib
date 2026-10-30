@@ -1,0 +1,374 @@
+# Posts (and clears) the FUnit failure summary on pull requests.
+#
+# This is a separate workflow because the test workflow runs on `pull_request`,
+# where a pull request from a fork gets a read-only GITHUB_TOKEN, so it cannot
+# comment. A `workflow_run` workflow always runs from the default branch with the
+# base repository's token, which covers forked pull requests too.
+#
+# Security: no pull request code is checked out or executed here. The only
+# pull request-derived input is the `funit-comment-<channel>` artifact published
+# by the base-branch FUnit workflow, and the comment is only posted on the pull
+# request whose head commit matches the triggering run.
+#
+# One comment per Factorio channel (hidden tag `<!-- funit-results:<channel> -->`)
+# is created or updated while that channel fails, and deleted once it passes, so
+# a failure in one channel is never hidden by the other.
+#
+# If the run stops before the tests report at all (a failed archive build, for
+# example), the commenter posts a short "FUnit did not produce a test result"
+# comment naming the jobs that did not succeed, so contributors are never left
+# with a red check and no explanation.
+
+name: FUnit PR comment
+
+on:
+  workflow_run:
+    workflows: [FUnit]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+# Serialize per source branch so two runs cannot interleave create/update/delete
+# steps. `pull_requests` is empty for forked pull requests, so the head branch is
+# used instead of the pull request number. Never cancel: a cancelled run can
+# leave a half-applied comment.
+concurrency:
+  group: funit-comment-${{ github.event.workflow_run.head_repository.full_name }}/${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    name: Resolve pull request and channels
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      pr: ${{ steps.pr.outputs.pr }}
+      channels: ${{ steps.channels.outputs.channels }}
+    steps:
+      # `workflow_run.pull_requests` is often empty, including for forked pull
+      # requests, so fall back to matching the run's head repository, branch and
+      # commit against open pull requests.
+      - name: Resolve pull request
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            let pull = (run.pull_requests || [])[0];
+
+            if (!pull && run.head_repository?.full_name && run.head_branch) {
+              const [headOwner] = run.head_repository.full_name.split('/');
+              const matches = await github.paginate(github.rest.pulls.list, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${headOwner}:${run.head_branch}`,
+                per_page: 100,
+              });
+              pull = matches.find(
+                (candidate) => candidate.head.sha === run.head_sha,
+              );
+            }
+
+            if (!pull) {
+              core.notice(
+                `No open pull request matches ${run.head_repository?.full_name}` +
+                  `@${run.head_branch} (${run.head_sha}); nothing to comment on.`,
+              );
+              core.setOutput('pr', '');
+              return;
+            }
+
+            // The branch may have moved on since this run started. A newer run
+            // reports the current state, so a stale result must not be posted
+            // over it.
+            if (!pull.head?.sha) {
+              const { data } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pull.number,
+              });
+              pull = data;
+            }
+            if (pull.head.sha !== run.head_sha) {
+              core.notice(
+                `Pull request #${pull.number} has advanced to ${pull.head.sha}; ` +
+                  `run ${run.head_sha} is stale and will not be commented on.`,
+              );
+              core.setOutput('pr', '');
+              return;
+            }
+
+            core.info(`Using pull request #${pull.number}.`);
+            core.setOutput('pr', String(pull.number));
+
+      # The channels are discovered from the run itself rather than hard-coded,
+      # so the matrix in funit.yml stays the single source of truth. Job names
+      # count as well as artifacts: a channel whose tests never ran still has a
+      # (skipped) matrix job, and that case must still produce a comment. Keep
+      # the `Run FUnit scenarios (...)` and `Parse and summarize FUnit results
+      # (...)` job names in funit.yml stable, or update the pattern below.
+      - name: Discover channels
+        id: channels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const artifactPrefix = 'funit-comment-';
+            const jobPattern =
+              /^(?:Run FUnit scenarios|Parse and summarize FUnit results) \((.+)\)$/;
+
+            const artifacts = await github.paginate(
+              github.rest.actions.listWorkflowRunArtifacts,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: run.id,
+                per_page: 100,
+              },
+            );
+            const jobs = await github.paginate(
+              github.rest.actions.listJobsForWorkflowRun,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: run.id,
+                per_page: 100,
+              },
+            );
+
+            const channels = new Set();
+            for (const artifact of artifacts) {
+              if (artifact.name.startsWith(artifactPrefix)) {
+                channels.add(artifact.name.slice(artifactPrefix.length));
+              }
+            }
+            for (const job of jobs) {
+              const match = job.name.match(jobPattern);
+              if (match) {
+                channels.add(match[1]);
+              }
+            }
+
+            const list = [...channels].sort();
+            core.info(
+              list.length === 0
+                ? 'No FUnit channels could be discovered for this run.'
+                : `Channels: ${list.join(', ')}.`,
+            );
+            core.setOutput('channels', JSON.stringify(list));
+
+  comment:
+    name: Comment FUnit results (${{ matrix.channel }})
+    needs: resolve
+    if: needs.resolve.outputs.pr != '' && needs.resolve.outputs.channels != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: ${{ fromJSON(needs.resolve.outputs.channels) }}
+    steps:
+      - name: Check for a comment payload
+        id: payload
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const name = 'funit-comment-${{ matrix.channel }}';
+            const artifacts = await github.paginate(
+              github.rest.actions.listWorkflowRunArtifacts,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: context.payload.workflow_run.id,
+                per_page: 100,
+              },
+            );
+            const present = artifacts.some((artifact) => artifact.name === name);
+            core.info(
+              present
+                ? `Found the ${name} artifact.`
+                : `No ${name} artifact: the tests did not report a result.`,
+            );
+            core.setOutput('present', String(present));
+      - name: Download comment payload
+        if: steps.payload.outputs.present == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: funit-comment-${{ matrix.channel }}
+          path: comment
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Post or clear the summary comment
+        uses: actions/github-script@v7
+        env:
+          FUNIT_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          FUNIT_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          FUNIT_HAS_PAYLOAD: ${{ steps.payload.outputs.present }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const channel = '${{ matrix.channel }}';
+            const pull_number = Number('${{ needs.resolve.outputs.pr }}');
+            const marker = `<!-- funit-results:${channel} -->`;
+            // Marker from before the channel matrix existed. No channel updates
+            // such a comment, so it is always stale.
+            const ourMarkers = ['<!-- funit-results -->', marker];
+
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pull_number,
+                per_page: 100,
+              },
+            );
+            const existing = comments.filter(
+              (comment) =>
+                comment.user?.login === 'github-actions[bot]' &&
+                ourMarkers.some((candidate) => comment.body?.includes(candidate)),
+            );
+
+            const removeExisting = async (reason) => {
+              for (const comment of existing) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment.id,
+                });
+              }
+              core.info(`${reason}; removed ${existing.length} stale comment(s).`);
+            };
+
+            const publish = async (body) => {
+              const [target, ...duplicates] = existing;
+              if (target) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: target.id,
+                  body,
+                });
+                core.info(`Updated comment ${target.id} for ${channel}.`);
+              } else {
+                const { data } = await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pull_number,
+                  body,
+                });
+                core.info(`Created comment ${data.id} for ${channel}.`);
+              }
+              for (const comment of duplicates) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment.id,
+                });
+                core.info(`Removed duplicate comment ${comment.id} for ${channel}.`);
+              }
+            };
+
+            // No payload means the run stopped before this channel reported a
+            // result, for example because the archive build failed. Contributors
+            // still need to know that, and why, instead of seeing silence.
+            if (process.env.FUNIT_HAS_PAYLOAD !== 'true') {
+              const conclusion = process.env.FUNIT_CONCLUSION;
+              if (conclusion === 'success') {
+                await removeExisting(`Passing ${channel} run`);
+                return;
+              }
+              if (conclusion !== 'failure' && conclusion !== 'timed_out') {
+                core.info(
+                  `Run concluded "${conclusion}"; leaving comments untouched.`,
+                );
+                return;
+              }
+
+              const jobs = await github.paginate(
+                github.rest.actions.listJobsForWorkflowRun,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: context.payload.workflow_run.id,
+                  per_page: 100,
+                },
+              );
+              const notOk = jobs.filter(
+                (job) => !['success', 'skipped'].includes(job.conclusion),
+              );
+
+              const lines = [
+                marker,
+                `### Factorio \`${channel}\``,
+                '',
+                '⚠️ **FUnit did not produce a test result for this channel.** ' +
+                  'The workflow stopped before the tests reported, so the cause ' +
+                  'is in the failing job below rather than in an individual test.',
+                '',
+              ];
+              if (notOk.length > 0) {
+                lines.push('Jobs that did not succeed:', '');
+                for (const job of notOk) {
+                  lines.push(`- [${job.name}](${job.html_url}) — ${job.conclusion}`);
+                }
+                lines.push('');
+              }
+              lines.push(`[Workflow run](${process.env.FUNIT_RUN_URL})`);
+              await publish(lines.join('\n'));
+              return;
+            }
+
+            const statusPath = path.join('comment', 'funit-comment-status.txt');
+            if (!fs.existsSync(statusPath)) {
+              core.warning(
+                `No status file for ${channel}; leaving any existing comment untouched.`,
+              );
+              return;
+            }
+
+            const status = {};
+            for (const line of fs.readFileSync(statusPath, 'utf8').split('\n')) {
+              const index = line.indexOf('=');
+              if (index > 0) {
+                status[line.slice(0, index).trim()] = line.slice(index + 1).trim();
+              }
+            }
+
+            if (status.failed !== 'true' && status.failed !== 'false') {
+              core.warning(
+                `Unexpected failed=${JSON.stringify(status.failed)} for ${channel}; ` +
+                  'leaving any existing comment untouched.',
+              );
+              return;
+            }
+
+            if (status.failed === 'false') {
+              await removeExisting(`Passing ${channel} run`);
+              return;
+            }
+
+            const summaryPath = path.join('comment', 'funit-summary.md');
+            const summary = fs.existsSync(summaryPath)
+              ? fs.readFileSync(summaryPath, 'utf8').trim()
+              : 'The FUnit summary was not published by this run.';
+
+            await publish(
+              [
+                marker,
+                `### Factorio \`${channel}\``,
+                '',
+                summary,
+                '',
+                `[Workflow run](${process.env.FUNIT_RUN_URL})`,
+              ].join('\n'),
+            );
