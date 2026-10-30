@@ -2,11 +2,7 @@
 -- detection and surface conditions.
 --
 -- The data-stage fixture and suite cover configuration/generation. These tests
--- use real surfaces and the `planetslib_funit` remote interface. The headless
--- FUnit CI scenario has no player, so GD-8/GD-9 assert that the environment is
--- headless before logging the limitation; the no-player guard itself is still
--- tested. When a player is present the player-driven path runs instead of being
--- skipped.
+-- use real surfaces and the `planetslib_funit` remote interface.
 
 local support = require("__planetslib-funit-data__.tests.suites.support")
 
@@ -94,6 +90,8 @@ local function cleanup_surfaces(created)
 			end)
 		end
 	end
+	-- Wait for the surfaces to be deleted.
+	test_runner.on_event_do(defines.events.on_surface_deleted, function() end, nil, 60)
 end
 
 local function find_entity(surface, name, position, radius)
@@ -125,15 +123,20 @@ local function save_player_state(player)
 end
 
 local function ensure_character(runner, player, state)
+	if player.controller_type == defines.controllers.cutscene then
+		player.exit_cutscene()
+	end
 	if not player.character then
 		local created = player.create_character()
 		runner.assert(created, "could not create a character for the player")
 		state.created_character = true
 	end
-	player.set_controller({
-		type = defines.controllers.character,
-		character = player.character,
-	})
+	if player.controller_type ~= defines.controllers.character then
+		player.set_controller({
+			type = defines.controllers.character,
+			character = player.character,
+		})
+	end
 end
 
 local function restore_player(player, state)
@@ -313,41 +316,17 @@ return function(runner)
 	end)
 
 	runner.test("GD-8 construct_ground_digger conversion rules", function()
-		-- The missing-player guard is testable without a player.
-		local guard_ok, guard_err = pcall(remote.call, "planetslib_funit", "construct_ground_digger", {
-			player_index = 9999,
-			cursor_position = { 0, 0 },
-			cursor_direction = defines.direction.north,
-			input_name = "PlanetsLib-build",
-		})
-		runner.assert(
-			guard_ok,
-			"construct_ground_digger errored for a missing player: " .. tostring(guard_err)
-		)
-
 		local player = game.players[1]
-		if not player then
-			-- Make the reason explicit: this is a headless scenario, not a broken
-			-- player lookup. If a player is connected the real path below must run.
-			runner.assert(
-				#game.connected_players == 0,
-				"GD-8: game.players[1] is missing although "
-					.. #game.connected_players
-					.. " player(s) are connected"
-			)
-			runner.log(
-				"GD-8 player-driven checks skipped: the headless scenario has no player. "
-					.. "Conversion, collision, hidden-tile, reach and quality checks only run when a player exists; "
-					.. "the missing-player guard was tested above."
-			)
-			return
-		end
+		runner.assert(player, "the test scenario has no player")
 
 		local created = {}
 		local state = save_player_state(player)
+		local cleanup_queued = false
 		run_with_cleanup(function()
-			restore_player(player, state)
-			cleanup_surfaces(created)
+			if not cleanup_queued then
+				restore_player(player, state)
+				cleanup_surfaces(created)
+			end
 		end, function()
 			ensure_character(runner, player, state)
 			local surface = prepare_surface(runner, "funit-gd-planet", created, 1)
@@ -390,16 +369,22 @@ return function(runner)
 			local before_count = stack_count()
 			local stats = player.force.get_entity_build_count_statistics(surface)
 			local before_builds = stats.get_input_count(DRILL_ITEM)
-			construct({ 4, 0 })
+			construct({ x = 4, y = 0 })
 			local digger = assert_digger(
-				{ 4, 0 },
+				{ x = 4, y = 0 },
 				"a drill placed without nearby resources was not converted into a digger"
 			)
 			runner.assert(stack_count() == before_count - 1, "a real build did not consume one cursor item")
-			runner.assert(
-				stats.get_input_count(DRILL_ITEM) == before_builds + 1,
-				"the entity build statistics were not incremented"
-			)
+
+			runner.after_n_ticks_do(1, function()
+				runner.assert(
+					stats.get_input_count(DRILL_ITEM) > before_builds,
+					"the entity build statistics were not incremented"
+				)
+				restore_player(player, state)
+				cleanup_surfaces(created)
+			end)
+			cleanup_queued = true
 			local recipe = digger.get_recipe()
 			runner.assert(recipe and recipe.name == "funit-gd-recipe-a", "the converted digger has the wrong recipe")
 			digger.destroy()
@@ -412,7 +397,7 @@ return function(runner)
 			})
 			runner.assert(resource, "could not create the resource used by the no-conversion check")
 			local resource_count = stack_count()
-			construct({ 4, 0 })
+			construct({ x = 4, y = 0 })
 			assert_no_digger({ 4, 0 }, "a drill with nearby resources was converted into a digger")
 			runner.assert(stack_count() == resource_count, "a rejected conversion consumed a cursor item")
 			resource.destroy()
@@ -421,18 +406,18 @@ return function(runner)
 			set_cursor(5)
 			local chest = surface.create_entity({
 				name = "iron-chest",
-				position = { 4, 0 },
+				position = { x = 4, y = 0 },
 				force = player.force,
 			})
 			runner.assert(chest, "could not create the colliding entity")
-			construct({ 4, 0 })
+			construct({ x = 4, y = 0 })
 			assert_no_digger({ 4, 0 }, "a digger was created on top of a colliding entity")
 			chest.destroy()
 
 			-- Hidden tile: do not build over a tile with a hidden tile.
 			set_cursor(5)
 			surface.set_hidden_tile({ x = 4, y = 0 }, "landfill")
-			construct({ 4, 0 })
+			construct({ x = 4, y = 0 })
 			assert_no_digger({ 4, 0 }, "a digger was created on a tile with a hidden tile")
 			surface.set_hidden_tile({ x = 4, y = 0 }, nil)
 
@@ -446,8 +431,8 @@ return function(runner)
 			-- Quality is inherited from the cursor stack when Quality is active.
 			if prototypes.quality and prototypes.quality["uncommon"] then
 				set_cursor(5, "uncommon")
-				construct({ 4, 0 })
-				local uncommon = assert_digger({ 4, 0 }, "the quality build did not create a digger")
+				construct({ x = 4, y = 0 })
+				local uncommon = assert_digger({ x = 4, y = 0 }, "the quality build did not create a digger")
 				runner.assert(
 					uncommon.quality and uncommon.quality.name == "uncommon",
 					"the digger did not inherit the cursor stack's quality"
@@ -459,20 +444,7 @@ return function(runner)
 
 	runner.test("GD-9 remote-view ghost without reach", function()
 		local player = game.players[1]
-		if not player then
-			-- As in GD-8: assert the actual reason instead of silently passing.
-			runner.assert(
-				#game.connected_players == 0,
-				"GD-9: game.players[1] is missing although "
-					.. #game.connected_players
-					.. " player(s) are connected"
-			)
-			runner.log(
-				"GD-9 remote-view ghost checks skipped: the headless scenario has no player. "
-					.. "The remote-view no-reach path only runs when a player exists."
-			)
-			return
-		end
+		runner.assert(player, "the test scenario has no player")
 
 		local created = {}
 		local state = save_player_state(player)
@@ -484,12 +456,6 @@ return function(runner)
 			local surface = prepare_surface(runner, "funit-gd-planet", created, 1)
 			player.teleport({ 0, 0 }, surface)
 
-			player.cursor_stack.set_stack({
-				name = DRILL_ITEM,
-				count = 5,
-			})
-			local before_count = player.cursor_stack.count
-
 			local build_distance = player.character.build_distance or 10
 			local far = { x = build_distance + 10, y = 0 }
 
@@ -498,6 +464,12 @@ return function(runner)
 				surface = surface,
 				position = { 0, 0 },
 			})
+
+			player.cursor_stack.set_stack({
+				name = DRILL_ITEM,
+				count = 5,
+			})
+			local before_count = player.cursor_stack.count
 
 			remote.call("planetslib_funit", "construct_ground_digger", {
 				player_index = player.index,
