@@ -52,6 +52,41 @@ Ground digger variants are assembling machines that share the drill's appearance
 
 The configured recipe must exist and should be unlockable by the player (for example, through a technology). PlanetsLib does not unlock it automatically. Ground diggers also benefit from mining drill productivity research, which is applied to the recipe automatically.
 
+### Belt stacking
+
+Ground diggers are assembling machines, so they normally craft one recipe cycle at a time and can feed partial stacks onto belts. Diggers copied from a mining drill with `drops_full_belt_stacks = true` (in vanilla, the big mining drill) instead use batched recipe variants that match the force's belt stack size, so they can produce a full stack in one craft.
+
+For each configured ground-digger recipe, PlanetsLib generates hidden variants up to `utility-constants.max_belt_stack_size`. With the vanilla maximum of 4, a recipe that normally makes one item per craft gets variants for 2, 3 and 4 items. Each variant multiplies every ingredient and product amount by an integer batch count and multiplies `energy_required` by the same count, so expected throughput is unchanged. Probabilities, `shared_probability`, `independent_probability` and Rigor-specific fields are preserved. `extra_count_fraction` is converted into guaranteed extra items plus the remaining fraction. Fluid ingredients and products are scaled as well.
+
+The selected stack size is:
+
+```text
+min(1 + force.belt_stack_size_bonus,
+    utility-constants.max_belt_stack_size,
+    main product item stack size)
+```
+
+Variants are hidden and enabled so machines can use them, but PlanetsLib only selects a variant while the force has unlocked the base recipe. This preserves research gating: a digger placed before its recipe is researched keeps the base recipe and stays disabled by `disabled_when_recipe_not_researched`.
+
+When the recipe changes, any items returned by the engine are first put back into the machine's output inventory instead of being dropped on the ground. If the output inventory does not accept the item or is full, the input inventory is used before falling back to a spill.
+
+The recipe is re-evaluated when:
+
+* a digger is built or cloned;
+* the force finishes or reverses a research, or resets its technology effects;
+* the force is reset or merged;
+* the configuration changes, for example after a mod update;
+* a low-frequency reconciliation pass (every 36000 ticks) finds a script-driven force change or a missed update.
+
+Existing saves are migrated on the next configuration change. PlanetsLib scans for ground diggers once, registers them in a per-force storage table, and then updates that table in place without repeated `find_entities_filtered` calls.
+
+Limitations:
+
+* Probabilistic products keep their probabilities, so a batched variant makes one batch-sized roll instead of several independent rolls. Expected output rates are preserved, but the distribution differs.
+* Recipes without an item product are not batched, because belt stacking only applies to items.
+* Recipe or `utility-constants.max_belt_stack_size` changes made by another mod after PlanetsLib's `data-final-fixes` need `PlanetsLib.generate_ground_diggers()` to be called again (or a configuration change) before their variants reflect the new values.
+* A digger created by script without raising a built, revive or clone event is registered on the next configuration change or storage rebuild.
+
 ### Build warning
 
 Because ground diggers can replace a mining drill placed without nearby resources, the vanilla warning shown in that situation is misleading. PlanetsLib blanks the `cant-build-reason.no-resource-for-drill` locale key so the warning is not shown.

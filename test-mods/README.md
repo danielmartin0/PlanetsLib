@@ -21,6 +21,13 @@ the feature.
 - `planetslib-ground-digger-test` — exercises `PlanetsLib.enable_ground_diggers()`:
   registers a recipe on `nauvis` in `data.lua`, and a late-registered recipe on `vulcanus`
   (with a blacklist) from `data-final-fixes.lua`.
+- `planetslib-ground-digger-integration` — development-only FUnit scenario and suite for
+  ground-digger belt stacking with the real `planet-muluna` and `maraxsis` recipes. Enable
+  both planet mods, `rigor-module`, `funit` and this mod, copy
+  `tests/scenario` into the Factorio scenario directory, and run the `gd-integration`
+  scenario. The suite asserts the generated Muluna/Maraxsis stack variants, the six-variant
+  recipe budget, big-mining-drill batching, electric-drill non-batching, research gating,
+  and the per-force storage table.
 - `planetslib-funit-settings` — CI-only companion mod that forces
   `PlanetsLib-enable-entity-replacements = false` for the no-replacements FUnit
   scenarios. It is not needed for normal local test runs.

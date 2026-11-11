@@ -278,6 +278,7 @@ local function resolve_planet_diggers(planet_name, item_lookup)
 			config.diggers[item_name] = {
 				drill = drill_name,
 				digger = Public.ground_digger_name(drill_name),
+				full_belt_stacks = drill.drops_full_belt_stacks == true,
 			}
 		end
 	end
@@ -320,6 +321,353 @@ local function add_factoriopedia_description(drill, digger_name)
 		{"?",{"",description,"\n"},""},
 		{ "factoriopedia-description.PlanetsLib-ground-digger", digger_name },
 	}
+end
+
+--== Belt-stack recipe variants ==--
+
+local function get_utility_max_belt_stack_size()
+	local constants = data.raw["utility-constants"] and data.raw["utility-constants"]["default"]
+	return (constants and constants.max_belt_stack_size) or 1
+end
+
+local function infer_entry_type(entry)
+	if entry.type == "item" or entry.type == "fluid" then
+		return entry.type
+	end
+	if entry.name then
+		if data.raw.item and data.raw.item[entry.name] then
+			return "item"
+		end
+		if data.raw.fluid and data.raw.fluid[entry.name] then
+			return "fluid"
+		end
+	end
+	return nil
+end
+
+---Normalizes a recipe ingredient or product entry into a full prototype table.
+-- Supports full tables, entries without a type, and the legacy {name, amount} form.
+local function normalize_entry(entry, fallback_type)
+	if type(entry) == "string" then
+		return { type = fallback_type or "item", name = entry, amount = 1 }
+	end
+	if type(entry) ~= "table" then
+		return nil
+	end
+	if type(entry[1]) == "string" and type(entry[2]) == "number" then
+		return {
+			type = infer_entry_type(entry)
+				or (data.raw.item and data.raw.item[entry[1]] and "item")
+				or (data.raw.fluid and data.raw.fluid[entry[1]] and "fluid")
+				or fallback_type
+				or "item",
+			name = entry[1],
+			amount = entry[2],
+		}
+	end
+	if type(entry.name) ~= "string" then
+		return nil
+	end
+	local entry_type = infer_entry_type(entry) or fallback_type
+	if not entry_type then
+		return nil
+	end
+	local normalized = util.table.deepcopy(entry)
+	normalized.type = entry_type
+	return normalized
+end
+
+---Normalizes an ingredient/product list (array or dictionary form) into an array.
+local function normalize_entries(list, fallback_type)
+	if type(list) ~= "table" then
+		return nil
+	end
+	local normalized = {}
+	if list[1] ~= nil then
+		-- Preserve the original result/ingredient order for array forms.
+		for _, value in ipairs(list) do
+			local entry = normalize_entry(value, fallback_type)
+			if not entry then
+				return nil
+			end
+			normalized[#normalized + 1] = entry
+		end
+	else
+		for key, value in pairs(list) do
+			local entry
+			if type(key) == "number" then
+				entry = normalize_entry(value, fallback_type)
+			elseif type(key) == "string" then
+				entry = normalize_entry({ name = key, amount = value }, fallback_type)
+			end
+			if not entry then
+				return nil
+			end
+			normalized[#normalized + 1] = entry
+		end
+	end
+	return normalized
+end
+
+local function scale_number(value, multiplier)
+	if type(value) ~= "number" then
+		return value
+	end
+	return value * multiplier
+end
+
+local function item_amount_too_large(entry, multiplier)
+	if entry.type ~= "item" then
+		return false
+	end
+	for _, amount in pairs({ entry.amount, entry.amount_min, entry.amount_max }) do
+		if type(amount) == "number" and amount * multiplier > 65535 then
+			return true
+		end
+	end
+	return false
+end
+
+local function entries_have_valid_item_amounts(entries)
+	for _, entry in pairs(entries) do
+		if entry.type == "item" then
+			for _, amount in pairs({ entry.amount, entry.amount_min, entry.amount_max }) do
+				if type(amount) == "number" and amount > 65535 then
+					return false
+				end
+			end
+		end
+	end
+	return true
+end
+
+---Scales every amount on an ingredient/product list by an integer multiplier.
+-- Probabilities and custom fields (including Rigor fields) are left untouched.
+local function scale_entries(entries, multiplier, fallback_type)
+	local normalized = normalize_entries(entries, fallback_type)
+	if not normalized then
+		return nil
+	end
+	for _, entry in pairs(normalized) do
+		if item_amount_too_large(entry, multiplier) then
+			return nil
+		end
+		if entry.amount ~= nil then
+			entry.amount = scale_number(entry.amount, multiplier)
+		end
+		if entry.amount_min ~= nil then
+			entry.amount_min = scale_number(entry.amount_min, multiplier)
+		end
+		if entry.amount_max ~= nil then
+			entry.amount_max = scale_number(entry.amount_max, multiplier)
+		end
+		if entry.ignored_by_stats ~= nil then
+			entry.ignored_by_stats = scale_number(entry.ignored_by_stats, multiplier)
+		end
+		if entry.ignored_by_productivity ~= nil then
+			entry.ignored_by_productivity = scale_number(entry.ignored_by_productivity, multiplier)
+		end
+		if entry.extra_count_fraction ~= nil then
+			local extra = entry.extra_count_fraction * multiplier
+			local whole = math.floor(extra)
+			if whole > 0 then
+				if entry.amount ~= nil then
+					entry.amount = entry.amount + whole
+				elseif entry.amount_min ~= nil and entry.amount_max ~= nil then
+					entry.amount_min = entry.amount_min + whole
+					entry.amount_max = entry.amount_max + whole
+				end
+			end
+			entry.extra_count_fraction = extra - whole
+			if entry.extra_count_fraction == 0 then
+				entry.extra_count_fraction = nil
+			end
+		end
+	end
+	if not entries_have_valid_item_amounts(normalized) then
+		return nil
+	end
+	return normalized
+end
+
+---Returns the item product that determines the ground digger's belt stack size.
+-- Prefers recipe.main_product, then the first item product.
+local function get_main_item_product(recipe)
+	local products = normalize_entries(recipe.results, "item")
+	if not products then
+		return nil
+	end
+	local main_name = recipe.main_product
+	if type(main_name) == "string" and main_name ~= "" then
+		for _, product in pairs(products) do
+			if product.type == "item" and product.name == main_name then
+				return product
+			end
+		end
+	end
+	for _, product in pairs(products) do
+		if product.type == "item" then
+			return product
+		end
+	end
+	return nil
+end
+
+local function get_product_amount(product)
+	if type(product.amount) == "number" then
+		return product.amount
+	end
+	if type(product.amount_max) == "number" then
+		return product.amount_max
+	end
+	return 0
+end
+
+---Creates one batched copy of a ground-digger recipe.
+-- @param base table The original recipe prototype.
+-- @param name string The variant prototype name.
+-- @param multiplier integer The number of base crafts represented by one variant craft.
+-- @return table|nil
+local function create_recipe_variant(base, name, multiplier)
+	local variant = util.table.deepcopy(base)
+	variant.name = name
+	variant.hidden = true
+	variant.enabled = true
+	variant.auto_recycle = false
+	variant.localised_name = variant.localised_name or { "recipe-name." .. base.name }
+	variant.energy_required = (base.energy_required or 0.5) * multiplier
+	variant.PlanetsLib_ground_digger_stack_variant = true
+	variant.PlanetsLib_ground_digger_base_recipe = base.name
+	variant.PlanetsLib_ground_digger_batch = multiplier
+
+	local ingredients = scale_entries(base.ingredients, multiplier, "item")
+	if base.ingredients ~= nil and not ingredients then
+		return nil
+	end
+	variant.ingredients = ingredients or {}
+
+	local results = scale_entries(base.results, multiplier, "item")
+	if base.results ~= nil and not results then
+		return nil
+	end
+	variant.results = results or {}
+
+	return variant
+end
+
+---Removes variants generated by an earlier generate_ground_diggers() call.
+-- This keeps late data-final-fixes registrations idempotent.
+local function cleanup_generated_variants()
+	local previous = PlanetsLib.constants.ground_digger_generated_variants or {}
+	for variant_name in pairs(previous) do
+		local recipe = data.raw["recipe"][variant_name]
+		if recipe and recipe.PlanetsLib_ground_digger_stack_variant then
+			data.raw["recipe"][variant_name] = nil
+		end
+		for _, technology in pairs(data.raw["technology"] or {}) do
+			if technology.effects then
+				for index = #technology.effects, 1, -1 do
+					local effect = technology.effects[index]
+					if effect.type == "change-recipe-productivity" and effect.recipe == variant_name then
+						table.remove(technology.effects, index)
+					end
+				end
+			end
+		end
+	end
+	PlanetsLib.constants.ground_digger_generated_variants = {}
+end
+
+---Generates hidden batched recipe variants up to utility-constants.max_belt_stack_size.
+-- Every recipe gets one variant per distinct integer batch multiplier. For a recipe
+-- whose main product is crafted one at a time, that is one variant per stack size.
+local function generate_recipe_variants(recipes)
+	local utility_max = math.max(1, get_utility_max_belt_stack_size())
+	local metadata = {}
+	local generated = {}
+
+	for base_name in pairs(recipes) do
+		local base = data.raw["recipe"][base_name]
+		if base then
+			local main_product = get_main_item_product(base)
+			if main_product then
+				local item_prototype = data.raw.item and data.raw.item[main_product.name]
+				local item_stack_size = item_prototype and item_prototype.stack_size or 1
+				local base_amount = get_product_amount(main_product)
+				local variants = { [1] = base_name }
+				local variant_by_batch = {}
+
+				if base_amount > 0 and utility_max >= 2 then
+					for target = 2, utility_max do
+						local batch = math.max(1, math.ceil(target / base_amount))
+						local variant_name
+						if batch <= 1 then
+							variant_name = base_name
+						else
+							local cached = variant_by_batch[batch]
+							if cached == nil then
+								local actual_output = batch * base_amount
+								local candidate_name = base_name
+									.. "-PlanetsLib-stack-"
+									.. actual_output
+								local existing = data.raw["recipe"][candidate_name]
+								if existing and not existing.PlanetsLib_ground_digger_stack_variant then
+									log(
+										"[PlanetsLib] Cannot generate ground-digger stack recipe '"
+											.. candidate_name
+											.. "': the name is already used by another recipe."
+									)
+									variant_by_batch[batch] = false
+								else
+									local variant = create_recipe_variant(base, candidate_name, batch)
+									if variant then
+										data.raw["recipe"][candidate_name] = nil
+										data:extend({ variant })
+										variant_by_batch[batch] = candidate_name
+										generated[candidate_name] = true
+									else
+										log(
+											"[PlanetsLib] Cannot batch ground-digger recipe '"
+												.. base_name
+												.. "' by "
+												.. batch
+												.. ": ingredient or product amounts exceed the prototype limit."
+										)
+										variant_by_batch[batch] = false
+									end
+								end
+								cached = variant_by_batch[batch]
+							end
+							variant_name = cached or nil
+						end
+
+						if variant_name then
+							variants[target] = variant_name
+						else
+							for fallback_target = target - 1, 1, -1 do
+								if variants[fallback_target] then
+									variants[target] = variants[fallback_target]
+									break
+								end
+							end
+							variants[target] = variants[target] or base_name
+						end
+					end
+				end
+
+				metadata[base_name] = {
+					max_stack = utility_max,
+					item_stack_size = item_stack_size,
+					main_product = main_product.name,
+					variants = variants,
+				}
+			end
+		end
+	end
+
+	PlanetsLib.constants.ground_digger_recipe_variants = metadata
+	PlanetsLib.constants.ground_digger_generated_variants = generated
+	return generated
 end
 
 ---Generates all ground digger variants configured by mods.
@@ -381,7 +729,11 @@ function Public.generate_ground_diggers()
 		table.insert(categories_list, category)
 	end
 
-	-- Pass 2: create (or refresh) the shared prototype for each drill.
+	-- Pass 2: generate hidden batched recipe variants for belt stacking.
+	cleanup_generated_variants()
+	local generated_variants = generate_recipe_variants(recipes)
+
+	-- Pass 3: create (or refresh) the shared prototype for each drill.
 	local processed = {}
 	for _, config in pairs(planets) do
 		for item_name, info in pairs(config.diggers or {}) do
@@ -404,7 +756,14 @@ function Public.generate_ground_diggers()
 		end
 	end
 
-	apply_mining_productivity(recipes)
+	local productivity_recipes = {}
+	for recipe_name in pairs(recipes) do
+		productivity_recipes[recipe_name] = true
+	end
+	for variant_name in pairs(generated_variants) do
+		productivity_recipes[variant_name] = true
+	end
+	apply_mining_productivity(productivity_recipes)
 end
 
 return Public

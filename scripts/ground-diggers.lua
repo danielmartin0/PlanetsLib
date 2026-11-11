@@ -15,11 +15,362 @@ local rro = require("__PlanetsLib__.lib.remove-replace-object")
 
 -- Set of ground digger prototype names, used to recognise digger builds.
 local digger_names = {}
+local digger_batches = {}
 for _, config in pairs(PlanetsLib.constants.ground_diggers) do
 	for _, info in pairs(config.diggers or {}) do
 		digger_names[info.digger] = true
+		digger_batches[info.digger] = info.full_belt_stacks == true
 	end
 end
+
+-- Only prototypes that still exist can be used in find_entities_filtered.
+local digger_name_list = {}
+for digger_name in pairs(digger_names) do
+	if prototypes.entity[digger_name] then
+		digger_name_list[#digger_name_list + 1] = digger_name
+	end
+end
+
+local STORAGE_VERSION = 1
+
+local function ensure_storage()
+	if not storage.ground_diggers then
+		storage.ground_diggers = {
+			version = STORAGE_VERSION,
+			rebuilt = false,
+			by_unit = {},
+			by_force = {},
+		}
+	else
+		storage.ground_diggers.version = storage.ground_diggers.version or STORAGE_VERSION
+		storage.ground_diggers.by_unit = storage.ground_diggers.by_unit or {}
+		storage.ground_diggers.by_force = storage.ground_diggers.by_force or {}
+	end
+	return storage.ground_diggers
+end
+
+local function add_unit_to_force_bucket(entry)
+	local bucket = storage.ground_diggers.by_force[entry.force_name]
+	if not bucket then
+		bucket = {}
+		storage.ground_diggers.by_force[entry.force_name] = bucket
+	end
+	bucket[entry.unit_number] = true
+end
+
+local function remove_unit_from_force_bucket(entry)
+	local bucket = storage.ground_diggers.by_force[entry.force_name]
+	if bucket then
+		bucket[entry.unit_number] = nil
+		if next(bucket) == nil then
+			storage.ground_diggers.by_force[entry.force_name] = nil
+		end
+	end
+end
+
+local function move_entry_to_force(entry, force_name)
+	if entry.force_name == force_name then
+		return
+	end
+	remove_unit_from_force_bucket(entry)
+	entry.force_name = force_name
+	add_unit_to_force_bucket(entry)
+end
+
+local function remove_entry(entry)
+	if not entry then
+		return
+	end
+	remove_unit_from_force_bucket(entry)
+	storage.ground_diggers.by_unit[entry.unit_number] = nil
+end
+
+---Registers a ground digger in the per-force storage table.
+local function register_entity(entity, base_recipe)
+	if not (entity and entity.valid and entity.unit_number and digger_names[entity.name]) then
+		return nil
+	end
+	ensure_storage()
+	local existing = storage.ground_diggers.by_unit[entity.unit_number]
+	if existing then
+		existing.entity = entity
+		if base_recipe ~= nil then
+			existing.base_recipe = base_recipe
+		end
+		existing.planet_name = entity.surface.planet and entity.surface.planet.name or nil
+		move_entry_to_force(existing, entity.force.name)
+		return existing
+	end
+	local entry = {
+		unit_number = entity.unit_number,
+		entity = entity,
+		base_recipe = base_recipe,
+		force_name = entity.force.name,
+		planet_name = entity.surface.planet and entity.surface.planet.name or nil,
+	}
+	storage.ground_diggers.by_unit[entity.unit_number] = entry
+	add_unit_to_force_bucket(entry)
+	return entry
+end
+
+local function unregister_entity(entity)
+	if not (entity and entity.unit_number) then
+		return
+	end
+	ensure_storage()
+	local entry = storage.ground_diggers.by_unit[entity.unit_number]
+	if entry then
+		remove_entry(entry)
+	end
+end
+
+local function is_allowed_on_planet(config, entity_name)
+	for _, info in pairs(config.diggers or {}) do
+		if info.digger == entity_name then
+			return true
+		end
+	end
+	return false
+end
+
+local function resolve_base_recipe(entry)
+	local entity = entry.entity
+	if not (entity and entity.valid) then
+		return nil
+	end
+	local planet = entity.surface and entity.surface.planet
+	local config = planet and PlanetsLib.constants.ground_diggers[planet.name]
+	if config and config.recipe and is_allowed_on_planet(config, entity.name) then
+		entry.planet_name = planet.name
+		return config.recipe
+	end
+	if entry.base_recipe and prototypes.recipe[entry.base_recipe] then
+		return entry.base_recipe
+	end
+	-- Fall back to the entity's current recipe, stripping a generated suffix.
+	local current = entity.get_recipe()
+	if current and prototypes.recipe[current.name] then
+		local base = current.name:match("^(.*)%-PlanetsLib%-stack%-%d+$")
+		if base and prototypes.recipe[base] then
+			return base
+		end
+		if not current.name:find("%-PlanetsLib%-stack%-") then
+			return current.name
+		end
+	end
+	return nil
+end
+
+local function get_variant_metadata(base_recipe)
+	return PlanetsLib.constants.ground_digger_recipe_variants
+		and PlanetsLib.constants.ground_digger_recipe_variants[base_recipe]
+end
+
+local function variant_is_usable(force, name)
+	return name and prototypes.recipe[name] and force.recipes[name] and force.recipes[name].enabled
+end
+
+---Returns the recipe a force should use for a base ground-digger recipe.
+-- Variants are only used when the base recipe is unlocked, so research gating is preserved.
+local function pick_variant_for(force_name, base_recipe)
+	local force = game.forces[force_name]
+	if not (force and prototypes.recipe[base_recipe]) then
+		return base_recipe
+	end
+	local base = force.recipes[base_recipe]
+	if not (base and base.enabled) then
+		return base_recipe
+	end
+	local meta = get_variant_metadata(base_recipe)
+	if not meta then
+		return base_recipe
+	end
+	local stack = math.min((force.belt_stack_size_bonus or 0) + 1, meta.max_stack)
+	if meta.item_stack_size then
+		stack = math.min(stack, meta.item_stack_size)
+	end
+	stack = math.max(1, stack)
+	local variant = meta.variants and meta.variants[stack]
+	if variant_is_usable(force, variant) then
+		return variant
+	end
+	for fallback = stack - 1, 1, -1 do
+		local candidate = meta.variants and meta.variants[fallback]
+		if variant_is_usable(force, candidate) then
+			return candidate
+		end
+	end
+	return base_recipe
+end
+
+local function pick_recipe_for_entity(entry)
+	local entity = entry.entity
+	if not (entity and entity.valid) then
+		return nil
+	end
+	local base = resolve_base_recipe(entry)
+	if not base then
+		return nil
+	end
+	-- Only drills that drop full belt stacks batch their recipe.
+	if not digger_batches[entity.name] then
+		return base
+	end
+	return pick_variant_for(entity.force.name, base)
+end
+
+---Returns items removed by set_recipe to the machine instead of dropping them.
+-- The output inventory is the requested destination; the input inventory and a
+-- final spill are safety nets for the rare case where the output is full.
+local function return_recipe_items_to_entity(entity, returned)
+	if not returned then
+		return
+	end
+	local output = entity.get_inventory(defines.inventory.crafter_output)
+	local input = entity.get_inventory(defines.inventory.crafter_input)
+	for _, item in pairs(returned) do
+		if item and item.name and item.count and item.count > 0 then
+			local remaining = item.count
+			if output then
+				local inserted = output.insert({
+					name = item.name,
+					count = remaining,
+					quality = item.quality,
+				})
+				remaining = remaining - math.min(inserted, remaining)
+			end
+			if remaining > 0 and input then
+				local inserted = input.insert({
+					name = item.name,
+					count = remaining,
+					quality = item.quality,
+				})
+				remaining = remaining - math.min(inserted, remaining)
+			end
+			-- Last-resort safety net: never delete items silently.
+			if remaining > 0 then
+				entity.surface.spill_item_stack({
+					position = entity.position,
+					stack = {
+						name = item.name,
+						count = remaining,
+						quality = item.quality,
+					},
+					enable_looted = true,
+				})
+			end
+		end
+	end
+end
+
+local function update_entry(entry)
+	local entity = entry.entity
+	if not (entity and entity.valid and entity.unit_number) then
+		remove_entry(entry)
+		return false
+	end
+	move_entry_to_force(entry, entity.force.name)
+	local base = resolve_base_recipe(entry)
+	if not base then
+		return true
+	end
+	entry.base_recipe = base
+	local target = pick_recipe_for_entity(entry)
+	if not target then
+		return true
+	end
+	local current = entity.get_recipe()
+	if current and current.name == target then
+		if entity.recipe_locked ~= true then
+			entity.recipe_locked = true
+		end
+		return true
+	end
+	local returned = entity.set_recipe(target, "normal")
+	return_recipe_items_to_entity(entity, returned)
+	entity.recipe_locked = true
+	return true
+end
+
+local function update_force(force_name)
+	ensure_storage()
+	local bucket = storage.ground_diggers.by_force[force_name]
+	if not bucket then
+		return
+	end
+	local units = {}
+	for unit_number in pairs(bucket) do
+		units[#units + 1] = unit_number
+	end
+	for _, unit_number in pairs(units) do
+		local entry = storage.ground_diggers.by_unit[unit_number]
+		if entry then
+			update_entry(entry)
+		end
+	end
+end
+
+local function update_all()
+	ensure_storage()
+	for _, force in pairs(game.forces) do
+		update_force(force.name)
+	end
+end
+
+local function rebuild_storage()
+	storage.ground_diggers = {
+		version = STORAGE_VERSION,
+		rebuilt = true,
+		by_unit = {},
+		by_force = {},
+	}
+	if #digger_name_list == 0 then
+		return
+	end
+	for _, surface in pairs(game.surfaces) do
+		if surface.valid then
+			for _, entity in pairs(surface.find_entities_filtered({ name = digger_name_list })) do
+				if entity.valid then
+					register_entity(entity, nil)
+				end
+			end
+		end
+	end
+	update_all()
+end
+
+local function get_storage_summary()
+	ensure_storage()
+	local summary = {}
+	for force_name, bucket in pairs(storage.ground_diggers.by_force) do
+		local force_summary = {}
+		for unit_number in pairs(bucket) do
+			local entry = storage.ground_diggers.by_unit[unit_number]
+			if entry then
+				local entity = entry.entity
+				local recipe = entity and entity.valid and entity.get_recipe()
+				force_summary[unit_number] = {
+					entity_name = entity and entity.valid and entity.name or nil,
+					base_recipe = entry.base_recipe,
+					planet_name = entry.planet_name,
+					recipe = recipe and recipe.name or nil,
+				}
+			end
+		end
+		summary[force_name] = force_summary
+	end
+	return summary
+end
+
+Public.register_entity = register_entity
+Public.unregister_entity = unregister_entity
+Public.update_force = update_force
+Public.update_all = update_all
+Public.reconcile = update_all
+Public.rebuild_storage = rebuild_storage
+Public.pick_variant_for = pick_variant_for
+Public.get_storage_summary = get_storage_summary
+Public.return_recipe_items_to_entity = return_recipe_items_to_entity
 
 local function get_cursor_info(player)
 	local cursor_stack = player.cursor_stack
@@ -49,28 +400,15 @@ function Public.on_entity_built(event)
 	end
 	local surface = entity.surface
 	local planet = surface and surface.planet
-	if not planet then
-		return
+	local config = planet and PlanetsLib.constants.ground_diggers[planet.name]
+	local base_recipe
+	if config and config.recipe and is_allowed_on_planet(config, entity.name) then
+		base_recipe = config.recipe
 	end
-	local config = PlanetsLib.constants.ground_diggers[planet.name]
-	if not config or not config.recipe then
-		return
+	local entry = register_entity(entity, base_recipe)
+	if entry and base_recipe then
+		update_entry(entry)
 	end
-	-- A drill may be blacklisted on this planet while being allowed on another
-	-- planet (the generated digger prototype and `digger_names` are shared).
-	-- Only lock the recipe when this planet actually configured this digger.
-	local allowed_on_planet = false
-	for _, info in pairs(config.diggers or {}) do
-		if info.digger == entity.name then
-			allowed_on_planet = true
-			break
-		end
-	end
-	if not allowed_on_planet then
-		return
-	end
-	entity.set_recipe(config.recipe, "normal")
-	entity.recipe_locked = true
 end
 
 ---Whether a prototype's surface conditions are met on a surface.
@@ -396,6 +734,102 @@ function Public.construct_ground_digger(event)
 		player.cursor_stack.count = player.cursor_stack.count - 1
 		player.force.get_entity_build_count_statistics(surface).on_flow(name, 1)
 	end
+end
+
+---Removes a destroyed or mined ground digger from the storage table.
+function Public.on_entity_removed(event)
+	local entity = event.entity
+	if entity and digger_names[entity.name] then
+		unregister_entity(entity)
+	end
+end
+
+---Registers and updates a cloned ground digger.
+function Public.on_entity_cloned(event)
+	local source = event.source
+	local destination = event.destination
+	if not (source and destination and digger_names[source.name]) then
+		return
+	end
+	ensure_storage()
+	local source_entry = storage.ground_diggers.by_unit[source.unit_number]
+	local base_recipe = source_entry and source_entry.base_recipe or nil
+	local entry = register_entity(destination, base_recipe)
+	if entry then
+		update_entry(entry)
+	end
+end
+
+function Public.on_research_finished(event)
+	local force = event.research and event.research.force
+	if force then
+		update_force(force.name)
+	end
+end
+
+function Public.on_research_reversed(event)
+	local force = event.research and event.research.force
+	if force then
+		update_force(force.name)
+	end
+end
+
+function Public.on_technology_effects_reset(event)
+	if event.force then
+		update_force(event.force.name)
+	end
+end
+
+function Public.on_force_reset(event)
+	if event.force then
+		update_force(event.force.name)
+	end
+end
+
+---Moves the storage bucket of a merged force to the destination force.
+local function merge_force_buckets(source_name, destination_name)
+	if not (source_name and destination_name) then
+		return
+	end
+	ensure_storage()
+	local source_bucket = storage.ground_diggers.by_force[source_name]
+	if source_bucket then
+		local destination_bucket = storage.ground_diggers.by_force[destination_name]
+		if not destination_bucket then
+			destination_bucket = {}
+			storage.ground_diggers.by_force[destination_name] = destination_bucket
+		end
+		for unit_number in pairs(source_bucket) do
+			destination_bucket[unit_number] = true
+			local entry = storage.ground_diggers.by_unit[unit_number]
+			if entry then
+				entry.force_name = destination_name
+			end
+		end
+		storage.ground_diggers.by_force[source_name] = nil
+	end
+	update_force(destination_name)
+end
+
+function Public.on_forces_merged(event)
+	if event.source_name and event.destination then
+		merge_force_buckets(event.source_name, event.destination.name)
+	end
+end
+
+Public.merge_force_buckets = merge_force_buckets
+
+function Public.on_init()
+	rebuild_storage()
+end
+
+function Public.on_configuration_changed()
+	ensure_storage()
+	if not storage.ground_diggers.rebuilt then
+		rebuild_storage()
+		return
+	end
+	update_all()
 end
 
 return Public

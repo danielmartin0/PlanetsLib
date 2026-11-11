@@ -7,8 +7,11 @@ test-mods/planetslib-funit-data/tests/README.md:
 * package PlanetsLib and the companion test mods from the working tree, so
   uncommitted changes are tested;
 * run the base / Space Age matrix with entity replacements on and off;
-* stop Factorio after FUnit's ``====END====`` signal;
-* parse the reports and print a compact summary.
+* use Factorio's test command line (`--test-scenario` / `--instrument-mod`)
+  like CI, which also creates the test player;
+* stop Factorio after FUnit's ``====END====`` signal, or let the test harness
+  exit on its own;
+* parse the CTRF reports and print a compact summary.
 
 The repository is never modified. Everything is written to --run-dir
 (default: /tmp/opencode/planetslib-funit).
@@ -246,7 +249,9 @@ def run_scenario(
         str(config),
         "--mod-directory",
         str(mods_dir),
-        "--start-server-load-scenario",
+        "--test-scenario",
+        "funit",
+        "--instrument-mod",
         "funit",
         "--server-settings",
         str(server_settings),
@@ -332,7 +337,7 @@ def run_scenario(
             "note": f"could not parse {saved_report}: {error}",
         }
 
-    testcases = report.get("testcases", [])
+    testcases = report_cases(report)
     failures = [case for case in testcases if case.get("failure")]
     errors = [case for case in testcases if case.get("error")]
     skipped = [case for case in testcases if case.get("skipped")]
@@ -345,6 +350,38 @@ def run_scenario(
         "skipped": len(skipped),
         "note": f"log: {log_path}",
     }
+
+
+def report_cases(report: dict) -> list[dict]:
+    """Return FUnit cases from either the legacy JUnit-like report or CTRF."""
+    if "testcases" in report:
+        return report["testcases"]
+
+    results = report.get("results")
+    if not isinstance(results, dict):
+        return []
+    tests = results.get("tests")
+    if not isinstance(tests, list):
+        return []
+
+    cases = []
+    for test in tests:
+        if not isinstance(test, dict):
+            continue
+        status = test.get("status")
+        case = {
+            "name": test.get("name", ""),
+            "status": status,
+        }
+        message = test.get("message") or ""
+        if status == "failed":
+            case["failure"] = message
+        elif status == "error":
+            case["error"] = message
+        elif status in ("skipped", "pending"):
+            case["skipped"] = True
+        cases.append(case)
+    return cases
 
 
 def short_message(case: dict) -> str:

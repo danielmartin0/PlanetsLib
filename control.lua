@@ -13,6 +13,7 @@ local entity_replacement = require("scripts.entity-replacement")
 require("lib.authors")
 require("scripts.player-effects")
 local entity_removal_floors = require("scripts.entity-removal-floors")
+local ground_diggers = require("scripts.ground-diggers")
 -- By convention, please register event handlers in this file rather than the scripts directory, to help avoid collisions
 
 local cargo_pods
@@ -55,6 +56,7 @@ PlanetsLib.event_handler.add_lib{on_init = function()
 	end
 	init_storage()
 	entity_removal_floors.on_init()
+	ground_diggers.on_init()
 		storage.old_replacement_rules = PlanetsLib.constants.on_entity_placed_on_planet_replacements
 end}
 
@@ -199,6 +201,7 @@ local function on_configuration_changed(configuration_changed_data)
 
 	migrate_all_entity_replacement_rules()
 	entity_removal_floors.on_configuration_changed(configuration_changed_data)
+	ground_diggers.on_configuration_changed()
 
 	-- local rocket_part_recipe_rules = data.raw["mod-data"]["Planetslib-planet-rocket-part-recipe"].data
 	-- local lock_rocket_part_rules = 
@@ -241,7 +244,6 @@ table.insert(on_built_filters_and_silos,{filter = "ghost_type", type = "rocket-s
 
 -- Ground diggers share one prototype per drill across all planets, so the recipe is
 -- assigned when a digger is built. Build events are filtered down to digger names.
-local ground_diggers = require("scripts.ground-diggers")
 local ground_digger_names = {}
 for _,config in pairs(PlanetsLib.constants.ground_diggers) do
 	for _,info in pairs(config.diggers or {}) do
@@ -290,6 +292,29 @@ if on_built_entity_combined then
 	--script.on_event(defines.events.on_biter_base_built,entity_replacement.on_built_entity)
 
 	--script.on_event(defines.events.on_player_setup_blueprint,entity_replacement.blueprint_standardize)
+end
+
+-- Ground-digger recipe switching: destroy/clone tracking, research and force events,
+-- plus a very infrequent reconciliation for script-driven force changes.
+if next(ground_digger_names) then
+	local ground_digger_filters = {}
+	for name in pairs(ground_digger_names) do
+		if prototypes.entity[name] then
+			ground_digger_filters[#ground_digger_filters + 1] = { filter = "name", name = name }
+		end
+	end
+	if #ground_digger_filters > 0 then
+		for _, event_name in pairs(library.destroy_events) do
+			script.on_event(event_name, ground_diggers.on_entity_removed, ground_digger_filters)
+		end
+		script.on_event(defines.events.on_entity_cloned, ground_diggers.on_entity_cloned, ground_digger_filters)
+	end
+	script.on_event(defines.events.on_research_finished, ground_diggers.on_research_finished)
+	script.on_event(defines.events.on_research_reversed, ground_diggers.on_research_reversed)
+	script.on_event(defines.events.on_technology_effects_reset, ground_diggers.on_technology_effects_reset)
+	script.on_event(defines.events.on_force_reset, ground_diggers.on_force_reset)
+	script.on_event(defines.events.on_forces_merged, ground_diggers.on_forces_merged)
+	script.on_nth_tick(36000, ground_diggers.reconcile)
 end
 
 require("scripts.recipe-effects")
@@ -445,6 +470,36 @@ if script.active_mods["funit"] then
 		end,
 		select_digger_ghost = function(colliding_entities, digger_name, position)
 			return ground_diggers.select_digger_ghost(colliding_entities, digger_name, position)
+		end,
+		ground_digger_storage = function()
+			return ground_diggers.get_storage_summary()
+		end,
+		ground_digger_update_force = function(force_name)
+			return ground_diggers.update_force(force_name)
+		end,
+		ground_digger_update_all = function()
+			return ground_diggers.update_all()
+		end,
+		ground_digger_pick_variant = function(force_name, base_recipe)
+			return ground_diggers.pick_variant_for(force_name, base_recipe)
+		end,
+		ground_digger_register = function(entity, base_recipe)
+			return ground_diggers.register_entity(entity, base_recipe) ~= nil
+		end,
+		ground_digger_unregister = function(entity)
+			return ground_diggers.unregister_entity(entity)
+		end,
+		ground_digger_rebuild_storage = function()
+			return ground_diggers.rebuild_storage()
+		end,
+		ground_digger_reconcile = function()
+			return ground_diggers.reconcile()
+		end,
+		ground_digger_merge_forces = function(source_name, destination_name)
+			return ground_diggers.merge_force_buckets(source_name, destination_name)
+		end,
+		ground_digger_return_recipe_items = function(entity, returned)
+			return ground_diggers.return_recipe_items_to_entity(entity, returned)
 		end,
 		on_configuration_changed = function(configuration_changed_data)
 			return on_configuration_changed(configuration_changed_data)

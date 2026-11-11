@@ -64,10 +64,16 @@ useful when debugging the harness itself.
    (and the built-in `recycler` mod is enabled). The optional
    `planetslib-funit-settings` mod is also disabled. Set the three DLC entries
    to `"enabled": true` to run the full Space Age + Quality suite.
-5. Run:
+5. Run with Factorio's test command line. This is the same entry point the CI
+   action uses; it creates the test player, which the player-driven ground
+   digger tests need:
    ```
-   factorio --start-server-load-scenario funit --mod-directory <mods>
+   factorio --test-scenario funit --instrument-mod funit \
+     --mod-directory <mods> --server-settings <server-settings.json>
    ```
+   Do not use `--start-server-load-scenario` for the FUnit suite. That older
+   route does not create a player, so tests that use `game.players[1]` fail even
+   though they pass in CI.
 6. The report is written to
    `script-output/funit-report-planetslib-base.json`. The report name reflects
    the active DLC and entity-replacement setting; the CI scenarios use
@@ -104,6 +110,12 @@ remote.call("planetslib_funit", "replace_entity", entity, "new-entity", false)
 Available seam functions: `replace_entity`, `on_built_entity`,
 `construct_ground_digger`, `on_entity_built`, `ground_digger_collisions`,
 `revive_ground_digger_ghost`, `select_digger_ghost`,
+`ground_digger_storage`, `ground_digger_update_force`,
+`ground_digger_update_all`, `ground_digger_pick_variant`,
+`ground_digger_register`, `ground_digger_unregister`,
+`ground_digger_rebuild_storage`, `ground_digger_reconcile`,
+`ground_digger_merge_forces`,
+`ground_digger_return_recipe_items`,
 `on_configuration_changed`, `migrate_entity_replacement_rules`,
 `orientations_differ`, `warn_on_join`, `should_warn_on_join`,
 `warn_cargo_pod_canceled`, `pod_contents_is_allowed`, `examine_cargo_pods`,

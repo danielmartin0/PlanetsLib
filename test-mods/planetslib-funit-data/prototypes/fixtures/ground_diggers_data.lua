@@ -56,6 +56,72 @@ local setup_ok, setup_err = pcall(function()
 	add_recipe("funit-gd-recipe-default", nil, "iron-ore")
 	add_recipe("funit-gd-late-recipe", { "funit-gd-late-category" }, "coal")
 
+	-- An item that cannot stack on belts. Variants are still generated up to the
+	-- utility-constants limit, but the runtime stack size is capped at 1.
+	local unstackable = table.deepcopy(data.raw.item["stone"])
+	unstackable.name = "funit-gd-unstackable"
+	unstackable.stack_size = 1
+	data:extend({ unstackable })
+
+	data:extend({
+		{
+			type = "recipe",
+			name = "funit-gd-recipe-fluid",
+			categories = { "funit-gd-category-a" },
+			energy_required = 1,
+			ingredients = {},
+			results = {
+				{ type = "item", name = "stone", amount = 1 },
+				{ type = "fluid", name = "water", amount = 10 },
+			},
+			enabled = true,
+			main_product = "stone",
+		},
+		{
+			type = "recipe",
+			name = "funit-gd-recipe-double",
+			categories = { "funit-gd-category-b" },
+			energy_required = 1,
+			ingredients = {},
+			results = { { type = "item", name = "stone", amount = 2 } },
+			enabled = true,
+			main_product = "stone",
+		},
+		{
+			type = "recipe",
+			name = "funit-gd-recipe-unstackable",
+			categories = { "funit-gd-category-a" },
+			energy_required = 1,
+			ingredients = {},
+			results = { { type = "item", name = "funit-gd-unstackable", amount = 1 } },
+			enabled = true,
+			main_product = "funit-gd-unstackable",
+		},
+		{
+			type = "recipe",
+			name = "funit-gd-recipe-probability",
+			categories = { "funit-gd-category-b" },
+			energy_required = 1,
+			ingredients = {},
+			results = {
+				{ type = "item", name = "stone", amount = 1, extra_count_fraction = 0.5 },
+				{ type = "item", name = "copper-ore", amount = 1, independent_probability = 0.25 },
+			},
+			enabled = true,
+			main_product = "stone",
+		},
+		{
+			type = "recipe",
+			name = "funit-gd-recipe-ingredients",
+			categories = { "funit-gd-category-a" },
+			energy_required = 1,
+			ingredients = { { type = "item", name = "iron-plate", amount = 2 } },
+			results = { { type = "item", name = "stone", amount = 1 } },
+			enabled = true,
+			main_product = "stone",
+		},
+	})
+
 	local function add_planet(name)
 		local planet = table.deepcopy(data.raw.planet.nauvis)
 		planet.name = name
@@ -67,6 +133,11 @@ local setup_ok, setup_err = pcall(function()
 	add_planet("funit-gd-planet")
 	add_planet("funit-gd-planet-b")
 	add_planet("funit-gd-planet-c")
+	add_planet("funit-gd-planet-fluid")
+	add_planet("funit-gd-planet-double")
+	add_planet("funit-gd-planet-unstackable")
+	add_planet("funit-gd-planet-probability")
+	add_planet("funit-gd-planet-ingredients")
 	add_planet("funit-gd-idle")
 	add_planet("funit-gd-late")
 
@@ -129,6 +200,11 @@ local setup_ok, setup_err = pcall(function()
 	})
 	PlanetsLib.enable_ground_diggers("funit-gd-planet-b", "funit-gd-recipe-b")
 	PlanetsLib.enable_ground_diggers("funit-gd-planet-c", "funit-gd-recipe-default")
+	PlanetsLib.enable_ground_diggers("funit-gd-planet-fluid", "funit-gd-recipe-fluid")
+	PlanetsLib.enable_ground_diggers("funit-gd-planet-double", "funit-gd-recipe-double")
+	PlanetsLib.enable_ground_diggers("funit-gd-planet-unstackable", "funit-gd-recipe-unstackable")
+	PlanetsLib.enable_ground_diggers("funit-gd-planet-probability", "funit-gd-recipe-probability")
+	PlanetsLib.enable_ground_diggers("funit-gd-planet-ingredients", "funit-gd-recipe-ingredients")
 end)
 results.record(SUITE, "GD-0-setup", setup_ok, setup_err)
 if not setup_ok then

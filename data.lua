@@ -41,8 +41,10 @@ data:extend({
 				--[entity-name] = "other-entity-name"
 			},
 			ground_diggers = { --Planets that convert mining drills placed without nearby resources into recipe-crafting machines.
-				--[planet-name] = {recipe = "recipe-name", diggers = {["item-name"] = {drill = "entity-name", digger = "digger-entity-name"}}}
+				--[planet-name] = {recipe = "recipe-name", diggers = {["item-name"] = {drill = "entity-name", digger = "digger-entity-name", full_belt_stacks = boolean}}}
 			},
+			ground_digger_recipe_variants = {}, --Runtime metadata for belt-stack recipe variants, filled during data-final-fixes.
+			ground_digger_generated_variants = {}, --Data-stage bookkeeping for idempotent variant generation.
 			entity_removal_floors = { --Temporary floor tiles placed under simple entities during deconstruction.
 				--[planet-name] = {["entity-name"] = {default_tile = "tile-name", default_tile_item = "item-name", waiting_message = {"locale-key"}}}
 			},
