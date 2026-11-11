@@ -68,6 +68,8 @@ min(1 + force.belt_stack_size_bonus,
 
 Variants are hidden and enabled so machines can use them, but PlanetsLib only selects a variant while the force has unlocked the base recipe. This preserves research gating: a digger placed before its recipe is researched keeps the base recipe and stays disabled by `disabled_when_recipe_not_researched`.
 
+When the recipe changes, any items returned by the engine are first put back into the machine's output inventory instead of being dropped on the ground. If the output inventory does not accept the item or is full, the input inventory is used before falling back to a spill.
+
 The recipe is re-evaluated when:
 
 * a digger is built or cloned;
