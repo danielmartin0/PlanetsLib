@@ -498,6 +498,9 @@ if script.active_mods["funit"] then
 		ground_digger_merge_forces = function(source_name, destination_name)
 			return ground_diggers.merge_force_buckets(source_name, destination_name)
 		end,
+		ground_digger_return_recipe_items = function(entity, returned)
+			return ground_diggers.return_recipe_items_to_entity(entity, returned)
+		end,
 		on_configuration_changed = function(configuration_changed_data)
 			return on_configuration_changed(configuration_changed_data)
 		end,

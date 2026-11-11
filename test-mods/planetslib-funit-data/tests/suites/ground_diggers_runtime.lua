@@ -1025,4 +1025,125 @@ return function(runner)
 			)
 		end)
 	end)
+
+	runner.test("GD-21 returned recipe items go to the output inventory", function()
+		local created = {}
+		local force = game.forces.player
+		local old_bonus = force.belt_stack_size_bonus
+		local base = force.recipes["funit-gd-recipe-ingredients"]
+		local old_enabled = base and base.enabled
+		run_with_cleanup(function()
+			if base then
+				base.enabled = old_enabled
+			end
+			force.belt_stack_size_bonus = old_bonus
+			cleanup_surfaces(created)
+		end, function()
+			runner.assert(base, "the ingredients recipe is missing")
+			base.enabled = true
+			force.belt_stack_size_bonus = 0
+			local surface = prepare_surface(runner, "funit-gd-planet-ingredients", created, 1)
+			local digger = surface.create_entity({
+				name = BATCH_DIGGER,
+				position = { 0, 0 },
+				force = force,
+				raise_built = true,
+			})
+			runner.assert(digger, "could not create the ingredients digger")
+			remote.call("planetslib_funit", "ground_digger_update_force", force.name)
+			local recipe = digger.get_recipe()
+			runner.assert(
+				recipe and recipe.name == "funit-gd-recipe-ingredients",
+				"the ingredients digger did not get the base recipe"
+			)
+
+			local output = digger.get_inventory(defines.inventory.crafter_output)
+			local input = digger.get_inventory(defines.inventory.crafter_input)
+			runner.assert(output and input, "the digger is missing its crafting inventories")
+			output.clear()
+			input.clear()
+
+			-- Direct helper check: a returned product goes to the output inventory.
+			remote.call("planetslib_funit", "ground_digger_return_recipe_items", digger, {
+				{ name = "stone", count = 7 },
+			})
+			runner.assert(
+				output.get_item_count("stone") == 7,
+				"returned products did not go to the output inventory"
+			)
+			runner.assert(
+				input.get_item_count("stone") == 0,
+				"returned products unexpectedly went to the input inventory"
+			)
+			local ground = surface.find_entities_filtered({
+				name = "item-on-ground",
+				area = { { -5, -5 }, { 5, 5 } },
+			})
+			runner.assert(#ground == 0, "returned items were dropped on the ground")
+
+			-- A returned ingredient that the output inventory filters out falls
+			-- back to the input inventory rather than being dropped.
+			output.clear()
+			input.clear()
+			remote.call("planetslib_funit", "ground_digger_return_recipe_items", digger, {
+				{ name = "iron-plate", count = 7 },
+			})
+			local total = output.get_item_count("iron-plate") + input.get_item_count("iron-plate")
+			runner.assert(total == 7, "a filtered returned item was lost")
+			runner.assert(
+				input.get_item_count("iron-plate") == 7,
+				"a filtered returned ingredient did not go to the input inventory"
+			)
+			ground = surface.find_entities_filtered({
+				name = "item-on-ground",
+				area = { { -5, -5 }, { 5, 5 } },
+			})
+			runner.assert(#ground == 0, "a filtered returned item was dropped on the ground")
+
+			-- A full output inventory falls back to the input inventory rather
+			-- than dropping the items.
+			output.clear()
+			input.clear()
+			for _ = 1, 100 do
+				if output.insert({ name = "stone", count = 50 }) == 0 then
+					break
+				end
+			end
+			remote.call("planetslib_funit", "ground_digger_return_recipe_items", digger, {
+				{ name = "iron-plate", count = 7 },
+			})
+			total = output.get_item_count("iron-plate") + input.get_item_count("iron-plate")
+			runner.assert(total == 7, "a full output inventory lost the returned items")
+			runner.assert(
+				input.get_item_count("iron-plate") == 7,
+				"a full output inventory did not move the returned ingredient to the input"
+			)
+			ground = surface.find_entities_filtered({
+				name = "item-on-ground",
+				area = { { -5, -5 }, { 5, 5 } },
+			})
+			runner.assert(#ground == 0, "a full output inventory dropped returned items on the ground")
+
+			-- Production path: switching to a stack variant must preserve an
+			-- ingredient already in the machine.
+			output.clear()
+			input.clear()
+			local inserted = input.insert({ name = "iron-plate", count = 7 })
+			runner.assert(inserted == 7, "could not place the test item in the digger input")
+			force.belt_stack_size_bonus = 3
+			remote.call("planetslib_funit", "ground_digger_update_force", force.name)
+			recipe = digger.get_recipe()
+			runner.assert(
+				recipe and recipe.name == "funit-gd-recipe-ingredients-PlanetsLib-stack-4",
+				"the ingredients digger did not switch to the stack-4 variant"
+			)
+			total = output.get_item_count("iron-plate") + input.get_item_count("iron-plate")
+			runner.assert(total == 7, "the recipe switch lost the ingredient")
+			ground = surface.find_entities_filtered({
+				name = "item-on-ground",
+				area = { { -5, -5 }, { 5, 5 } },
+			})
+			runner.assert(#ground == 0, "the recipe switch dropped the ingredient on the ground")
+		end)
+	end)
 end

@@ -384,6 +384,7 @@ record("GD-5", function()
 		"funit-gd-recipe-double",
 		"funit-gd-recipe-unstackable",
 		"funit-gd-recipe-probability",
+		"funit-gd-recipe-ingredients",
 		"funit-gd-late-recipe",
 	}
 
@@ -402,6 +403,7 @@ record("GD-5", function()
 		"funit-gd-recipe-double-PlanetsLib-stack-4",
 		"funit-gd-recipe-unstackable-PlanetsLib-stack-4",
 		"funit-gd-recipe-probability-PlanetsLib-stack-4",
+		"funit-gd-recipe-ingredients-PlanetsLib-stack-4",
 		"funit-gd-late-recipe-PlanetsLib-stack-4",
 	}
 	for _, recipe_name in ipairs(variants) do

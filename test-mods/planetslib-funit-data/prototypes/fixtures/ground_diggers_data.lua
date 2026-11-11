@@ -110,6 +110,16 @@ local setup_ok, setup_err = pcall(function()
 			enabled = true,
 			main_product = "stone",
 		},
+		{
+			type = "recipe",
+			name = "funit-gd-recipe-ingredients",
+			categories = { "funit-gd-category-a" },
+			energy_required = 1,
+			ingredients = { { type = "item", name = "iron-plate", amount = 2 } },
+			results = { { type = "item", name = "stone", amount = 1 } },
+			enabled = true,
+			main_product = "stone",
+		},
 	})
 
 	local function add_planet(name)
@@ -127,6 +137,7 @@ local setup_ok, setup_err = pcall(function()
 	add_planet("funit-gd-planet-double")
 	add_planet("funit-gd-planet-unstackable")
 	add_planet("funit-gd-planet-probability")
+	add_planet("funit-gd-planet-ingredients")
 	add_planet("funit-gd-idle")
 	add_planet("funit-gd-late")
 
@@ -193,6 +204,7 @@ local setup_ok, setup_err = pcall(function()
 	PlanetsLib.enable_ground_diggers("funit-gd-planet-double", "funit-gd-recipe-double")
 	PlanetsLib.enable_ground_diggers("funit-gd-planet-unstackable", "funit-gd-recipe-unstackable")
 	PlanetsLib.enable_ground_diggers("funit-gd-planet-probability", "funit-gd-recipe-probability")
+	PlanetsLib.enable_ground_diggers("funit-gd-planet-ingredients", "funit-gd-recipe-ingredients")
 end)
 results.record(SUITE, "GD-0-setup", setup_ok, setup_err)
 if not setup_ok then
