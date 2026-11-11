@@ -1,0 +1,15 @@
+{
+  "name": "planetslib-ground-digger-integration",
+  "version": "0.0.1",
+  "factorio_version": "2.1",
+  "title": "PlanetsLib ground-digger integration tests",
+  "author": "PlanetsLib",
+  "description": "Development-only integration tests for PlanetsLib ground-digger belt stacking with planet-muluna and maraxsis.",
+  "dependencies": [
+    "PlanetsLib",
+    "? planet-muluna",
+    "? maraxsis",
+    "? rigor-module",
+    "? funit"
+  ]
+}
