@@ -364,8 +364,8 @@ To run it:
    dependency of those mods.
 2. Copy `test-mods/planetslib-ground-digger-integration/tests/scenario` to
    `<write-data>/scenarios/gd-integration`.
-3. Enable those mods in `mod-list.json` and start
-   `--start-server-load-scenario gd-integration`.
+3. Enable those mods in `mod-list.json` and run the scenario with Factorio's
+   test command line: `--test-scenario gd-integration --instrument-mod funit`.
 4. Read `script-output/funit-report-planetslib-gd-integration.json`.
 
 The suite checks the real recipe scaling (including Muluna's `shared_probability`
@@ -595,12 +595,19 @@ launcher requiring the manifest — is described in §1–§4 and was not the
 difficult part. The friction is in the headless harness. These are the
 non-obvious requirements we hit while validating PlanetsLib:
 
-- **Pass `--server-settings` with `auto_pause: false`.** With only
-  `--start-server-load-scenario` and no server settings, Factorio uses its
-  default settings, where `auto_pause` is `true`. The scenario loads, the
-  server stays at tick 0, FUnit never runs, and no report is written. Start
-  from `test/server-settings.json`, set a local `username`, leave `token` empty,
-  and keep `visibility.public`/`visibility.lan` false.
+- **Use Factorio's test command line, not `--start-server-load-scenario`.**
+  The CI action runs `--test-scenario <name> --instrument-mod funit`. That entry
+  point creates the test player, runs the scenario and exits when the
+  instrumented run finishes. `--start-server-load-scenario` does not create a
+  player, so player-dependent tests such as `GD-8` and `GD-9` fail locally even
+  though they pass in CI.
+- **If you use the old server route for debugging, pass `--server-settings`
+  with `auto_pause: false`.** With only `--start-server-load-scenario` and no
+  server settings, Factorio uses its default settings, where `auto_pause` is
+  `true`. The scenario loads, the server stays at tick 0, FUnit never runs, and
+  no report is written. Start from `test/server-settings.json`, set a local
+  `username`, leave `token` empty, and keep `visibility.public`/`visibility.lan`
+  false.
 - **Put `mod-list.json` in the mod directory, not the scenario directory.**
   `--mod-directory` makes Factorio read `<mods>/mod-list.json`. The checked-in
   `tests/scenario/mod-list.json` is a template that CI copies into the mod
@@ -611,10 +618,11 @@ non-obvious requirements we hit while validating PlanetsLib:
   does not restore `true`; the stale value makes `ENT-0` fail and makes the
   next scenario write a `...-no-replacements` report even when replacements are
   meant to be on.
-- **FUnit does not stop the server.** It writes
-  `script-output/funit-report-<report>.json` and logs `====END====`, then keeps
-  ticking. Watch stdout for `====END====` and terminate Factorio yourself,
-  otherwise the run looks hung. This is what the CI entrypoint does.
+- **`--test-scenario` exits after the test run.** It writes
+  `script-output/funit-report-<report>.json` and logs `====END====`, then the
+  instrumented run finishes and Factorio exits. If you use the old
+  `--start-server-load-scenario` route instead, the server keeps ticking after
+  `====END====`; watch stdout and terminate Factorio yourself.
 - **Report names describe the DLC/replacement axes, not the scenario folder.**
   Clear `script-output/funit-report-*.json` before each scenario, or a stale
   report can be mistaken for the current run.
@@ -671,9 +679,9 @@ printf '[path]\nread-data=%s/data\nwrite-data=%s/factorio\n' "$FACTORIO" "$RUN" 
 # Edit "$RUN/mods/mod-list.json" for the scenario, then remove stale settings:
 rm -f "$RUN/mods/mod-settings.dat"
 "$FACTORIO/bin/x64/factorio" --config "$RUN/config.ini" \
-  --mod-directory "$RUN/mods" --start-server-load-scenario funit \
+  --mod-directory "$RUN/mods" --test-scenario funit --instrument-mod funit \
   --server-settings "$RUN/server-settings.json"
-# Wait for "====END====" in the output, then kill the process. Read
+# The test harness creates the player and exits after the run. Read
 # "$RUN/factorio/script-output/funit-report-*.json".
 ```
 

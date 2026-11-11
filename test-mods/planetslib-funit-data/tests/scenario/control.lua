@@ -1,8 +1,8 @@
 -- FUnit test scenario for PlanetsLib.
 --
 -- This thin scenario is copied to <Factorio user data>/scenarios/funit and
--- loaded headlessly with:
---   factorio --start-server-load-scenario funit --mod-directory <mods>
+-- loaded headlessly with Factorio's test command line:
+--   factorio --test-scenario funit --instrument-mod funit --mod-directory <mods>
 -- (see .github/workflows/funit.yml). The actual tests live in the companion mod
 -- under test-mods/planetslib-funit-data/tests/suites/ so that they are developed
 -- alongside the data-stage fixtures whose prototypes they assert on.

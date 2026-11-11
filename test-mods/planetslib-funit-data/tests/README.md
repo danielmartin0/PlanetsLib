@@ -64,10 +64,16 @@ useful when debugging the harness itself.
    (and the built-in `recycler` mod is enabled). The optional
    `planetslib-funit-settings` mod is also disabled. Set the three DLC entries
    to `"enabled": true` to run the full Space Age + Quality suite.
-5. Run:
+5. Run with Factorio's test command line. This is the same entry point the CI
+   action uses; it creates the test player, which the player-driven ground
+   digger tests need:
    ```
-   factorio --start-server-load-scenario funit --mod-directory <mods>
+   factorio --test-scenario funit --instrument-mod funit \
+     --mod-directory <mods> --server-settings <server-settings.json>
    ```
+   Do not use `--start-server-load-scenario` for the FUnit suite. That older
+   route does not create a player, so tests that use `game.players[1]` fail even
+   though they pass in CI.
 6. The report is written to
    `script-output/funit-report-planetslib-base.json`. The report name reflects
    the active DLC and entity-replacement setting; the CI scenarios use
