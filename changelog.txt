@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.5.0
-Date: ????
+Date: 2026-11-11
   Features:
     - Ground diggers copied from mining drills with drops_full_belt_stacks (such as the big mining drill) now batch their recipe output to match the owning force's belt stack size, allowing them to produce full belt stacks. PlanetsLib generates hidden recipe variants up to utility-constants.max_belt_stack_size, scales ingredients, products and craft time by an integer batch count, and adds the variants to mining-drill productivity effects. Variants are only used while the base recipe is unlocked, preserving research gating.
     - Ground diggers are tracked in a per-force storage table. Their recipe is re-evaluated when a digger is built or cloned, when a force researches or loses belt-stack technologies, when technologies or mods change, and when forces are merged, with a low-frequency reconciliation pass for script-driven force changes.
