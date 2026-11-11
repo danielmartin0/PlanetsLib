@@ -219,21 +219,46 @@ local function pick_recipe_for_entity(entry)
 	return pick_variant_for(entity.force.name, base)
 end
 
-local function spill_returned_items(entity, returned)
+---Returns items removed by set_recipe to the machine instead of dropping them.
+-- The output inventory is the requested destination; the input inventory and a
+-- final spill are safety nets for the rare case where the output is full.
+local function return_recipe_items_to_entity(entity, returned)
 	if not returned then
 		return
 	end
+	local output = entity.get_inventory(defines.inventory.crafter_output)
+	local input = entity.get_inventory(defines.inventory.crafter_input)
 	for _, item in pairs(returned) do
 		if item and item.name and item.count and item.count > 0 then
-			entity.surface.spill_item_stack({
-				position = entity.position,
-				stack = {
+			local remaining = item.count
+			if output then
+				local inserted = output.insert({
 					name = item.name,
-					count = item.count,
+					count = remaining,
 					quality = item.quality,
-				},
-				enable_looted = true,
-			})
+				})
+				remaining = remaining - math.min(inserted, remaining)
+			end
+			if remaining > 0 and input then
+				local inserted = input.insert({
+					name = item.name,
+					count = remaining,
+					quality = item.quality,
+				})
+				remaining = remaining - math.min(inserted, remaining)
+			end
+			-- Last-resort safety net: never delete items silently.
+			if remaining > 0 then
+				entity.surface.spill_item_stack({
+					position = entity.position,
+					stack = {
+						name = item.name,
+						count = remaining,
+						quality = item.quality,
+					},
+					enable_looted = true,
+				})
+			end
 		end
 	end
 end
@@ -262,7 +287,7 @@ local function update_entry(entry)
 		return true
 	end
 	local returned = entity.set_recipe(target, "normal")
-	spill_returned_items(entity, returned)
+	return_recipe_items_to_entity(entity, returned)
 	entity.recipe_locked = true
 	return true
 end
@@ -345,6 +370,7 @@ Public.reconcile = update_all
 Public.rebuild_storage = rebuild_storage
 Public.pick_variant_for = pick_variant_for
 Public.get_storage_summary = get_storage_summary
+Public.return_recipe_items_to_entity = return_recipe_items_to_entity
 
 local function get_cursor_info(player)
 	local cursor_stack = player.cursor_stack
