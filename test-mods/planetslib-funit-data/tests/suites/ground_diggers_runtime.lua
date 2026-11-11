@@ -9,6 +9,9 @@ local support = require("__planetslib-funit-data__.tests.suites.support")
 local MARKER = "PlanetsLib-has-ground-diggers"
 local DIGGER = "electric-mining-drill-ground-digger"
 local BURNER_DIGGER = "burner-mining-drill-ground-digger"
+local BATCH_DIGGER = "big-mining-drill-ground-digger"
+local BATCH_RECIPE = "funit-gd-recipe-b"
+local BATCH_PLANET = "funit-gd-planet-b"
 local DRILL_ITEM = "electric-mining-drill"
 
 local function run_with_cleanup(cleanup, fn)
@@ -738,6 +741,288 @@ return function(runner)
 				"the burner digger got the wrong planet recipe: " .. tostring(recipe_b.name)
 			)
 			runner.assert(burner_b.recipe_locked == true, "the burner digger was not locked on the allowing planet")
+		end)
+	end)
+
+	runner.test("GD-16 batching digger selects stack variants by force bonus", function()
+		local created = {}
+		local force = game.forces.player
+		local old_bonus = force.belt_stack_size_bonus
+		local base = force.recipes[BATCH_RECIPE]
+		local old_enabled = base and base.enabled
+		run_with_cleanup(function()
+			if base then
+				base.enabled = old_enabled
+			end
+			force.belt_stack_size_bonus = old_bonus
+			cleanup_surfaces(created)
+		end, function()
+			runner.assert(prototypes.entity[BATCH_DIGGER], "the big mining drill ground digger is missing")
+			runner.assert(base, "the base ground-digger recipe is missing")
+			base.enabled = true
+			force.belt_stack_size_bonus = 0
+			local surface = prepare_surface(runner, BATCH_PLANET, created, 1)
+			local digger = surface.create_entity({
+				name = BATCH_DIGGER,
+				position = { 0, 0 },
+				force = force,
+				raise_built = true,
+			})
+			runner.assert(digger, "could not create the batching digger")
+
+			local function assert_recipe(expected)
+				remote.call("planetslib_funit", "ground_digger_update_force", force.name)
+				local recipe = digger.get_recipe()
+				runner.assert(recipe, "the batching digger has no recipe")
+				runner.assert(
+					recipe.name == expected,
+					"expected recipe '" .. expected .. "', got '" .. tostring(recipe.name) .. "'"
+				)
+			end
+
+			assert_recipe(BATCH_RECIPE)
+			for bonus = 1, 4 do
+				force.belt_stack_size_bonus = bonus
+				assert_recipe(BATCH_RECIPE .. "-PlanetsLib-stack-" .. math.min(bonus + 1, 4))
+			end
+			force.belt_stack_size_bonus = 10
+			assert_recipe(BATCH_RECIPE .. "-PlanetsLib-stack-4")
+			runner.assert(digger.recipe_locked == true, "the batching digger's recipe is not locked")
+
+			-- A product that cannot stack on belts must keep the base recipe even
+			-- though variants exist up to the utility limit.
+			force.belt_stack_size_bonus = 3
+			local unstackable = remote.call(
+				"planetslib_funit",
+				"ground_digger_pick_variant",
+				force.name,
+				"funit-gd-recipe-unstackable"
+			)
+			runner.assert(
+				unstackable == "funit-gd-recipe-unstackable",
+				"an unstackable product selected a batched recipe: " .. tostring(unstackable)
+			)
+		end)
+	end)
+
+	runner.test("GD-17 drills without drops_full_belt_stacks keep the base recipe", function()
+		local created = {}
+		local force = game.forces.player
+		local old_bonus = force.belt_stack_size_bonus
+		run_with_cleanup(function()
+			force.belt_stack_size_bonus = old_bonus
+			cleanup_surfaces(created)
+		end, function()
+			force.belt_stack_size_bonus = 3
+			local surface = prepare_surface(runner, "funit-gd-planet", created, 1)
+			local digger = surface.create_entity({
+				name = DIGGER,
+				position = { 0, 0 },
+				force = force,
+				raise_built = true,
+			})
+			runner.assert(digger, "could not create the non-batching digger")
+			remote.call("planetslib_funit", "ground_digger_update_force", force.name)
+			local recipe = digger.get_recipe()
+			runner.assert(recipe, "the non-batching digger has no recipe")
+			runner.assert(
+				recipe.name == "funit-gd-recipe-a",
+				"a drill without drops_full_belt_stacks used a batched recipe: " .. tostring(recipe.name)
+			)
+		end)
+	end)
+
+	runner.test("GD-18 locked base recipe keeps the base recipe", function()
+		local created = {}
+		local force = game.forces.player
+		local old_bonus = force.belt_stack_size_bonus
+		local base = force.recipes[BATCH_RECIPE]
+		local old_enabled = base and base.enabled
+		run_with_cleanup(function()
+			if base then
+				base.enabled = old_enabled
+			end
+			force.belt_stack_size_bonus = old_bonus
+			cleanup_surfaces(created)
+		end, function()
+			runner.assert(base, "the base ground-digger recipe is missing")
+			force.belt_stack_size_bonus = 3
+			base.enabled = false
+			local surface = prepare_surface(runner, BATCH_PLANET, created, 1)
+			local digger = surface.create_entity({
+				name = BATCH_DIGGER,
+				position = { 0, 0 },
+				force = force,
+				raise_built = true,
+			})
+			runner.assert(digger, "could not create the batching digger")
+
+			remote.call("planetslib_funit", "ground_digger_update_force", force.name)
+			local recipe = digger.get_recipe()
+			runner.assert(recipe, "the locked batching digger has no recipe")
+			runner.assert(
+				recipe.name == BATCH_RECIPE,
+				"an unlocked variant was used while the base recipe was locked: " .. tostring(recipe.name)
+			)
+
+			base.enabled = true
+			remote.call("planetslib_funit", "ground_digger_update_force", force.name)
+			recipe = digger.get_recipe()
+			runner.assert(recipe, "the unlocked batching digger has no recipe")
+			runner.assert(
+				recipe.name == BATCH_RECIPE .. "-PlanetsLib-stack-4",
+				"the unlocked batching digger did not switch to the stack-4 recipe: " .. tostring(recipe.name)
+			)
+		end)
+	end)
+
+	runner.test("GD-19 storage is grouped by force and survives a rebuild", function()
+		local created = {}
+		local force = game.forces.player
+		local old_bonus = force.belt_stack_size_bonus
+		run_with_cleanup(function()
+			force.belt_stack_size_bonus = old_bonus
+			cleanup_surfaces(created)
+			pcall(function()
+				remote.call("planetslib_funit", "ground_digger_reconcile")
+			end)
+		end, function()
+			force.belt_stack_size_bonus = 2
+			remote.call("planetslib_funit", "ground_digger_rebuild_storage")
+			local surface = prepare_surface(runner, BATCH_PLANET, created, 1)
+			local digger = surface.create_entity({
+				name = BATCH_DIGGER,
+				position = { 0, 0 },
+				force = force,
+				raise_built = true,
+			})
+			runner.assert(digger, "could not create the batching digger")
+			remote.call("planetslib_funit", "ground_digger_update_force", force.name)
+
+			local summary = remote.call("planetslib_funit", "ground_digger_storage")
+			local bucket = summary[force.name]
+			runner.assert(bucket, "the digger's force has no storage bucket")
+			local entry = bucket[digger.unit_number]
+			runner.assert(entry, "the digger is not stored under its force")
+			runner.assert(entry.base_recipe == BATCH_RECIPE, "the stored base recipe is wrong")
+			runner.assert(
+				entry.recipe == BATCH_RECIPE .. "-PlanetsLib-stack-3",
+				"the stored active recipe is wrong: " .. tostring(entry.recipe)
+			)
+			runner.assert(entry.planet_name == BATCH_PLANET, "the stored planet name is wrong")
+
+			remote.call("planetslib_funit", "ground_digger_rebuild_storage")
+			summary = remote.call("planetslib_funit", "ground_digger_storage")
+			bucket = summary[force.name]
+			runner.assert(bucket, "rebuilding storage lost the force bucket")
+			runner.assert(
+				bucket[digger.unit_number],
+				"rebuilding storage did not rediscover the digger"
+			)
+		end)
+	end)
+
+	runner.test("GD-20 force change and force merge move the storage bucket", function()
+		local created = {}
+		local player_force = game.forces.player
+		local old_bonus = player_force.belt_stack_size_bonus
+		local base = player_force.recipes[BATCH_RECIPE]
+		local old_enabled = base and base.enabled
+		local other_name = "funit-gd-batch-force"
+		local other = game.forces[other_name]
+		run_with_cleanup(function()
+			if base then
+				base.enabled = old_enabled
+			end
+			player_force.belt_stack_size_bonus = old_bonus
+			other = game.forces[other_name]
+			if other then
+				pcall(function()
+					game.merge_forces(other, player_force)
+				end)
+			end
+			cleanup_surfaces(created)
+			pcall(function()
+				remote.call("planetslib_funit", "ground_digger_reconcile")
+			end)
+		end, function()
+			runner.assert(base, "the base ground-digger recipe is missing")
+			base.enabled = true
+			player_force.belt_stack_size_bonus = 0
+			other = game.forces[other_name]
+			if not other then
+				other = game.create_force(other_name)
+			end
+			other.belt_stack_size_bonus = 3
+
+			local surface = prepare_surface(runner, BATCH_PLANET, created, 1)
+			local digger = surface.create_entity({
+				name = BATCH_DIGGER,
+				position = { 0, 0 },
+				force = player_force,
+				raise_built = true,
+			})
+			runner.assert(digger, "could not create the batching digger")
+			remote.call("planetslib_funit", "ground_digger_update_force", player_force.name)
+			local recipe = digger.get_recipe()
+			runner.assert(recipe and recipe.name == BATCH_RECIPE, "the initial recipe is wrong")
+
+			-- Script-driven force change: there is no dedicated event, so the
+			-- reconciliation pass must move the entry and update the recipe.
+			digger.force = other
+			remote.call("planetslib_funit", "ground_digger_reconcile")
+			local summary = remote.call("planetslib_funit", "ground_digger_storage")
+			local old_bucket = summary[player_force.name]
+			runner.assert(
+				not (old_bucket and old_bucket[digger.unit_number]),
+				"the digger stayed in its old force's storage bucket"
+			)
+			local new_bucket = summary[other_name]
+			runner.assert(new_bucket, "the new force has no storage bucket")
+			runner.assert(new_bucket[digger.unit_number], "the digger was not moved to its new force")
+			recipe = digger.get_recipe()
+			runner.assert(
+				recipe and recipe.name == BATCH_RECIPE .. "-PlanetsLib-stack-4",
+				"the digger did not adopt the new force's stack-4 recipe: " .. tostring(recipe and recipe.name)
+			)
+
+			-- Merging the force must move the bucket and update the recipe to the
+			-- destination force's bonus.
+			-- Simulate the engine's post-merge state: entities have been
+			-- reassigned to the destination force, but the source force's storage
+			-- bucket is still present when on_forces_merged runs.
+			digger.force = player_force
+			remote.call("planetslib_funit", "ground_digger_merge_forces", other_name, player_force.name)
+			summary = remote.call("planetslib_funit", "ground_digger_storage")
+			local merged_bucket = summary[player_force.name]
+			local function summarize_storage(value)
+				local parts = {}
+				for force_name, bucket in pairs(value or {}) do
+					local units = {}
+					for unit_number in pairs(bucket) do
+						units[#units + 1] = tostring(unit_number)
+					end
+					parts[#parts + 1] = tostring(force_name) .. "={" .. table.concat(units, ",") .. "}"
+				end
+				return table.concat(parts, " ")
+			end
+			runner.assert(
+				merged_bucket and merged_bucket[digger.unit_number],
+				"the digger was not moved to the destination force; storage="
+					.. summarize_storage(summary)
+					.. " unit="
+					.. tostring(digger.unit_number)
+					.. " valid="
+					.. tostring(digger.valid)
+					.. " force="
+					.. tostring(digger.valid and digger.force and digger.force.name)
+			)
+			recipe = digger.get_recipe()
+			runner.assert(
+				recipe and recipe.name == BATCH_RECIPE,
+				"the merged digger did not adopt the destination force's base recipe: "
+					.. tostring(recipe and recipe.name)
+			)
 		end)
 	end)
 end

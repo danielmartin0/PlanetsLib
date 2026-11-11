@@ -57,6 +57,29 @@ local function effects_for(technology, recipe_name)
 	return matches
 end
 
+local function get_max_belt_stack_size(runner)
+	local constants = prototypes.utility_constants
+	runner.assert(constants, "prototypes.utility_constants is missing")
+	local value = constants.max_belt_stack_size
+	if value == nil then
+		local default = constants["default"]
+		if default then
+			value = default.max_belt_stack_size
+		end
+	end
+	runner.assert(type(value) == "number", "could not read utility-constants.max_belt_stack_size")
+	return value
+end
+
+local function find_product(recipe, name)
+	for _, product in ipairs(recipe.products or {}) do
+		if product.name == name then
+			return product
+		end
+	end
+	return nil
+end
+
 return function(runner)
 	if not script.active_mods["space-age"] then
 		return
@@ -274,6 +297,141 @@ return function(runner)
 					"the vanilla productivity change for '" .. recipe_name .. "' is wrong"
 				)
 			end
+		end
+	end)
+
+	runner.test("GD-13 belt-stack variants for a simple recipe", function()
+		assert_entry(runner, LATE_SUITE, "GD-1c")
+		local max_stack = get_max_belt_stack_size(runner)
+		runner.assert(max_stack >= 2, "the test scenario does not have belt stacking enabled")
+		runner.assert(max_stack <= 255, "utility-constants.max_belt_stack_size is out of range")
+
+		for stack = 2, max_stack do
+			local name = "funit-gd-recipe-a-PlanetsLib-stack-" .. stack
+			local recipe = prototypes.recipe[name]
+			runner.assert(recipe, "the stack-" .. stack .. " variant is missing")
+			runner.assert(recipe.hidden == true, "the stack-" .. stack .. " variant is not hidden")
+			runner.assert(recipe.enabled == true, "the stack-" .. stack .. " variant is not enabled")
+			runner.assert(
+				recipe.energy == stack,
+				"the stack-" .. stack .. " variant has the wrong energy requirement"
+			)
+			local stone = find_product(recipe, "stone")
+			runner.assert(stone, "the stack-" .. stack .. " variant does not produce stone")
+			runner.assert(stone.amount == stack, "the stack-" .. stack .. " variant has the wrong stone amount")
+		end
+
+		local metadata = prototypes.mod_data["Planetslib"].data.ground_digger_recipe_variants
+			and prototypes.mod_data["Planetslib"].data.ground_digger_recipe_variants["funit-gd-recipe-a"]
+		runner.assert(metadata, "the runtime variant metadata for funit-gd-recipe-a is missing")
+		runner.assert(metadata.max_stack == max_stack, "the metadata max_stack is wrong")
+		runner.assert(metadata.item_stack_size == 50, "the stone stack size was not recorded")
+		runner.assert(metadata.main_product == "stone", "the metadata main_product is wrong")
+		runner.assert(metadata.variants[1] == "funit-gd-recipe-a", "the metadata stack-1 entry is wrong")
+		for stack = 2, max_stack do
+			runner.assert(
+				metadata.variants[stack] == "funit-gd-recipe-a-PlanetsLib-stack-" .. stack,
+				"the metadata stack-" .. stack .. " entry is wrong"
+			)
+		end
+	end)
+
+	runner.test("GD-14 variants scale fluids, probabilities and extra counts", function()
+		local max_stack = get_max_belt_stack_size(runner)
+
+		local fluid_name = "funit-gd-recipe-fluid-PlanetsLib-stack-" .. max_stack
+		local fluid = prototypes.recipe[fluid_name]
+		runner.assert(fluid, "the fluid-product stack variant is missing")
+		local fluid_stone = find_product(fluid, "stone")
+		local fluid_water = find_product(fluid, "water")
+		runner.assert(fluid_stone, "the fluid-product variant lost its item product")
+		runner.assert(fluid_water, "the fluid-product variant lost its fluid product")
+		runner.assert(
+			fluid_stone.amount == max_stack,
+			"the fluid-product variant has the wrong item amount"
+		)
+		runner.assert(
+			fluid_water.amount == 10 * max_stack,
+			"the fluid-product variant has the wrong fluid amount"
+		)
+		runner.assert(
+			fluid.energy == max_stack,
+			"the fluid-product variant has the wrong energy requirement"
+		)
+
+		local double_metadata = prototypes.mod_data["Planetslib"].data.ground_digger_recipe_variants
+			and prototypes.mod_data["Planetslib"].data.ground_digger_recipe_variants["funit-gd-recipe-double"]
+		runner.assert(double_metadata, "the double-output variant metadata is missing")
+		runner.assert(
+			double_metadata.variants[2] == "funit-gd-recipe-double",
+			"a base recipe that already makes a full stack should use itself for stack 2"
+		)
+		if max_stack >= 3 then
+			local expected = "funit-gd-recipe-double-PlanetsLib-stack-4"
+			runner.assert(
+				double_metadata.variants[3] == expected,
+				"the stack-3 target did not map to a two-craft batch"
+			)
+			runner.assert(
+				prototypes.recipe[expected].products[1].amount == 4,
+				"the double-output batch has the wrong amount"
+			)
+			runner.assert(
+				prototypes.recipe[expected].energy == 2,
+				"the double-output batch has the wrong energy requirement"
+			)
+			runner.assert(
+				prototypes.recipe["funit-gd-recipe-double-PlanetsLib-stack-2"] == nil,
+				"an unnecessary stack-2 variant was generated"
+			)
+			runner.assert(
+				prototypes.recipe["funit-gd-recipe-double-PlanetsLib-stack-3"] == nil,
+				"an unnecessary stack-3 variant was generated"
+			)
+		end
+		if max_stack >= 4 then
+			runner.assert(
+				double_metadata.variants[4] == "funit-gd-recipe-double-PlanetsLib-stack-4",
+				"the stack-4 target did not reuse the stack-4 batch"
+			)
+		end
+
+		local probability = prototypes.recipe["funit-gd-recipe-probability-PlanetsLib-stack-2"]
+		runner.assert(probability, "the probability stack-2 variant is missing")
+		local probability_stone = find_product(probability, "stone")
+		local probability_copper = find_product(probability, "copper-ore")
+		runner.assert(probability_stone, "the probability variant lost its main product")
+		runner.assert(probability_copper, "the probability variant lost its secondary product")
+		runner.assert(
+			probability_stone.amount == 3,
+			"extra_count_fraction was not converted into a guaranteed extra item"
+		)
+		runner.assert(
+			probability_stone.extra_count_fraction == nil,
+			"the converted extra_count_fraction should be nil"
+		)
+		runner.assert(
+			probability_copper.amount == 2,
+			"the probabilistic product amount was not scaled"
+		)
+		runner.assert(
+			probability_copper.independent_probability == 0.25,
+			"the probabilistic product probability changed"
+		)
+	end)
+
+	runner.test("GD-15 unstackable products still get variants up to the utility limit", function()
+		local max_stack = get_max_belt_stack_size(runner)
+		local metadata = prototypes.mod_data["Planetslib"].data.ground_digger_recipe_variants
+			and prototypes.mod_data["Planetslib"].data.ground_digger_recipe_variants["funit-gd-recipe-unstackable"]
+		runner.assert(metadata, "the unstackable recipe metadata is missing")
+		runner.assert(metadata.item_stack_size == 1, "the unstackable item stack size was not recorded")
+		runner.assert(metadata.max_stack == max_stack, "the unstackable metadata max_stack is wrong")
+		for stack = 2, max_stack do
+			runner.assert(
+				prototypes.recipe["funit-gd-recipe-unstackable-PlanetsLib-stack-" .. stack],
+				"unstackable variants should still be generated up to the utility limit"
+			)
 		end
 	end)
 end

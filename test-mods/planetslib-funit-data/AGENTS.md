@@ -72,6 +72,15 @@ remote.call("planetslib_funit", "on_entity_built", event)
 remote.call("planetslib_funit", "ground_digger_collisions", surface, position, digger_prototype_name)
 remote.call("planetslib_funit", "revive_ground_digger_ghost", ghost)
 remote.call("planetslib_funit", "select_digger_ghost", colliding_entities, digger_name, position)
+remote.call("planetslib_funit", "ground_digger_storage")
+remote.call("planetslib_funit", "ground_digger_update_force", force_name)
+remote.call("planetslib_funit", "ground_digger_update_all")
+remote.call("planetslib_funit", "ground_digger_pick_variant", force_name, base_recipe)
+remote.call("planetslib_funit", "ground_digger_register", entity, base_recipe)
+remote.call("planetslib_funit", "ground_digger_unregister", entity)
+remote.call("planetslib_funit", "ground_digger_rebuild_storage")
+remote.call("planetslib_funit", "ground_digger_reconcile")
+remote.call("planetslib_funit", "ground_digger_merge_forces", source_name, destination_name)
 remote.call("planetslib_funit", "on_configuration_changed", configuration_changed_data)
 remote.call("planetslib_funit", "migrate_entity_replacement_rules", old_rules)
 remote.call("planetslib_funit", "orientations_differ", first, second)
@@ -255,8 +264,8 @@ do not hardcode totals here. Check the files for the current state.
 
 | Suite | IDs | What to cover |
 | --- | --- | --- |
-| `ground_diggers_data` | GD-1..5 | `enable_ground_diggers` validation, option normalisation (array + dictionary), late final-fixes call; `is_eligible_drill` exclusions (fluid output, resource-site-only drills, non-square, no item, quality/resource-named, `do_not_generate_variants`); `create_ground_digger` field mapping/stripping/drain/surface condition/flags; `generate_ground_diggers` shared naming, recipe-category union, planet surface property, Factoriopedia note once, missing planet/recipe errors, `drills`/`blacklist`; mining-productivity effects. Fixtures: `ground_diggers_data`, `ground_diggers_late`. |
-| `ground_diggers_runtime` | GD-6..12 | Built digger gets and locks the planet recipe; non-participating planet not converted; surface conditions respected; `construct_ground_digger` (no resources → convert, resources → no convert, collision, hidden tile, reach, remote-view ghost, wrong quality, cursor consumption + build stats); remote-view ghost without reach. |
+| `ground_diggers_data` | GD-1..5, GD-13..15 | `enable_ground_diggers` validation, option normalisation (array + dictionary), late final-fixes call; `is_eligible_drill` exclusions (fluid output, resource-site-only drills, non-square, no item, quality/resource-named, `do_not_generate_variants`); `create_ground_digger` field mapping/stripping/drain/surface condition/flags; `generate_ground_diggers` shared naming, recipe-category union, planet surface property, Factoriopedia note once, missing planet/recipe errors, `drills`/`blacklist`; mining-productivity effects; belt-stack variant generation, scaling, probabilities, fluid products, integer batching, item stack-size metadata and idempotent late regeneration. Fixtures: `ground_diggers_data`, `ground_diggers_late`. |
+| `ground_diggers_runtime` | GD-6..12, GD-16..20 | Built digger gets and locks the planet recipe; non-participating planet not converted; surface conditions respected; `construct_ground_digger` (no resources → convert, resources → no convert, collision, hidden tile, reach, remote-view ghost, wrong quality, cursor consumption + build stats); remote-view ghost without reach; `drops_full_belt_stacks` batching gate, force bonus variant selection, research gating, per-force storage, rebuild, force changes and force merges. |
 
 ### E. Runtime features and overrides
 
@@ -340,6 +349,27 @@ Consequences:
   or manual `orbits.apply_native_orbit` on freshly created prototypes.
 
 ---
+
+### Integration with real planet mods
+
+`test-mods/planetslib-ground-digger-integration` is a development-only FUnit
+scenario for the two known ground-digger users. It is not part of the CI matrix
+because it needs `planet-muluna`, `maraxsis` and their dependency trees.
+
+To run it:
+
+1. Build a mod directory containing `funit`, PlanetsLib (the working tree), the
+   integration mod, `planet-muluna`, `maraxsis`, `rigor-module` and every required
+   dependency of those mods.
+2. Copy `test-mods/planetslib-ground-digger-integration/tests/scenario` to
+   `<write-data>/scenarios/gd-integration`.
+3. Enable those mods in `mod-list.json` and start
+   `--start-server-load-scenario gd-integration`.
+4. Read `script-output/funit-report-planetslib-gd-integration.json`.
+
+The suite checks the real recipe scaling (including Muluna's `shared_probability`
+and Rigor fields), the exact six-variant recipe budget, big-mining-drill batching,
+electric-drill non-batching, research gating, and per-force storage.
 
 ## 5. Known / suspected bugs the suite should pin down
 
