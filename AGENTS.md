@@ -88,7 +88,7 @@ prototypes/                 Data-stage prototypes (tiles, custom events/inputs, 
   override-final/           Overrides applied in data-final-fixes.lua
   surface-property/         Atmosphere, planet-string, temperature
 scripts/                    Runtime helpers required by control.lua (cargo-pods, entity-replacement,
-                            recipe-effects, rocket-parts, unreachable-techs, player-effects, custom-events,
+                            recipe-effects, rocket-parts, unreachable-techs, custom-events,
                             entity-removal-floors)
 locale/<lang>/              Localisation (.cfg). Add keys to existing files.
 graphics/                   Shared icons/entities (entity/, icons/)

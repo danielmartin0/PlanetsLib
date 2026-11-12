@@ -276,7 +276,7 @@ do not hardcode totals here. Check the files for the current state.
 | `entity_removal_floors` | ERF-1..22 | Data-stage rule configuration and validation; queueing simple-entity, plant, tree, and container deconstructions, tile-ghost creation and cancellation; safe floors and unrelated ghosts; premature re-marks; losing the floor; unconfigured planets; destroyed queued entities; reissuing deconstruction after the floor is built; undo cleanup; default/fallback tile selection; selected non-default tiles; buildability of the selected tile on the unsafe footprint tile; stationary roboport coverage; multi-tile off-grid footprint bounds; robot-built floor cleanup after drops are gone; player-built floors kept; real construction-robot delivery; direct grouped mod-data rules; test-surface cleanup. |
 | `rocket_parts` | RP-1..4 | `on_built_rocket_silo` recipe assignment/default/`_other`, lock behaviour, auto-lock heuristic, ghost silo, non-rocket ignore; `fits_surface_conditions`. Fixture: `rocket_parts_setup`. |
 | `cargo_pods` | CARGO-1..6 | Cargo-drop technology per space location + `nothing` effect; disallowed cargo pod destroyed, cargo to hub, throttled warning; whitelist variants (global/per-planet item/type + legacy); on-platform detection; deprecated remote interface add/remove; `init_storage` idempotence. |
-| `unreachable_techs` | URT-1..4 | Hidden-prerequisite warnings + truncation; `warn_unlinked_prerequisites`; author auto-unban vs normal ban; on-join tick-0 warning gated by setting. |
+| `unreachable_techs` | URT-1, URT-2, URT-4 | Hidden-prerequisite warnings + truncation; `warn_unlinked_prerequisites`; on-join tick-0 warning gated by setting. |
 | `recipe_effects` | REC-1..3 | Data prep (`add_to_stats`, `ignored_by_stats`, `amount_minus_ignored_by_productivity`, `inverse_batch_count`, `no_probability`, tooltip, fluid error); runtime no/shared/independent probability, batching, returned items to crafter input, production stats, `on_crafted_event` assertion; `storage.entity_info` cache create/clear. Fixture: `recipe_effects_setup`. |
 | `remote_interfaces` | REM-1 | `PlanetsLib_transfer_storage` save/get/purge round-trip; missing key. |
 | `smoke` (done) | SMOKE-1..5 | Results bag exists; every `suite` fixture entry passed; expected prototypes present. New fixtures must add their own namespace assertions in their suite (do not overload `smoke`). |
@@ -415,10 +415,10 @@ Fixed while implementing these suites (each has a regression test):
     per-planet entries and entity types as vetoes. It now allows an item when
     any legacy whitelist entry (global/per-planet, name/type) matches, restoring
     the pre-refactor behaviour. (CARGO)
-11. **`on_player_banned` nil `by_player`** (fixed) — `scripts/player-effects.lua`
-    dereferenced `game.players[event.by_player].name`, but `by_player` is
-    optional for script/server-console bans. It now falls back to `"server"`.
-    (URT)
+11. *(Removed feature)* **Author auto-unban** — `scripts/player-effects.lua`
+    and `lib/authors.lua` were deleted, so PlanetsLib no longer registers an
+    `on_player_banned` handler and cannot override a ban. The former
+    nil-`by_player` guard went with the handler. (URT)
 12. **`assign_entity_replacement` planet-list recursion** (fixed) — the planet
     key was derived before expanding a planet list, leaving a non-string key in
     the rule tables; the recursion also dropped `name_suffix` and indexed by the

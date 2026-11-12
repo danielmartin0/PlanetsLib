@@ -1,15 +1,14 @@
--- Runtime tests for scripts/unreachable-techs.lua and scripts/player-effects.lua.
+-- Runtime tests for scripts/unreachable-techs.lua.
 --
--- Both modules are required into this Lua state (the headless FUnit scenario),
--- so their global reads (`prototypes`, `game`, `log`) can be replaced with
--- small test doubles for the duration of a test. This never touches PlanetsLib's
--- own runtime Lua state.
+-- The module is required into this Lua state (the headless FUnit scenario), so
+-- its global reads (`prototypes`, `game`, `log`) can be replaced with small
+-- test doubles for the duration of a test. This never touches PlanetsLib's own
+-- runtime Lua state.
 --
 -- URT-1..2 drive warn_unreachable_techs / warn_unlinked_prerequisites with fake
--- prototype tables. URT-3 drives the on_player_banned handler obtained from the
--- direct require of scripts/player-effects.lua. URT-4 asserts the real on-join
--- gating through the `should_warn_on_join` / `warn_on_join` seams, then also
--- routes the event through FUnit's mocker to prove the handler is registered.
+-- prototype tables. URT-4 asserts the real on-join gating through the
+-- `should_warn_on_join` / `warn_on_join` seams, then also routes the event
+-- through FUnit's mocker to prove the handler is registered.
 
 local function seam(name)
 	local iface = remote.interfaces["planetslib_funit"]
@@ -62,14 +61,8 @@ local function make_environment(options)
 	local environment = {
 		game = {
 			tick = options.tick or 0,
-			players = options.players or {},
 			print = function(message, print_settings)
 				prints[#prints + 1] = { message = message, settings = print_settings }
-			end,
-			unban_player = function(player_name)
-				if options.on_unban then
-					options.on_unban(player_name)
-				end
 			end,
 		},
 		prototypes = {
@@ -119,18 +112,6 @@ end
 return function(runner)
 	local unreachable_techs = require("__PlanetsLib__.scripts.unreachable-techs")
 	local mock = require("__funit__.mock")
-
-	-- scripts/player-effects.lua registers its handler when required. Capture the
-	-- handler and restore whatever was registered before it, so this suite does
-	-- not leave an extra on_player_banned handler behind.
-	local previous_banned_handler = script.get_event_handler(defines.events.on_player_banned)
-	local player_effects_ok, player_effects_err = pcall(function()
-		_G.PlanetsLib = _G.PlanetsLib or {}
-		require("__PlanetsLib__.lib.authors")
-		require("__PlanetsLib__.scripts.player-effects")
-	end)
-	local player_effects_handler = script.get_event_handler(defines.events.on_player_banned)
-	script.on_event(defines.events.on_player_banned, previous_banned_handler)
 
 	runner.test("URT-1 hidden-prerequisite warnings and truncation", function()
 		-- Three visible successors: all are reported, hidden successors are not.
@@ -339,91 +320,6 @@ return function(runner)
 			not tostring(prints[1].message[3][2]):find("due to hidden prerequisite", 1, true),
 			"the hidden-prerequisite warning should not also be printed when unlinked prerequisites exist"
 		)
-	end)
-
-	runner.test("URT-3 PlanetsLib authors are auto-unbanned, other players are not", function()
-		runner.assert(
-			player_effects_ok,
-			"could not install scripts/player-effects.lua: " .. tostring(player_effects_err)
-		)
-		runner.assert(
-			player_effects_handler ~= nil,
-			"scripts/player-effects.lua did not register an on_player_banned handler"
-		)
-
-		local authors = _G.PlanetsLib and _G.PlanetsLib.authors
-		runner.assert(type(authors) == "table", "PlanetsLib.authors was not loaded")
-		runner.assert(authors.thesixthroc == true, "thesixthroc should be a PlanetsLib author")
-		runner.assert(authors.MeteorSwarm == true, "MeteorSwarm should be a PlanetsLib author")
-
-		local unban_calls = {}
-		local prints = {}
-		local environment = {
-			game = {
-				tick = 0,
-				players = { [7] = { name = "funit-admin" } },
-				unban_player = function(player_name)
-					unban_calls[#unban_calls + 1] = player_name
-				end,
-				print = function(message)
-					prints[#prints + 1] = message
-				end,
-			},
-		}
-
-		with_environment(environment, function()
-			player_effects_handler({ player_name = "thesixthroc", by_player = 7, reason = "funit" })
-		end)
-
-		runner.assert(
-			#unban_calls == 1 and unban_calls[1] == "thesixthroc",
-			"thesixthroc was not auto-unbanned"
-		)
-		runner.assert(
-			#prints == 2,
-			"the author auto-unban should print the blank spacer and the ban notice, got " .. #prints
-		)
-		runner.assert(
-			type(prints[2]) == "table" and prints[2][1] == "player-was-banned",
-			"the ban notice did not use the player-was-banned localisation key"
-		)
-
-		unban_calls = {}
-		prints = {}
-		with_environment(environment, function()
-			player_effects_handler({ player_name = "MeteorSwarm", by_player = 7, reason = "funit" })
-		end)
-
-		runner.assert(
-			#unban_calls == 1 and unban_calls[1] == "MeteorSwarm",
-			"MeteorSwarm was not auto-unbanned"
-		)
-		runner.assert(#prints == 2, "the second author auto-unban should print two messages, got " .. #prints)
-
-		unban_calls = {}
-		prints = {}
-		with_environment(environment, function()
-			player_effects_handler({ player_name = "funit-outsider", by_player = 7, reason = "funit" })
-		end)
-
-		runner.assert(#unban_calls == 0, "a non-author must not be unbanned")
-		runner.assert(#prints == 0, "a non-author ban must not print the author notice")
-
-		-- `by_player` is optional: it is nil for script/server-console bans. The
-		-- handler must not raise and should still print the ban notice.
-		unban_calls = {}
-		prints = {}
-		local ok_missing, err_missing = pcall(function()
-			with_environment(environment, function()
-				player_effects_handler({ player_name = "thesixthroc", reason = "funit" })
-			end)
-		end)
-		runner.assert(
-			ok_missing,
-			"on_player_banned raised when by_player was absent: " .. tostring(err_missing)
-		)
-		runner.assert(#unban_calls == 1, "the author was not unbanned when by_player was absent")
-		runner.assert(#prints == 2, "the ban notice was not printed when by_player was absent")
 	end)
 
 	runner.test("URT-4 on-join tick-0 warning is gated by PlanetsLib-warn-on-hidden-prerequisites", function()
