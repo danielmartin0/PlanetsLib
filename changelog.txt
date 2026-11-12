@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.5.1
+Date: 2026-11-12
+  Bugfixes:
+    - Placing a mining drill that has a ground digger on an ore patch no longer shows a "Can't build" label for the ore. The regular drill was built anyway, the ore only went through the in-the-way check for the digger.
+---------------------------------------------------------------------------------------------------
 Version: 2.5.0
 Date: 2026-11-11
   Features:

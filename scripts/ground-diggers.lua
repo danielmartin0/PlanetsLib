@@ -628,6 +628,9 @@ function Public.construct_ground_digger(event)
 	rro.remove(colliding_entities,function(entry) return entry.type == "entity-ghost" end)
 	rro.remove(colliding_entities,function(entry) return entry.has_flag("not-on-map") end)
 	rro.remove(colliding_entities,function(entry) return entry.name == "maraxsis-water-shader" end)
+	-- Ore under the drill is not in the way: the neighboring_resources check below
+	-- leaves it to the regular mining drill without a label.
+	rro.remove(colliding_entities,function(entry) return entry.type == "resource" end)
     if #colliding_entities ~= 0 then 
 		player.create_local_flying_text({
 			text = { "cant-build-reason.entity-in-the-way", colliding_entities[1] },
