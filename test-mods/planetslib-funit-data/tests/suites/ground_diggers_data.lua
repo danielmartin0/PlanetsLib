@@ -211,6 +211,10 @@ return function(runner)
 		)
 	end)
 
+	runner.test("GD-3c all-surface diggers delete surface conditions", function()
+		assert_entry(runner, LATE_SUITE, "GD-3c")
+	end)
+
 	runner.test("GD-4 generation, late registration and error paths", function()
 		assert_entries(runner, LATE_SUITE, { "GD-4a", "GD-4b", "GD-4c", "GD-4d", "GD-4e", "GD-4f" })
 		assert_entry(runner, LATE_SUITE, "GD-1c")

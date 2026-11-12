@@ -70,6 +70,7 @@ remote.call("planetslib_funit", "on_built_entity", event, swap_target, dont_rais
 remote.call("planetslib_funit", "construct_ground_digger", event)
 remote.call("planetslib_funit", "on_entity_built", event)
 remote.call("planetslib_funit", "ground_digger_collisions", surface, position, digger_prototype_name)
+remote.call("planetslib_funit", "ground_digger_warning_entities", surface, position, digger_prototype_name)
 remote.call("planetslib_funit", "revive_ground_digger_ghost", ghost)
 remote.call("planetslib_funit", "select_digger_ghost", colliding_entities, digger_name, position)
 remote.call("planetslib_funit", "ground_digger_storage")
@@ -265,8 +266,8 @@ do not hardcode totals here. Check the files for the current state.
 
 | Suite | IDs | What to cover |
 | --- | --- | --- |
-| `ground_diggers_data` | GD-1..5, GD-13..15 | `enable_ground_diggers` validation, option normalisation (array + dictionary), late final-fixes call; `is_eligible_drill` exclusions (fluid output, resource-site-only drills, non-square, no item, quality/resource-named, `do_not_generate_variants`); `create_ground_digger` field mapping/stripping/drain/surface condition/flags; `generate_ground_diggers` shared naming, recipe-category union, planet surface property, Factoriopedia note once, missing planet/recipe errors, `drills`/`blacklist`; mining-productivity effects; belt-stack variant generation, scaling, probabilities, fluid products, integer batching, item stack-size metadata and idempotent late regeneration. Fixtures: `ground_diggers_data`, `ground_diggers_late`. |
-| `ground_diggers_runtime` | GD-6..12, GD-16..21 | Built digger gets and locks the planet recipe; non-participating planet not converted; surface conditions respected; `construct_ground_digger` (no resources → convert, resources → no convert, collision, hidden tile, reach, remote-view ghost, wrong quality, cursor consumption + build stats); remote-view ghost without reach; `drops_full_belt_stacks` batching gate, force bonus variant selection, research gating, per-force storage, rebuild, force changes and force merges, returned recipe items placed back into the machine. |
+| `ground_diggers_data` | GD-1..5, GD-13..15 | `enable_ground_diggers` validation, option normalisation (array + dictionary), late final-fixes call; `is_eligible_drill` exclusions (fluid output, resource-site-only drills, non-square, no item, quality/resource-named, `do_not_generate_variants`); `create_ground_digger` field mapping/stripping/drain/surface condition/flags, including deletion of all-surface conditions and of the participating-planet condition when every planet participates (GD-3c); `generate_ground_diggers` shared naming, recipe-category union, planet surface property, Factoriopedia note once, missing planet/recipe errors, `drills`/`blacklist`; mining-productivity effects; belt-stack variant generation, scaling, probabilities, fluid products, integer batching, item stack-size metadata and idempotent late regeneration. Fixtures: `ground_diggers_data`, `ground_diggers_late`. |
+| `ground_diggers_runtime` | GD-6..12, GD-16..21 | Built digger gets and locks the planet recipe; non-participating planet not converted; surface conditions respected; `construct_ground_digger` (no resources → convert, resources → no convert and no collision warning, collision, hidden tile, reach, remote-view ghost, wrong quality, cursor consumption + build stats); remote-view ghost without reach; `drops_full_belt_stacks` batching gate, force bonus variant selection, research gating, per-force storage, rebuild, force changes and force merges, returned recipe items placed back into the machine. |
 
 ### E. Runtime features and overrides
 
@@ -527,6 +528,18 @@ Fixed while implementing these suites (each has a regression test):
     told the player not to save even though the orientation was preserved. The
     check now uses a 1e-4 wrap-aware tolerance and the replacement returns the
     mismatch flag for the regression test. (ENT-13j, issue #139)
+34. **Ground-digger warning over resources** (fixed) — the early
+    `entity-in-the-way` scan counted resource entities, so placing an ordinary
+    mining drill on a resource patch showed the digger warning. The resource
+    check now runs before any placement feedback, and the warning scan ignores
+    resources. (GD-8)
+35. **All-surface conditions copied to diggers** (fixed) — generated ground
+    diggers inherited mining-drill surface conditions even when the condition
+    had no bounds and therefore restricted nothing. Those redundant conditions
+    are now deleted, and the participating-planet condition is omitted when
+    every planet has a ground digger rule, so the digger no longer shows an
+    empty construction surface conditions tooltip. Actually restrictive
+    conditions are still inherited. (GD-3, GD-3c)
 
 Still open / needs a decision:
 

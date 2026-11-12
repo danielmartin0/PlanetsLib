@@ -453,6 +453,68 @@ record("GD-3", function()
 	assert(#base.flags == 1, "the source drill's flags were mutated")
 	assert(base.mining_speed == 2.5, "the source drill's mining_speed was mutated")
 
+	-- Surface conditions that allow every surface do not restrict the digger and are
+	-- deleted instead of being inherited. Only the participating-planet condition
+	-- should remain.
+	local unrestricted = table.deepcopy(base)
+	unrestricted.name = "funit-gd-unrestricted-drill"
+	unrestricted.surface_conditions = {
+		{ property = "pressure" },
+		{ property = "temperature", min = -math.huge, max = math.huge },
+	}
+	local unrestricted_digger = ground_diggers.create_ground_digger(
+		unrestricted,
+		"funit-gd-unrestricted-digger",
+		"electric-mining-drill",
+		categories
+	)
+	assert(
+		#unrestricted_digger.surface_conditions == 1,
+		"all-surface conditions should be deleted from the digger, got "
+			.. #unrestricted_digger.surface_conditions
+	)
+	assert(
+		unrestricted_digger.surface_conditions[1].property == MARKER,
+		"the digger should only keep the participating-planet surface condition"
+	)
+
+	-- An empty condition list also allows every surface.
+	local empty_conditions = table.deepcopy(base)
+	empty_conditions.name = "funit-gd-empty-conditions-drill"
+	empty_conditions.surface_conditions = {}
+	local empty_conditions_digger = ground_diggers.create_ground_digger(
+		empty_conditions,
+		"funit-gd-empty-conditions-digger",
+		"electric-mining-drill",
+		categories
+	)
+	assert(
+		#empty_conditions_digger.surface_conditions == 1
+			and empty_conditions_digger.surface_conditions[1].property == MARKER,
+		"an empty condition list should still produce only the participating-planet condition"
+	)
+
+	-- A condition with a real bound still restricts the digger and must be kept.
+	local bounded = table.deepcopy(base)
+	bounded.name = "funit-gd-bounded-drill"
+	bounded.surface_conditions = { { property = "pressure", min = 0 } }
+	local bounded_digger = ground_diggers.create_ground_digger(
+		bounded,
+		"funit-gd-bounded-digger",
+		"electric-mining-drill",
+		categories
+	)
+	assert(#bounded_digger.surface_conditions == 2, "a bounded surface condition was deleted")
+	assert(
+		bounded_digger.surface_conditions[1].property == "pressure"
+			and bounded_digger.surface_conditions[1].min == 0,
+		"the bounded surface condition was changed"
+	)
+	assert(
+		bounded_digger.surface_conditions[2].property == MARKER,
+		"the bounded digger is missing the participating-planet condition"
+	)
+
 	-- The categories argument is deep-copied, not aliased.
 	digger.crafting_categories[1] = "mutated"
 	assert(categories[1] == "funit-gd-category-a", "the categories argument was aliased")

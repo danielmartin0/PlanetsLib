@@ -449,4 +449,78 @@ record("GD-5", function()
 	end
 end)
 
+-- GD-3c: when every planet participates, the hidden participating-planet condition
+-- would allow every surface, so the generated diggers must not list any surface
+-- conditions. Restrictive inherited conditions must still survive.
+record("GD-3c", function()
+	local configs = get_configs()
+	local temporary_planets = {}
+	local saved_configs = {}
+	local saved_markers = {}
+
+	local function snapshot_marker(planet_name)
+		if saved_markers[planet_name] == nil then
+			local planet = data.raw["planet"][planet_name]
+			saved_markers[planet_name] = {
+				planet = planet,
+				value = planet.surface_properties and planet.surface_properties[MARKER] or nil,
+			}
+		end
+	end
+
+	local function restore()
+		for _, planet_name in ipairs(temporary_planets) do
+			configs[planet_name] = saved_configs[planet_name]
+		end
+		for _, saved in pairs(saved_markers) do
+			local planet = saved.planet
+			if planet then
+				planet.surface_properties = planet.surface_properties or {}
+				planet.surface_properties[MARKER] = saved.value
+			end
+		end
+		ground_diggers.generate_ground_diggers()
+	end
+
+	local ok, err = pcall(function()
+		for planet_name in pairs(data.raw["planet"]) do
+			snapshot_marker(planet_name)
+			if not configs[planet_name] then
+				temporary_planets[#temporary_planets + 1] = planet_name
+				saved_configs[planet_name] = nil
+				configs[planet_name] = {
+					recipe = "funit-gd-recipe-a",
+					drills = { ["electric-mining-drill"] = true },
+				}
+			end
+		end
+
+		ground_diggers.generate_ground_diggers()
+
+		local digger = data.raw["assembling-machine"]["electric-mining-drill-ground-digger"]
+		assert(digger, "the shared electric mining drill digger is missing")
+		assert(
+			digger.surface_conditions == nil,
+			"all-surface diggers should have no surface conditions"
+		)
+
+		local conditioned = data.raw["assembling-machine"]["funit-gd-conditioned-drill-ground-digger"]
+		assert(conditioned, "the conditioned drill's shared digger is missing")
+		local count = 0
+		for _, condition in ipairs(conditioned.surface_conditions or {}) do
+			count = count + 1
+			assert(
+				condition.property ~= MARKER,
+				"the participating-planet condition should be deleted when every planet participates"
+			)
+		end
+		assert(count == 1, "the conditioned digger should keep exactly one inherited condition")
+	end)
+
+	restore()
+	if not ok then
+		error(err, 0)
+	end
+end)
+
 return true
