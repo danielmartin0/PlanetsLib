@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.5.1
+Date: 2026-11-11
+  Bugfixes:
+    - Placing a mining drill on resources on a planet with ground diggers no longer shows the ground-digger "entity in the way" warning. The placement now recognises the resources before checking for digger collisions, so the ordinary mining drill is placed without misleading feedback.
+    - Generated ground diggers no longer carry surface conditions that allow every surface. Redundant inherited conditions are deleted, and the hidden participating-planet condition is omitted when every planet has a ground digger rule, so the digger no longer shows an empty construction surface conditions tooltip. Restrictive conditions are still inherited.
+---------------------------------------------------------------------------------------------------
 Version: 2.5.0
 Date: 2026-11-11
   Features:
