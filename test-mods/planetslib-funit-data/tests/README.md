@@ -109,7 +109,7 @@ remote.call("planetslib_funit", "replace_entity", entity, "new-entity", false)
 
 Available seam functions: `replace_entity`, `on_built_entity`,
 `construct_ground_digger`, `on_entity_built`, `ground_digger_collisions`,
-`revive_ground_digger_ghost`, `select_digger_ghost`,
+`ground_digger_warning_entities`, `revive_ground_digger_ghost`, `select_digger_ghost`,
 `ground_digger_storage`, `ground_digger_update_force`,
 `ground_digger_update_all`, `ground_digger_pick_variant`,
 `ground_digger_register`, `ground_digger_unregister`,

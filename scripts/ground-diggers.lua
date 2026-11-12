@@ -514,11 +514,60 @@ function Public.find_build_collisions(surface, position, digger_prototype)
 		local entity = colliding_entities[i]
 		-- Corpses and characters do not block construction: the engine allows
 		-- building under the player, and the character itself is not an obstacle.
-		if entity.type == "corpse" or entity.type == "character" then
+		-- Resources do not block construction either: on them the player is placing
+		-- an ordinary mining drill, so they must not trigger a digger warning.
+		if entity.type == "corpse" or entity.type == "character" or entity.type == "resource" then
 			table.remove(colliding_entities, i)
 		end
 	end
 	return colliding_entities
+end
+
+---Entities that show the custom entity-in-the-way warning for a ground digger.
+-- This deliberately scans the visual footprint without a collision mask, so it warns
+-- for objects that would visually overlap the digger. Corpses, characters, ghosts,
+-- resources and map-hidden visuals do not produce the custom warning: resources mean
+-- an ordinary mining drill is being placed, and ghosts keep the vanilla build overlay.
+-- @param surface LuaSurface
+-- @param position MapPosition
+-- @param digger_prototype LuaEntityPrototype|string A prototype or a prototype name.
+-- @return table List of LuaEntity
+function Public.find_build_warning_entities(surface, position, digger_prototype)
+	if type(digger_prototype) == "string" then
+		digger_prototype = prototypes.entity[digger_prototype]
+	end
+	if not (surface and surface.valid and position and digger_prototype) then
+		return {}
+	end
+
+	local selection_box = digger_prototype.selection_box
+	local width, height = get_selection_box_size(digger_prototype)
+	if not selection_box or not width or not height or width <= 0 or height <= 0 or width ~= height then
+		return {}
+	end
+
+	local entities = surface.find_entities_filtered({
+		area = {
+			{
+				position.x + selection_box.left_top.x,
+				position.y + selection_box.left_top.y,
+			},
+			{
+				position.x + selection_box.right_bottom.x,
+				position.y + selection_box.right_bottom.y,
+			},
+		},
+		to_be_deconstructed = false,
+	})
+	rro.remove(entities, function(entry)
+		return entry.type == "corpse"
+			or entry.type == "character"
+			or entry.type == "entity-ghost"
+			or entry.type == "resource"
+			or entry.has_flag("not-on-map")
+			or entry.name == "maraxsis-water-shader"
+	end)
+	return entities
 end
 
 ---Selects the ground-digger ghost closest to the cursor.
@@ -599,43 +648,51 @@ function Public.construct_ground_digger(event)
 		return
 	end
 	local drill_prototype = mining_drill_prototypes[drill_name]
-	--If mining drill not square, this code can't cleanly handle it, so while mod-data should ideally not contain this drill,
-    --this check allows them to exist in mod-data without crashing.
-	local selection_box = drill_prototype.selection_box
-	--game.print(serpent.block(selection_box))
-    local offset_width = math.abs(selection_box.left_top.x - selection_box.right_bottom.x)
-    local offset_height = math.abs(selection_box.left_top.y - selection_box.right_bottom.y)
-	--game.print(offset_width)
-    local margin = 0
-    local rounded_position = {
-        x = math.ceil(position.x) - 0.5,
-        y = math.ceil(position.y) - 0.5
-    }
-	--game.print(serpent.block(rounded_position))
-	
-	
-    if offset_width ~= offset_height then return end 
+	if not drill_prototype then
+		return
+	end
 
-    local colliding_entities = surface.find_entities_filtered{
-            area= {{rounded_position.x-offset_width/2+margin,rounded_position.y-offset_height/2+margin},{rounded_position.x+offset_width/2-margin,rounded_position.y+offset_height/2-margin}},
-            to_be_deconstructed = false,
-        }
-    rro.remove(colliding_entities,function(entry) return entry.type == "corpse" end)
-	rro.remove(colliding_entities,function(entry) return entry.type == "character" end)
+	-- Decide whether this is a digger placement before showing any placement feedback:
+	-- a drill placed over resources is an ordinary mining drill, not a ground digger,
+	-- so it must never show the digger's object-collision warning.
+	local radius = drill_prototype.get_mining_drill_radius(quality)
+	local neighboring_resources = surface.find_entities_filtered({
+		-- Search for resources to see if a regular mining drill would be placed.
+		area = {
+			{ position.x - radius, position.y - radius },
+			{ position.x + radius, position.y + radius },
+		},
+		type = { "resource" },
+	})
+	if #neighboring_resources ~= 0 then
+		return -- If neighboring resources exist, then place a regular mining drill instead.
+	end
+
+	--If mining drill not square, this code can't cleanly handle it, so while mod-data should ideally not contain this drill,
+	--this check allows them to exist in mod-data without crashing.
+	local width, height = get_selection_box_size(drill_prototype)
+	if not width or not height or width <= 0 or height <= 0 or width ~= height then
+		return
+	end
+
+	local digger_prototype = prototypes.entity[digger_name]
+	if not digger_prototype then
+		return
+	end
+
 	-- Ghosts are handled by the later footprint check. Suppress the custom
 	-- entity-in-the-way label for them so the vanilla build overlay remains
 	-- visible instead of being replaced by a PlanetsLib warning.
-	rro.remove(colliding_entities,function(entry) return entry.type == "entity-ghost" end)
-	rro.remove(colliding_entities,function(entry) return entry.has_flag("not-on-map") end)
-	rro.remove(colliding_entities,function(entry) return entry.name == "maraxsis-water-shader" end)
-    if #colliding_entities ~= 0 then 
+	local warning_entities = Public.find_build_warning_entities(surface, position, digger_prototype)
+	if #warning_entities ~= 0 then
 		player.create_local_flying_text({
-			text = { "cant-build-reason.entity-in-the-way", colliding_entities[1] },
+			text = { "cant-build-reason.entity-in-the-way", warning_entities[1] },
 			surface = surface,
 			create_at_cursor = true,
 			speed = 0.01,
 		})
-	return end
+		return
+	end
 
 	if surface.get_tile(position).hidden_tile then
 		player.create_local_flying_text({
@@ -668,34 +725,7 @@ function Public.construct_ground_digger(event)
 	end
 	
 
-	local drill_prototype = prototypes.entity[drill_name]
-	if not drill_prototype then
-		return
-	end
 	if not surface_conditions_met(surface, drill_prototype) then
-		return
-	end
-	local digger_prototype = prototypes.entity[digger_name]
-	if not digger_prototype then
-		return
-	end
-
-	local radius = drill_prototype.get_mining_drill_radius(quality)
-	local neighboring_resources = surface.find_entities_filtered({
-		-- Search for resources to see if a regular mining drill would be placed.
-		area = {
-			{ position.x - radius, position.y - radius },
-			{ position.x + radius, position.y + radius },
-		},
-		type = { "resource" },
-	})
-	if #neighboring_resources ~= 0 then
-		return -- If neighboring resources exist, then place a regular mining drill instead.
-	end
-
-	-- If the mining drill is not square, this code can't cleanly handle the collision box.
-	local width, height = get_selection_box_size(drill_prototype)
-	if not width or not height or width <= 0 or height <= 0 or width ~= height then
 		return
 	end
 

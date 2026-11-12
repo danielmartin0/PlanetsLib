@@ -465,6 +465,9 @@ if script.active_mods["funit"] then
 		ground_digger_collisions = function(surface, position, digger_prototype_name)
 			return ground_diggers.find_build_collisions(surface, position, digger_prototype_name)
 		end,
+		ground_digger_warning_entities = function(surface, position, digger_prototype_name)
+			return ground_diggers.find_build_warning_entities(surface, position, digger_prototype_name)
+		end,
 		revive_ground_digger_ghost = function(ghost)
 			return ground_diggers.revive_ground_digger_ghost(ghost)
 		end,

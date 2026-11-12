@@ -29,7 +29,7 @@ Because the prototypes are shared, the planet's `recipe` cannot be baked into th
 
 Diggers are also restricted to planets that enabled the feature: PlanetsLib adds a hidden surface property to each participating planet, and every digger prototype requires it. A digger blueprint therefore cannot be built on a planet that hasn't called this function.
 
-Placement also respects the mining drill's own surface conditions. If the drill cannot be placed on the planet (for example, a chemical burner drill on an oxygen-less planet), it will not be converted into a ground digger there. Builds in remote view are placed as ground-digger ghosts without the reach limit; the ghost becomes a recipe-bearing digger when it is built.
+Placement also respects the mining drill's own surface conditions. If the drill cannot be placed on the planet (for example, a chemical burner drill on an oxygen-less planet), it will not be converted into a ground digger there. Conditions that allow every surface are not copied to the digger, because they do not restrict placement; the digger only lists the conditions that actually restrict it. When every planet has a ground digger rule, the hidden participating-planet condition is also omitted, because it no longer restricts the digger and would otherwise show an empty construction surface conditions tooltip. Builds in remote view are placed as ground-digger ghosts without the reach limit; the ghost becomes a recipe-bearing digger when it is built.
 
 ### Eligible mining drills
 
@@ -89,7 +89,7 @@ Limitations:
 
 ### Build warning
 
-Because ground diggers can replace a mining drill placed without nearby resources, the vanilla warning shown in that situation is misleading. PlanetsLib blanks the `cant-build-reason.no-resource-for-drill` locale key so the warning is not shown.
+Because ground diggers can replace a mining drill placed without nearby resources, the vanilla warning shown in that situation is misleading. PlanetsLib blanks the `cant-build-reason.no-resource-for-drill` locale key so the warning is not shown. The custom ground-digger "entity in the way" warning is only shown for real blocking objects; resources, characters, corpses and ghosts do not trigger it, so placing an ordinary mining drill on a resource patch does not show misleading digger feedback.
 
 ### Known limitations
 

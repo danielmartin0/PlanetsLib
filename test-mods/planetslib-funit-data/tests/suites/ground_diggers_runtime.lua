@@ -392,13 +392,26 @@ return function(runner)
 			runner.assert(recipe and recipe.name == "funit-gd-recipe-a", "the converted digger has the wrong recipe")
 			digger.destroy()
 
-			-- Resources nearby: leave the normal drill alone.
+			-- Resources under/near the drill: leave the normal drill alone, and never
+			-- report the resource as a ground-digger collision (which would show the
+			-- entity-in-the-way warning while placing an ordinary mining drill).
 			set_cursor(5)
 			local resource = surface.create_entity({
 				name = "iron-ore",
-				position = { 6, 0 },
+				position = { 4, 0 },
 			})
 			runner.assert(resource, "could not create the resource used by the no-conversion check")
+			local warning_entities = remote.call(
+				"planetslib_funit",
+				"ground_digger_warning_entities",
+				surface,
+				{ x = 4, y = 0 },
+				DIGGER
+			)
+			runner.assert(
+				#warning_entities == 0,
+				"a resource would show the ground-digger entity-in-the-way warning"
+			)
 			local resource_count = stack_count()
 			construct({ x = 4, y = 0 })
 			assert_no_digger({ 4, 0 }, "a drill with nearby resources was converted into a digger")

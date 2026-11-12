@@ -124,6 +124,73 @@ function Public.ground_digger_name(drill_name)
 	return drill_name .. "-ground-digger"
 end
 
+-- Factorio treats a missing condition bound as the lowest/highest double, so a
+-- condition with no bounds (or only the full double range) does not restrict the
+-- entity at all.
+local LOWEST_DOUBLE = -1.7976931348623157e308
+local HIGHEST_DOUBLE = 1.7976931348623157e308
+
+---Whether a surface condition allows every surface.
+-- Such conditions are redundant on a generated digger and are not inherited, so the
+-- digger only lists the participating-planet condition.
+-- @param condition table
+-- @return boolean
+local function condition_allows_all_surfaces(condition)
+	if type(condition) ~= "table" then
+		return false
+	end
+	local min = condition.min
+	local max = condition.max
+	if min == nil and max == nil then
+		return true
+	end
+	return (min == nil or min <= LOWEST_DOUBLE) and (max == nil or max >= HIGHEST_DOUBLE)
+end
+
+---Whether every planet has a ground-digger configuration.
+-- When every planet participates, the hidden participating-planet condition no longer
+-- restricts the digger and only produces an empty-looking surface conditions tooltip,
+-- so it is omitted.
+-- @return boolean
+local function all_planets_have_ground_diggers()
+	local has_planet = false
+	for planet_name in pairs(data.raw["planet"] or {}) do
+		has_planet = true
+		local config = PlanetsLib.constants.ground_diggers[planet_name]
+		if not (config and config.recipe) then
+			return false
+		end
+	end
+	return has_planet
+end
+
+---Builds the surface conditions for a generated ground digger.
+-- Inherited conditions that allow every surface are deleted. The participating-planet
+-- condition is also omitted when every planet participates, because then it restricts
+-- nothing. Returns nil when no conditions remain so the prototype has no empty table.
+-- @param drill table The mining drill prototype.
+-- @param include_participating_condition boolean
+-- @return table|nil
+local function get_ground_digger_surface_conditions(drill, include_participating_condition)
+	local conditions = {}
+	for _, condition in ipairs(drill.surface_conditions or {}) do
+		if not condition_allows_all_surfaces(condition) then
+			conditions[#conditions + 1] = util.table.deepcopy(condition)
+		end
+	end
+	if include_participating_condition then
+		conditions[#conditions + 1] = {
+			property = SURFACE_PROPERTY_NAME,
+			min = 1,
+			max = 1,
+		}
+	end
+	if #conditions == 0 then
+		return nil
+	end
+	return conditions
+end
+
 ---Creates the hidden shared surface property used to restrict diggers to participating planets.
 local function ensure_ground_digger_surface_property()
 	if data.raw["surface-property"][SURFACE_PROPERTY_NAME] then
@@ -206,15 +273,11 @@ function Public.create_ground_digger(drill, digger_name, item_name, categories)
 	digger.localised_description = { "entity-description.PlanetsLib-ground-digger" }
 	digger.hidden_in_factoriopedia = false
 
-	-- Keep the drill's own surface conditions, then additionally restrict the digger to
-	-- planets that enabled ground diggers.
-	local conditions = drill.surface_conditions and util.table.deepcopy(drill.surface_conditions) or {}
-	table.insert(conditions, {
-		property = SURFACE_PROPERTY_NAME,
-		min = 1,
-		max = 1,
-	})
-	digger.surface_conditions = conditions
+	-- Keep the drill's own restrictive surface conditions, then additionally restrict
+	-- the digger to planets that enabled ground diggers. Conditions that allow every
+	-- surface are redundant, so they are deleted instead of copied. The participating
+	-- condition is also omitted when every planet participates.
+	digger.surface_conditions = get_ground_digger_surface_conditions(drill, not all_planets_have_ground_diggers())
 
 	-- Fields that only make sense on mining drills.
 	digger.mining_speed = nil
@@ -734,6 +797,7 @@ function Public.generate_ground_diggers()
 	local generated_variants = generate_recipe_variants(recipes)
 
 	-- Pass 3: create (or refresh) the shared prototype for each drill.
+	local include_participating_condition = not all_planets_have_ground_diggers()
 	local processed = {}
 	for _, config in pairs(planets) do
 		for item_name, info in pairs(config.diggers or {}) do
@@ -743,6 +807,33 @@ function Public.generate_ground_diggers()
 				local existing = data.raw["assembling-machine"][info.digger]
 				if existing then
 					existing.crafting_categories = util.table.deepcopy(categories_list)
+					-- Refresh only our participating-planet condition; leave any other
+					-- conditions a mod may have added to the shared prototype alone.
+					if include_participating_condition then
+						local has_condition = false
+						for _, condition in ipairs(existing.surface_conditions or {}) do
+							if condition.property == SURFACE_PROPERTY_NAME then
+								has_condition = true
+								break
+							end
+						end
+						if not has_condition then
+							existing.surface_conditions = existing.surface_conditions or {}
+							table.insert(existing.surface_conditions, {
+								property = SURFACE_PROPERTY_NAME,
+								min = 1,
+								max = 1,
+							})
+						end
+					elseif existing.surface_conditions then
+						local conditions = {}
+						for _, condition in ipairs(existing.surface_conditions) do
+							if condition.property ~= SURFACE_PROPERTY_NAME then
+								conditions[#conditions + 1] = condition
+							end
+						end
+						existing.surface_conditions = #conditions > 0 and conditions or nil
+					end
 				else
 					data:extend({
 						Public.create_ground_digger(drill, info.digger, item_name, categories_list),
