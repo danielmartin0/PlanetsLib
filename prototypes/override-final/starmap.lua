@@ -3,6 +3,10 @@ local orbits = require("lib.orbits")
 
 local Public = {}
 local starmap_layers = {}
+-- Prevent PlanetsLib from overriding starmap sprites added by other mods which don't rely on PlanetsLib
+if data.raw["utility-sprites"]["default"].starmap_star then
+    starmap_layers = data.raw["utility-sprites"]["default"].starmap_star.layers or {}
+end
 
 -- Orbits help us construct the system. In data-final-fixes, it's now better to rely on the game variables (distance and orientation) for the position of each space location for compatibility reasons.
 
