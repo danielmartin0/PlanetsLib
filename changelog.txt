@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.5.3
+Date: 2026-11-12
+  Compatibility:
+    - PlanetsLib no longer removes other starmap layers added prior to its starmap algorithm.
+---------------------------------------------------------------------------------------------------
 Version: 2.5.2
 Date: 2026-11-12
   Changes:
