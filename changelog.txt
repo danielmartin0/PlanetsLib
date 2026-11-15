@@ -5,7 +5,7 @@ Date: 2026-11-12
     - PlanetsLib no longer removes other starmap layers added prior to its starmap algorithm.
 ---------------------------------------------------------------------------------------------------
 Version: 2.5.2
-Date: 2026-11-12
+Date: 2026-11-15
   Changes:
     - Removed scripting that could interfere with player bans.
 ---------------------------------------------------------------------------------------------------
