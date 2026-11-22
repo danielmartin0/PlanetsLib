@@ -18,20 +18,20 @@ PlanetsLib reserves two special property values for runtime scripts set up durin
 
 ## Surface conditions
 
-#### New surface properties
+### New surface properties
 
 PlanetsLib includes a variety of surface properties, all of which are either hidden or disabled by default. To enable a surface property, modders must add the following line to settings-updates.lua (using 'oxygen' as an example):
 
 `data.raw["bool-setting"]["PlanetsLib-enable-oxygen"].forced_value = true`
 
 
-#### Air temperature/Freezing property
+### Air temperature/Freezing property
 
 Planetslib automatically adds the `is-freezing` surface property to any [[PlanetPrototype]] that [requires heating](https://lua-api.factorio.com/latest/prototypes/PlanetPrototype.html#entities_require_heating). A value of 0 means that it does not require heating for the buildings, a value of 1 means that it is. Treat it as up as a "boolean" or on/off value.
 Can be set to one on a plent that does not require heating, if it still has a mechanic that is built around it being cold.
 ![Surface property](/docs-images/freezing-point.png)
 
-#### Restricting and relaxing conditions
+### Restricting and relaxing conditions
 
 Typically, when planet mods want to modify a surface condition, what they are trying to do is restrict or relax the range of values for which that recipe or entity is allowed.
 
