@@ -6,11 +6,9 @@ sidebar_label: Special Planet Properties
 
 PlanetsLib allows the addition of "special properties", values which can be displayed as surface properties, but are not intended to be used as surface properties. These properties are used during data-final-fixes and in control scripts to execute certain behavior.
 
-* `PlanetsLib.set_special_properties(planet(table or string),properties(table))` -> `table` — Sets the special properties of a planet. Can not be called during data-final-fixes. `properties` is deep-copied, and later calls merge into the existing values instead of replacing the whole table.
-* `PlanetsLib.get_special_property(planet(table or string),property(string))` -> `any` — Returns the value of a single special property, or `nil` if the planet or property has no value. If `property` is omitted, returns the whole `special_properties` table (or `nil`).
-* `PlanetsLib.get_special_properties(planet(table or string))` -> `table or nil` — Returns the entire `special_properties` table of a planet, or `nil` if none are defined.
-
-`PlanetsLib:extend()` and `PlanetsLib:update()` reject a `special_properties` field as invalid. Use `set_special_properties` instead, before data-final-fixes.
+* `PlanetsLib.set_special_properties(planet(table or string),properties(table))` -> `table` — Sets the special properties of a planet. Can not be called during data-final-fixes.
+* `PlanetsLib.get_special_property(planet(table or string),property(string))` -> `table` — Returns the value of a single special property.
+* `PlanetsLib.get_special_properties(planet(table or string))` -> `table` — Returns the entire `special_properties` table of a planet.
 
 ### Hardcoded Special Properties
 PlanetsLib reserves two special property values for runtime scripts set up during data-final-fixes. They are displayed as surface properties in game. If no mods define these properties, they are not displayed.
@@ -26,9 +24,12 @@ PlanetsLib includes a variety of surface properties, all of which are either hid
 
 `data.raw["bool-setting"]["PlanetsLib-enable-oxygen"].forced_value = true`
 
-#### Planet string limitation
 
-The legacy planet-string surface property (`planet-str`) and the `parent-planet-str` surface property encode a planet name in a double. Only names of six characters or fewer are guaranteed to round-trip; seven- and eight-character names can be truncated or corrupted because a double only has 53 bits of integer precision. This affects the legacy `PlanetsLib.restrict_to_surface` helper. Prefer `PlanetsLib.restrict_to_planet` when possible, because it uses a dedicated hidden surface property instead of encoding the planet name.
+#### Freezing property
+
+Planetslib automatically adds the `is-freezing` surface property to any [[PlanetPrototype]] that [requires heating](https://lua-api.factorio.com/latest/prototypes/PlanetPrototype.html#entities_require_heating). A value of 0 means that it does not require heating for the buildings, a value of 1 means that it is. Treat it as up as a "boolean" or on/off value.
+Can be set to one on a plent that does not require heating, if it still has a mechanic that is built around it being cold.
+![Surface property](/docs-images/freezing-point.png)
 
 #### Restricting and relaxing conditions
 
@@ -47,3 +48,4 @@ NOTE: Calling `relax_surface_conditions` without a `min` field will not remove a
 
 * `PlanetsLib.remove_surface_condition(recipe_or_entity, "magnetic-field")` — Removes all `magnetic-field` surface conditions.
 * `PlanetsLib.remove_surface_condition(recipe_or_entity, {property = "magnetic-field", max = 120})` — Removes all surface conditions that exactly match the provided condition.
+
