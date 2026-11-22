@@ -24,6 +24,9 @@ PlanetsLib includes a variety of surface properties, all of which are either hid
 
 `data.raw["bool-setting"]["PlanetsLib-enable-oxygen"].forced_value = true`
 
+### Planet string limitation
+
+The legacy planet-string surface property (`planet-str`) and the `parent-planet-str` surface property encode a planet name in a double. Only names of six characters or fewer are guaranteed to round-trip; seven- and eight-character names can be truncated or corrupted because a double only has 53 bits of integer precision. This affects the legacy `PlanetsLib.restrict_to_surface` helper. Prefer `PlanetsLib.restrict_to_planet` when possible, because it uses a dedicated hidden surface property instead of encoding the planet name.
 
 ### Air temperature/Freezing property
 
