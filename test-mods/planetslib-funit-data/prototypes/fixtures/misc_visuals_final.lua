@@ -219,7 +219,7 @@ if SPACE_AGE then
 		local property = data.raw["surface-property"]["is-freezing"]
 		assert(property, "the is-freezing surface-property is missing")
 		assert(property.default_value == 0, "is-freezing should default to 0")
-		assert(property.hidden == false, "is-freezing should be visible")
+		assert(property.hidden == nil, "is-freezing should be visible")
 		local planet = data.raw.planet["funit-visual-freezing"]
 		assert(planet, "funit-visual-freezing is missing")
 		assert(
