@@ -151,7 +151,7 @@ return function(runner)
 		local property = prototypes.surface_property["is-freezing"]
 		runner.assert(property, "the is-freezing surface-property is missing")
 		runner.assert(property.default_value == 0, "is-freezing should default to 0")
-		runner.assert(property.hidden == true, "is-freezing should be hidden")
+		runner.assert(property.hidden == false, "is-freezing should be visible")
 
 		local freezing = prototypes.space_location["funit-visual-freezing"]
 		runner.assert(freezing, "funit-visual-freezing is missing")
