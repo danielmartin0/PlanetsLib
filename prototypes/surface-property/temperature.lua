@@ -3,7 +3,7 @@ if settings.startup["PlanetsLib-enable-temperature"].value == true then
 		{
 			type = "surface-property",
 			name = "temperature",
-			default_value = 288,
+			default_value = 288
 		},
 	})
 
@@ -24,6 +24,5 @@ data:extend({
 		type = "surface-property",
 		name = "is-freezing",
 		default_value = 0,
-		hidden=true
 	},
 })

@@ -20,17 +20,25 @@ PlanetsLib reserves two special property values for runtime scripts set up durin
 
 ## Surface conditions
 
-#### New surface properties
+### New surface properties
 
 PlanetsLib includes a variety of surface properties, all of which are either hidden or disabled by default. To enable a surface property, modders must add the following line to settings-updates.lua (using 'oxygen' as an example):
 
 `data.raw["bool-setting"]["PlanetsLib-enable-oxygen"].forced_value = true`
 
-#### Planet string limitation
+### Planet string limitation
 
 The legacy planet-string surface property (`planet-str`) and the `parent-planet-str` surface property encode a planet name in a double. Only names of six characters or fewer are guaranteed to round-trip; seven- and eight-character names can be truncated or corrupted because a double only has 53 bits of integer precision. This affects the legacy `PlanetsLib.restrict_to_surface` helper. Prefer `PlanetsLib.restrict_to_planet` when possible, because it uses a dedicated hidden surface property instead of encoding the planet name.
 
-#### Restricting and relaxing conditions
+### Air temperature/Freezing property
+
+PlanetsLib automatically adds the `is-freezing` surface property to any [[PlanetPrototype]] that [requires heating](https://lua-api.factorio.com/latest/prototypes/PlanetPrototype.html#entities_require_heating). A value of 0 means that it does not require heating for the buildings, a value of 1 means that it does. Treat it as a "boolean" or on/off value.
+
+Can be set to one on a planet that does not require heating, if it still has a mechanic that is built around it being cold.
+
+![Surface property](/docs-images/freezing-point.png)
+
+### Restricting and relaxing conditions
 
 Typically, when planet mods want to modify a surface condition, what they are trying to do is restrict or relax the range of values for which that recipe or entity is allowed.
 
@@ -47,3 +55,4 @@ NOTE: Calling `relax_surface_conditions` without a `min` field will not remove a
 
 * `PlanetsLib.remove_surface_condition(recipe_or_entity, "magnetic-field")` — Removes all `magnetic-field` surface conditions.
 * `PlanetsLib.remove_surface_condition(recipe_or_entity, {property = "magnetic-field", max = 120})` — Removes all surface conditions that exactly match the provided condition.
+
