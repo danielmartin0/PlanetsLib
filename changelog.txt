@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.5.4
-Date: ????
+Date: 2026-11-24
   Changes:
     - PlanetsLib now adds the `is-freezing` surface property to any PlanetPrototype that requires heating. A value of 0 means that it does not require heating for the buildings, a value of 1 means that it does.
 ---------------------------------------------------------------------------------------------------
