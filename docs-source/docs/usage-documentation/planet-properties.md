@@ -6,9 +6,11 @@ sidebar_label: Special Planet Properties
 
 PlanetsLib allows the addition of "special properties", values which can be displayed as surface properties, but are not intended to be used as surface properties. These properties are used during data-final-fixes and in control scripts to execute certain behavior.
 
-* `PlanetsLib.set_special_properties(planet(table or string),properties(table))` -> `table` — Sets the special properties of a planet. Can not be called during data-final-fixes.
-* `PlanetsLib.get_special_property(planet(table or string),property(string))` -> `table` — Returns the value of a single special property.
-* `PlanetsLib.get_special_properties(planet(table or string))` -> `table` — Returns the entire `special_properties` table of a planet.
+* `PlanetsLib.set_special_properties(planet(table or string),properties(table))` -> `table` — Sets the special properties of a planet. Can not be called during data-final-fixes. `properties` is deep-copied, and later calls merge into the existing values instead of replacing the whole table.
+* `PlanetsLib.get_special_property(planet(table or string),property(string))` -> `any` — Returns the value of a single special property, or `nil` if the planet or property has no value. If `property` is omitted, returns the whole `special_properties` table (or `nil`).
+* `PlanetsLib.get_special_properties(planet(table or string))` -> `table or nil` — Returns the entire `special_properties` table of a planet, or `nil` if none are defined.
+
+`PlanetsLib:extend()` and `PlanetsLib:update()` reject a `special_properties` field as invalid. Use `set_special_properties` instead, before data-final-fixes.
 
 ### Hardcoded Special Properties
 PlanetsLib reserves two special property values for runtime scripts set up during data-final-fixes. They are displayed as surface properties in game. If no mods define these properties, they are not displayed.
@@ -30,9 +32,9 @@ The legacy planet-string surface property (`planet-str`) and the `parent-planet-
 
 ### Air temperature/Freezing property
 
-Planetslib automatically adds the `is-freezing` surface property to any [[PlanetPrototype]] that [requires heating](https://lua-api.factorio.com/latest/prototypes/PlanetPrototype.html#entities_require_heating). A value of 0 means that it does not require heating for the buildings, a value of 1 means that it is. Treat it as up as a "boolean" or on/off value.
+PlanetsLib automatically adds the `is-freezing` surface property to any [[PlanetPrototype]] that [requires heating](https://lua-api.factorio.com/latest/prototypes/PlanetPrototype.html#entities_require_heating). A value of 0 means that it does not require heating for the buildings, a value of 1 means that it does. Treat it as a "boolean" or on/off value.
 
-Can be set to one on a plent that does not require heating, if it still has a mechanic that is built around it being cold.
+Can be set to one on a planet that does not require heating, if it still has a mechanic that is built around it being cold.
 
 ![Surface property](/docs-images/freezing-point.png)
 
