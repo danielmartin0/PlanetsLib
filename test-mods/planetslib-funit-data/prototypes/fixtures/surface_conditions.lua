@@ -1,6 +1,68 @@
 -- Data-stage fixture: restrict_to_planet / restrict_to_surface (these create
--- surface-property prototypes and write to data.raw).
+-- surface-property prototypes and write to data.raw), and the data-stage
+-- default_value fallback in fits_surface_conditions.
 local results = require("lib.results")
+
+-- The planet omits the property, so fits_surface_conditions has to read the
+-- surface-property prototype's default_value. A condition that excludes that
+-- default does not fit; a condition that includes it does. This only needs a
+-- surface-property prototype, which exists without Space Age.
+local lookup_ok, lookup_err = pcall(function()
+	assert(
+		PlanetsLib.current_stage == "data",
+		"this check must run during the data stage, got " .. tostring(PlanetsLib.current_stage)
+	)
+	assert(
+		PlanetsLib.stage ~= "runtime",
+		"fits_surface_conditions must take its data-stage branch, got stage " .. tostring(PlanetsLib.stage)
+	)
+
+	local property_name = "funit-unset-surface-property"
+	local default_value = 7
+	data:extend({
+		{
+			type = "surface-property",
+			name = property_name,
+			default_value = default_value,
+		},
+	})
+
+	local property = data.raw["surface-property"][property_name]
+	assert(property, "the test surface-property was not created")
+	assert(property.default_value == default_value, "the test surface-property default_value changed")
+
+	-- Other properties may be set. This one must not be, or the helper would
+	-- read the planet value instead of the prototype default.
+	local planet = {
+		name = "funit-unset-surface-property-planet",
+		surface_properties = {
+			["funit-other-surface-property"] = 1,
+		},
+	}
+	assert(planet.surface_properties[property_name] == nil, "the planet must not set the tested property")
+
+	local surface_properties = require("__PlanetsLib__.lib.surface-property-lib")
+	local excludes_default = {
+		surface_conditions = {
+			{ property = property_name, min = default_value + 1, max = default_value + 2 },
+		},
+	}
+	assert(
+		not surface_properties.fits_surface_conditions(excludes_default, planet),
+		"a condition that excludes the default_value should not fit"
+	)
+
+	local includes_default = {
+		surface_conditions = {
+			{ property = property_name, min = default_value, max = default_value },
+		},
+	}
+	assert(
+		surface_properties.fits_surface_conditions(includes_default, planet),
+		"a condition that includes the default_value should fit"
+	)
+end)
+results.record("surface_conditions", "SFC-DATA-2", lookup_ok, lookup_err)
 
 -- Surface conditions require the space-travel feature, so this fixture cannot
 -- create a valid condition in a base-only game.

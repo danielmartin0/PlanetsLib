@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.5.5
 Date: ????
-  Changes:
+  Bugfixes:
+    - Fixed a crash in fits_surface_conditions during the data stage when a planet doesn't set a property used in an entity's surface conditions.
 ---------------------------------------------------------------------------------------------------
 Version: 2.5.4
 Date: 2026-11-24
