@@ -21,7 +21,7 @@ function Public.fits_surface_conditions(entity,luaSurface)
         --if not planet.surface_properties then return true end
             for _,condition in pairs(entity.surface_conditions) do
                 local property = condition.property
-                local value = luaSurface.surface_properties and luaSurface.surface_properties[property] or data.raw.surface_property[property].default_value
+                local value = luaSurface.surface_properties and luaSurface.surface_properties[property] or data.raw["surface-property"][property].default_value
                 if (condition.max and value > condition.max) or (condition.min and value < condition.min) then
                     return false
                 end

@@ -107,7 +107,7 @@ return function(runner)
 			allow_skips["SFC-DATA-1"] = true
 		end
 		support.assert_all(runner, "surface_conditions", {
-			expected = { "SFC-DATA-1" },
+			expected = { "SFC-DATA-1", "SFC-DATA-2" },
 			allow_skips = allow_skips,
 		})
 	end)
@@ -169,5 +169,9 @@ return function(runner)
 			tostring(err):find("surface_conditions", 1, true),
 			"the missing-surface_conditions error should mention the field"
 		)
+	end)
+
+	runner.test("SFC-7 fits_surface_conditions data-stage default property lookup", function()
+		support.assert_entry(runner, "surface_conditions", "SFC-DATA-2")
 	end)
 end
